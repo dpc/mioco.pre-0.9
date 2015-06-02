@@ -1,0 +1,3 @@
+language: rust
+script:
+  - make build test doc

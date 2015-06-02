@@ -1,0 +1,2 @@
+PKG_NAME=hex2d
+DEFAULT_TARGET=build
