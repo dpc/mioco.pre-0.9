@@ -1,3 +1,14 @@
+// Copyright 2015 Dawid Ciężarkiewicz <dpc@dpc.pw>
+// See LICENSE-MPL2 file for more information.
+
+//! Coroutine-based handler library for mio
+//!
+//! Using coroutines, an event-based mio model can be simplified to a set of routines, seamlessly
+//! scheduled on demand in userspace.
+//!
+//! Using `mioco` a single input consuming and single output producing routine can be used to
+//! handle each connection.
+
 extern crate mio;
 extern crate coroutine;
 extern crate nix;
@@ -17,6 +28,11 @@ impl fmt::Display for Coroutine {
               )
     }
 }
+
+/// Coroutine handling single `mio` connection
+///
+/// Create with `new`, and call `readable` and `writeable` from
+/// main `mio` main `Handler`.
 pub struct Coroutine {
     coroutine : coroutine::coroutine::Handle,
     io: Arc<RefCell<IO>>,
@@ -38,6 +54,10 @@ struct IO {
     stream: mio::tcp::TcpStream,
 }
 
+/// IO Handler passed to routine running inside `mioco` `Coroutine`.
+///
+/// It implements standard library `Read` and `Write` traits that will
+/// take care of blocking and unblocking coroutine when needed.
 #[derive(Clone)]
 pub struct IOHandle {
     io : Arc<RefCell<IO>>
@@ -49,6 +69,11 @@ unsafe impl Send for IOHandle {
 }
 
 impl Coroutine {
+
+    /// Create a `mioco` coroutine handler
+    ///
+    /// `f` is routine handling connection. It should not use any blocking operations,
+    /// and use it's argument for all IO with it's peer
     pub fn new<F, H>(
         stream: mio::tcp::TcpStream, event_loop: &mut mio::EventLoop<H>, token: mio::Token, f : F
         ) -> Coroutine
@@ -91,10 +116,14 @@ impl Coroutine {
             coroutine
         }
 
+    /// Is this mioco coroutine ready to reclaim?
     pub fn is_finished(&self) -> bool {
         self.io.borrow().state == State::Finished && self.interest == mio::Interest::none()
     }
 
+    /// Readable event handler
+    ///
+    /// This is based on `mio`'s `readable` method in `Handler` trait.
     pub fn readable<H>(&mut self, event_loop: &mut mio::EventLoop<H>, token: mio::Token, hint: mio::ReadHint)
         where H : mio::Handler {
 
@@ -111,6 +140,9 @@ impl Coroutine {
             self.reregister(event_loop, token)
         }
 
+    /// Readable event handler
+    ///
+    /// This is based on `mio`'s `writeable` method in `Handler` trait.
     pub fn writable<H>(&mut self, event_loop: &mut mio::EventLoop<H>, token: mio::Token)
         where H : mio::Handler {
 
@@ -199,7 +231,7 @@ impl io::Write for IOHandle {
         }
     }
 
-    /* TODO */
+    /* TODO: Should we pass flush to TcpStream/ignore? */
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }
