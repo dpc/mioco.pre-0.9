@@ -1,3 +1,13 @@
 language: rust
+rust:
+  - nightly
+env:
+  - DOCS_DEFAULT_MODULE=mioco
 script:
   - make build test doc rtest
+after_success: |
+  cargo doc \
+  && echo '<meta http-equiv="refresh" content="0;url='${DOCS_DEFAULT_MODULE}'/index.html">' > target/doc/index.html && \
+  sudo pip install ghp-import && \
+  ghp-import -n target/doc && \
+  git push -qf "https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" gh-pages

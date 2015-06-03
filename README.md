@@ -11,6 +11,8 @@ connections inside coroutines based on [coroutine][coroutine]
 [mio]: https://github.com/carllerche/mio
 [coroutine]: https://github.com/rustcc/coroutine-rs
 
+Read [Documentation](//dpc.github.io/mioco/) for details.
+
 ## Building & running
 
     cargo run --release
