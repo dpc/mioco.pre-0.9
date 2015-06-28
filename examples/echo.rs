@@ -93,7 +93,7 @@ impl Server {
                     }
                 }
             };
-            let _tok = self.conns.create_and_insert(|token| {
+            let _tok = self.conns.insert_with(|token| {
                 mioco::Coroutine::new(sock, event_loop, token, f)
             });
         }

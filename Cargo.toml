@@ -12,5 +12,4 @@ nix = "*"
 coroutine = "*"
 
 [dependencies.mio]
-# TODO: switch to upstream when possible
-git = "https://github.com/dpc/mio.git"
+git = "https://github.com/carllerche/mio"
