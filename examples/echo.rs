@@ -1,3 +1,4 @@
+#![feature(result_expect)]
 extern crate mio;
 extern crate nix;
 extern crate coroutine;
@@ -22,7 +23,7 @@ fn listend_addr() -> SocketAddr {
 
 struct Server {
     sock: TcpListener,
-    conns: Slab<mioco::Coroutine>,
+    conns: Slab<mioco::HandleRef<TcpStream>>,
 }
 
 impl Server {
@@ -67,34 +68,42 @@ impl Server {
                     sock.as_raw_fd(), socket::SockLevel::Tcp, socket::sockopt::TcpNoDelay, &true
                     ).map_err(|e| io::Error::from_raw_os_error(e.errno() as i32)));
 
-            let f = move |io : &mut mioco::IOHandle| {
-                use std::io::{Read, Write};
-                let mut buf = [0u8; 1024 * 16];
-                loop {
 
-                    let res = io.read(&mut buf);
+            let _tok = self.conns.insert_with(|token| {
+                let builder = mioco::Builder::new();
+                let io_copy : mioco::HandleRef<TcpStream> = builder.wrap_io(event_loop, sock, token);
 
-                    match res {
-                        Err(_) => return,
-                        Ok(0) => /* EOF */ return,
-                        Ok(size) => {
-                            let mut write_i = 0;
-                            loop {
-                                if write_i == size {
-                                    break;
-                                }
+                let mut io = io_copy.clone();
+                let f = move || {
+                    use std::io::{Read, Write};
+                    let mut buf = [0u8; 1024 * 16];
+                    loop {
 
-                                match io.write(&mut buf[write_i..size]) {
-                                    Ok(written) => write_i += written,
-                                    Err(_) => return,
+                        let res = io.read(&mut buf);
+
+                        match res {
+                            Err(_) => return,
+                            Ok(0) => /* EOF */ return,
+                            Ok(size) => {
+                                let mut write_i = 0;
+                                loop {
+                                    if write_i == size {
+                                        break;
+                                    }
+
+                                    match io.write(&mut buf[write_i..size]) {
+                                        Ok(written) => write_i += written,
+                                        Err(_) => return,
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            };
-            let _tok = self.conns.insert_with(|token| {
-                mioco::Coroutine::new(sock, event_loop, token, f)
+                };
+
+                builder.start(f);
+
+                io_copy
             });
         }
 
@@ -125,7 +134,7 @@ impl Server {
         self.conn_handle_finished(tok, finished);
     }
 
-    fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::Coroutine {
+    fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::HandleRef<TcpStream> {
         &mut self.conns[tok]
     }
 }
@@ -152,7 +161,7 @@ impl Handler for Server {
 pub fn main() {
     let addr = listend_addr();
 
-    let (mut server, mut ev_loop) = Server::new(addr).ok().expect("Server::new(...) failed");
+    let (mut server, mut ev_loop) = Server::new(addr).expect("Server::new(...) failed");
 
     // Start the event loop
     println!("Starting tcp echo server on {:?}", server.sock.local_addr().unwrap());
