@@ -6,8 +6,11 @@
 //! Using coroutines, an event-based mio model can be simplified to a set of routines, seamlessly
 //! scheduled on demand in userspace.
 //!
-//! Using `mioco` a single input consuming and single output producing routine can be used to
-//! handle each connection.
+//! With `mioco` a coroutines can be used to simplify writing asynchronous io handilng in
+//! synchronous fashion.
+
+#![feature(result_expect)]
+#![warn(missing_docs)]
 
 extern crate mio;
 extern crate coroutine;
@@ -17,7 +20,8 @@ use std::cell::RefCell;
 use std::sync::Arc;
 use mio::{TryRead, TryWrite, Evented, Token, Handler, EventLoop};
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+/// State of `mioco` coroutine
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum State {
     BlockedOnWrite(Token),
     BlockedOnRead(Token),
@@ -26,6 +30,7 @@ enum State {
 }
 
 impl State {
+    /// What is the `mio::Interest` for a given `token` at the current state
     fn to_interest_for(&self, token : mio::Token) -> mio::Interest {
         match *self {
             State::Running => panic!("wrong state"),
@@ -45,11 +50,14 @@ impl State {
     }
 }
 
+/// `mioco` can work on any type implementing this trait
 pub trait ReadWrite : TryRead+TryWrite+std::io::Read+std::io::Write+Evented { }
 
 impl<T> ReadWrite for T where T: TryRead+TryWrite+std::io::Read+std::io::Write+Evented {}
 
-/// Coroutine of Coroutine IO
+/// `mioco` coroutine
+///
+/// Referenced by IO running within it.
 struct Coroutine {
     /// Coroutine of Coroutine itself. Stored here so it's available
     /// through every handle and `Coroutine` itself without referencing
@@ -58,83 +66,94 @@ struct Coroutine {
     coroutine : Option<coroutine::coroutine::Handle>,
 }
 
-pub struct Handle<T>
+
+/// Wrapped mio IO (Evented+TryRead+TryWrite)
+///
+/// `Handle` is just a cloneable reference to this struct
+struct IO<T>
 where T : ReadWrite {
-    io : Arc<RefCell<Coroutine>>, // Can we implement using Rc on the same premisse as Send for Handle ?
+    coroutine: Arc<RefCell<Coroutine>>, // Can we implement using Rc on the same premise as Send for Handle ?
     token: Token,
-    stream : T, // TODO: Convert to &ReadWrite or even ReadWrite as generic type if possible
+    io : T,
     interest: mio::Interest,
     peer_hup: bool,
 }
 
-impl<T> Handle<T>
+impl<T> IO<T>
 where T : ReadWrite {
 
+    /// Handle `hup` condition
     fn hup<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token)
         where H : Handler {
             if self.interest == mio::Interest::hup() {
                 self.interest = mio::Interest::none();
-                event_loop.deregister(&self.stream).ok().expect("deregister() failed");
+                event_loop.deregister(&self.io).ok().expect("deregister() failed");
             } else {
                 self.peer_hup = true;
                 self.reregister(event_loop, token)
             }
         }
 
+    /// Reregister oneshot handler for the next event
     fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>, token : Token)
         where H : Handler {
 
-            self.interest = self.io.borrow().state.to_interest_for(token) ;
+            self.interest = self.coroutine.borrow().state.to_interest_for(token) ;
 
             event_loop.reregister(
-                &self.stream, token,
+                &self.io, token,
                 self.interest, mio::PollOpt::edge() | mio::PollOpt::oneshot()
                 ).ok().expect("reregister failed")
         }
 }
 
-/* XXX: TODO: Is this OK? It seems we can guarantee that only 
- * one coroutine is running at the time so no concurent
- * accesses are possible. But is it enough? 
- *
- * Not OK. User can clone HandleRef and give to different threads. Boo. */
-unsafe impl<T> Send for HandleRef<T>
+/* BUG: We can guarantee that only one coroutine is running at the time so no concurrent accesses
+ * are possible, but user can clone Handle and give to different threads. Boo. */
+unsafe impl<T> Send for Handle<T>
 where T : ReadWrite { }
 
+// Same as above?
+unsafe impl Send for RefCoroutine { }
 
-/// IO Handler reference passed to routine running inside `mioco` `Coroutine`.
-///
-/// It implements standard library `Read` and `Write` traits that will
-/// take care of blocking and unblocking coroutine when needed.
+/// `mioco` wrapper over io associated with a given coroutine.
 ///
 /// Create using `Builder`.
-pub struct HandleRef<T>
+///
+/// It implements standard library `Read` and `Write` traits that will
+/// take care of blocking and unblocking coroutine when needed. Use this
+/// from within `mioco` coroutine only, otherwise misbehaviour is ensured.
+///
+/// It implements `readable` and `writable`, modeled like original `mio::Handler`
+/// methods. Call these from respective `mio::Handler`.
+pub struct Handle<T>
 where T : ReadWrite {
-    inn : Arc<RefCell<Handle<T>>>,
+    inn : Arc<RefCell<IO<T>>>,
 }
 
 
-impl<T> Clone for HandleRef<T>
+impl<T> Clone for Handle<T>
 where T : ReadWrite {
-    fn clone(&self) -> HandleRef<T> {
-        HandleRef {
+    fn clone(&self) -> Handle<T> {
+        Handle {
             inn: self.inn.clone()
         }
     }
 }
 
-impl<T> HandleRef<T>
+impl<T> Handle<T>
 where T : ReadWrite {
 
+    /// Is this IO finished and free to be removed
+    /// as no more events will be reported for it
     pub fn is_finished(&self) -> bool {
-        let io = &self.inn.borrow().io;
-        let io_b = io.borrow();
-        io_b.state == State::Finished && self.inn.borrow().interest == mio::Interest::none()
+        let co = &self.inn.borrow().coroutine;
+        let co_b = co.borrow();
+        co_b.state == State::Finished && self.inn.borrow().interest == mio::Interest::none()
     }
 
     /// Readable event handler
     ///
-    /// This is based on `mio`'s `readable` method in `Handler` trait.
+    /// This corresponds to `mio::Hnalder::readable()`.
     pub fn readable<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token, hint: mio::ReadHint)
     where H : Handler {
 
@@ -146,17 +165,17 @@ where T : ReadWrite {
 
 
         let state = {
-            let io = &self.inn.borrow().io;
-            let io_b = io.borrow();
-            io_b.state
+            let co = &self.inn.borrow().coroutine;
+            let co_b = co.borrow();
+            co_b.state
         };
 
         if let State::BlockedOnRead(blocked_token) = state {
             if token == blocked_token {
                 let handle = {
                     let inn = self.inn.borrow();
-                    let coroutine_handle = inn.io.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
-                    inn.io.borrow_mut().state = State::Running;
+                    let coroutine_handle = inn.coroutine.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
+                    inn.coroutine.borrow_mut().state = State::Running;
                     coroutine_handle
                 };
                 handle.resume().ok().expect("resume() failed");
@@ -175,22 +194,22 @@ where T : ReadWrite {
 
     /// Readable event handler
     ///
-    /// This is based on `mio`'s `writable` method in `Handler` trait.
+    /// This corresponds to `mio::Hnalder::writable()`.
     pub fn writable<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token)
     where H : Handler {
 
         let state = {
-            let io = &self.inn.borrow().io;
-            let io_b = io.borrow();
-            io_b.state
+            let co = &self.inn.borrow().coroutine;
+            let co_b = co.borrow();
+            co_b.state
         };
 
         if let State::BlockedOnWrite(blocked_token) = state {
             if token == blocked_token {
                 let handle = {
                     let inn = self.inn.borrow();
-                    let coroutine_handle = inn.io.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
-                    inn.io.borrow_mut().state = State::Running;
+                    let coroutine_handle = inn.coroutine.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
+                    inn.coroutine.borrow_mut().state = State::Running;
                     coroutine_handle
                 };
                 handle.resume().ok().expect("resume() failed");
@@ -208,16 +227,16 @@ where T : ReadWrite {
     }
 }
 
-impl<T> std::io::Read for HandleRef<T>
+impl<T> std::io::Read for Handle<T>
 where T : ReadWrite {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
-            let res = self.inn.borrow_mut().stream.try_read(buf);
+            let res = self.inn.borrow_mut().io.try_read(buf);
             match res {
                 Ok(None) => {
                     {
                         let inn = self.inn.borrow();
-                        inn.io.borrow_mut().state = State::BlockedOnRead(inn.token);
+                        inn.coroutine.borrow_mut().state = State::BlockedOnRead(inn.token);
                     }
                     coroutine::Coroutine::block();
                 },
@@ -232,16 +251,16 @@ where T : ReadWrite {
     }
 }
 
-impl<T> std::io::Write for HandleRef<T>
+impl<T> std::io::Write for Handle<T>
 where T: ReadWrite {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         loop {
-            let res = self.inn.borrow_mut().stream.try_write(buf) ;
+            let res = self.inn.borrow_mut().io.try_write(buf) ;
             match res {
                 Ok(None) => {
                     {
                         let inn = self.inn.borrow();
-                        inn.io.borrow_mut().state = State::BlockedOnWrite(inn.token);
+                        inn.coroutine.borrow_mut().state = State::BlockedOnWrite(inn.token);
                     }
                     coroutine::Coroutine::block();
                 },
@@ -261,49 +280,47 @@ where T: ReadWrite {
     }
 }
 
-
-
-// Mioco coroutine builder
-//
-// Create one with `new`, then use `wrap_io` that you going to use
-// in the `Coroutine` that you spawn with `start`.
+/// `mioco` coroutine builder
+///
+/// Create one with `new`, then use `wrap_io` on io that you are going to use in the coroutine
+/// that you spawn with `start`.
 pub struct Builder {
-    io: Arc<RefCell<Coroutine>>,
+    coroutine: Arc<RefCell<Coroutine>>,
 }
 
 struct RefCoroutine {
-    io: Arc<RefCell<Coroutine>>,
+    coroutine: Arc<RefCell<Coroutine>>,
 }
-
-// Needs to figure this out
-unsafe impl Send for RefCoroutine { }
 
 impl Builder {
 
-    /// Create a new Coroutine builder
+    /// Create new Coroutine builder
     pub fn new() -> Builder {
         Builder {
-            io: Arc::new(RefCell::new(Coroutine {
+            coroutine: Arc::new(RefCell::new(Coroutine {
                 state: State::Running,
                 coroutine: None,
             }))
         }
     }
 
-    pub fn wrap_io<H, T>(&self, event_loop: &mut mio::EventLoop<H>, stream : T, token : Token) -> HandleRef<T>
+    /// Register `mio`'s io to be used within `mioco` coroutine
+    ///
+    /// Consumes the `io`, returns a `Handle` to a mio wrapper over it.
+    pub fn wrap_io<H, T>(&self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> Handle<T>
     where H : Handler,
     T : ReadWrite {
 
         event_loop.register_opt(
-            &stream, token,
+            &io, token,
             mio::Interest::readable() | mio::Interest::writable(), mio::PollOpt::edge() | mio::PollOpt::oneshot()
-            ).ok().expect("register_opt failed");
+            ).expect("register_opt failed");
 
-        HandleRef {
+        Handle {
             inn: Arc::new(RefCell::new(
-                     Handle {
-                         io: self.io.clone(),
-                         stream: stream,
+                     IO {
+                         coroutine: self.coroutine.clone(),
+                         io: io,
                          token: token,
                          peer_hup: false,
                          interest: mio::Interest::none(),
@@ -320,17 +337,15 @@ impl Builder {
         where F : FnOnce() + Send + 'static {
 
             let ioref = RefCoroutine {
-                io: self.io.clone(),
+                coroutine: self.coroutine.clone(),
             };
 
             let coroutine_handle = coroutine::coroutine::Coroutine::spawn(move || {
-                ioref.io.borrow_mut().coroutine = Some(coroutine::Coroutine::current().clone());
+                ioref.coroutine.borrow_mut().coroutine = Some(coroutine::Coroutine::current().clone());
                 f();
-                ioref.io.borrow_mut().state = State::Finished;
+                ioref.coroutine.borrow_mut().state = State::Finished;
             });
-
 
             coroutine_handle.resume().ok().expect("resume() failed");
         }
 }
-

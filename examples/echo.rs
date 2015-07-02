@@ -23,7 +23,7 @@ fn listend_addr() -> SocketAddr {
 
 struct Server {
     sock: TcpListener,
-    conns: Slab<mioco::HandleRef<TcpStream>>,
+    conns: Slab<mioco::Handle<TcpStream>>,
 }
 
 impl Server {
@@ -71,7 +71,7 @@ impl Server {
 
             let _tok = self.conns.insert_with(|token| {
                 let builder = mioco::Builder::new();
-                let io_copy : mioco::HandleRef<TcpStream> = builder.wrap_io(event_loop, sock, token);
+                let io_copy : mioco::Handle<TcpStream> = builder.wrap_io(event_loop, sock, token);
 
                 let mut io = io_copy.clone();
                 let f = move || {
@@ -112,7 +112,7 @@ impl Server {
 
     fn conn_handle_finished(&mut self, token : Token, finished : bool) {
         if finished {
-            self.conns.remove(token);
+            let handler = self.conns.remove(token);
         }
     }
 
@@ -134,7 +134,7 @@ impl Server {
         self.conn_handle_finished(tok, finished);
     }
 
-    fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::HandleRef<TcpStream> {
+    fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::Handle<TcpStream> {
         &mut self.conns[tok]
     }
 }
@@ -145,7 +145,7 @@ impl Handler for Server {
 
     fn readable(&mut self, event_loop: &mut EventLoop<Server>, token: Token, hint: ReadHint) {
         match token {
-            SERVER => self.accept(event_loop).ok().expect("accept(event_loop) failed"),
+            SERVER => self.accept(event_loop).expect("accept(event_loop) failed"),
             i => self.conn_readable(event_loop, i, hint),
         };
     }
