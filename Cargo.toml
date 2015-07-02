@@ -3,6 +3,12 @@ name = "mioco"
 version = "0.0.2"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
 
+[profile.release]
+opt-level = 3
+debug = false
+lto = true
+debug-assertions = false
+
 [lib]
 name = "mioco"
 path = "src/lib.rs"
