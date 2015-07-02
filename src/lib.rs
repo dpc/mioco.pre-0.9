@@ -17,7 +17,7 @@ extern crate coroutine;
 extern crate nix;
 
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::rc::Rc;
 use mio::{TryRead, TryWrite, Evented, Token, Handler, EventLoop};
 
 /// State of `mioco` coroutine
@@ -72,7 +72,7 @@ struct Coroutine {
 /// `Handle` is just a cloneable reference to this struct
 struct IO<T>
 where T : ReadWrite {
-    coroutine: Arc<RefCell<Coroutine>>, // Can we implement using Rc on the same premise as Send for Handle ?
+    coroutine: Rc<RefCell<Coroutine>>,
     token: Token,
     io : T,
     interest: mio::Interest,
@@ -127,7 +127,7 @@ unsafe impl Send for RefCoroutine { }
 /// methods. Call these from respective `mio::Handler`.
 pub struct Handle<T>
 where T : ReadWrite {
-    inn : Arc<RefCell<IO<T>>>,
+    inn : Rc<RefCell<IO<T>>>,
 }
 
 
@@ -285,11 +285,11 @@ where T: ReadWrite {
 /// Create one with `new`, then use `wrap_io` on io that you are going to use in the coroutine
 /// that you spawn with `start`.
 pub struct Builder {
-    coroutine: Arc<RefCell<Coroutine>>,
+    coroutine: Rc<RefCell<Coroutine>>,
 }
 
 struct RefCoroutine {
-    coroutine: Arc<RefCell<Coroutine>>,
+    coroutine: Rc<RefCell<Coroutine>>,
 }
 
 impl Builder {
@@ -297,7 +297,7 @@ impl Builder {
     /// Create new Coroutine builder
     pub fn new() -> Builder {
         Builder {
-            coroutine: Arc::new(RefCell::new(Coroutine {
+            coroutine: Rc::new(RefCell::new(Coroutine {
                 state: State::Running,
                 coroutine: None,
             }))
@@ -317,7 +317,7 @@ impl Builder {
             ).expect("register_opt failed");
 
         Handle {
-            inn: Arc::new(RefCell::new(
+            inn: Rc::new(RefCell::new(
                      IO {
                          coroutine: self.coroutine.clone(),
                          io: io,
