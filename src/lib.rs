@@ -151,6 +151,20 @@ where T : ReadWrite {
         co_b.state == State::Finished && self.inn.borrow().interest == mio::Interest::none()
     }
 
+    /// Access the wrapped IO
+    pub fn with_raw<F>(&self, f : F)
+        where F : Fn(&T) {
+        let io = &self.inn.borrow().io;
+        f(io)
+    }
+
+    /// Access the wrapped IO as mutable
+    pub fn with_raw_mut<F>(&mut self, f : F)
+        where F : Fn(&mut T) {
+        let mut io = &mut self.inn.borrow_mut().io;
+        f(&mut io)
+    }
+
     /// Readable event handler
     ///
     /// This corresponds to `mio::Hnalder::readable()`.
