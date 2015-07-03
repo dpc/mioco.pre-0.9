@@ -104,34 +104,28 @@ impl IO {
         }
 }
 
-/* BUG: We can guarantee that only one coroutine is running at the time so no concurrent accesses
- * are possible, but user can clone Handle and give to different threads. Boo. */
-unsafe impl Send for Handle { }
-
 /// `mioco` wrapper over io associated with a given coroutine.
 ///
-/// Create using `Builder`.
+/// To be used to trigger events inside `mioco` coroutine. Create using
+/// `Builder::io_wrap`.
 ///
-/// It implements standard library `Read` and `Write` traits that will
-/// take care of blocking and unblocking coroutine when needed. Use this
-/// from within `mioco` coroutine only, otherwise misbehaviour is ensured.
-///
-/// It implements `readable` and `writable`, modeled like original `mio::Handler`
+/// It implements `readable` and `writable`, corresponding to original `mio::Handler`
 /// methods. Call these from respective `mio::Handler`.
-pub struct Handle {
+#[derive(Clone)]
+pub struct ExternalHandle {
     inn : Rc<RefCell<IO>>,
 }
 
-
-impl Clone for Handle {
-    fn clone(&self) -> Handle {
-        Handle {
-            inn: self.inn.clone()
-        }
-    }
+/// `mioco` wrapper over io associated with a given coroutine.
+///
+/// Passed to closure function.
+///
+/// It implements standard library `Read` and `Write` traits that will
+/// take care of blocking and unblocking coroutine when needed. 
+pub struct InternalHandle {
+    inn : Rc<RefCell<IO>>,
 }
-
-impl Handle {
+impl ExternalHandle {
 
     /// Is this IO finished and free to be removed
     /// as no more events will be reported for it
@@ -231,7 +225,7 @@ impl Handle {
     }
 }
 
-impl std::io::Read for Handle {
+impl std::io::Read for InternalHandle {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
             let res = self.inn.borrow_mut().io.try_read(buf);
@@ -254,7 +248,7 @@ impl std::io::Read for Handle {
     }
 }
 
-impl std::io::Write for Handle {
+impl std::io::Write for InternalHandle {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         loop {
             let res = self.inn.borrow_mut().io.try_write(buf) ;
@@ -288,7 +282,7 @@ impl std::io::Write for Handle {
 /// that you spawn with `start`.
 pub struct Builder {
     coroutine : Rc<RefCell<Coroutine>>,
-    handles : Vec<Handle>
+    handles : Vec<InternalHandle>
 }
 
 struct RefCoroutine {
@@ -296,7 +290,7 @@ struct RefCoroutine {
 }
 unsafe impl Send for RefCoroutine { }
 
-struct HandleSender(Vec<Handle>);
+struct HandleSender(Vec<InternalHandle>);
 
 unsafe impl Send for HandleSender {}
 
@@ -316,7 +310,7 @@ impl Builder {
     /// Register `mio`'s io to be used within `mioco` coroutine
     ///
     /// Consumes the `io`, returns a `Handle` to a mio wrapper over it.
-    pub fn wrap_io<H, T : 'static>(&mut self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> Handle
+    pub fn wrap_io<H, T : 'static>(&mut self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> ExternalHandle
     where H : Handler,
     T : ReadWrite {
 
@@ -325,8 +319,7 @@ impl Builder {
             mio::Interest::readable() | mio::Interest::writable(), mio::PollOpt::edge() | mio::PollOpt::oneshot()
             ).expect("register_opt failed");
 
-        let handle = Handle {
-            inn: Rc::new(RefCell::new(
+        let io = Rc::new(RefCell::new(
                      IO {
                          coroutine: self.coroutine.clone(),
                          io: Box::new(io),
@@ -334,10 +327,15 @@ impl Builder {
                          peer_hup: false,
                          interest: mio::Interest::none(),
                      }
-                 )),
+                 ));
+
+        let handle = ExternalHandle {
+            inn: io.clone()
         };
 
-        self.handles.push(handle.clone());
+        self.handles.push(InternalHandle {
+            inn: io.clone()
+        });
 
         handle
     }
@@ -347,7 +345,7 @@ impl Builder {
     /// `f` is routine handling connection. It should not use any blocking operations,
     /// and use it's argument for all IO with it's peer
     pub fn start<F>(self, f : F)
-        where F : FnOnce(&mut [Handle]) + Send + 'static {
+        where F : FnOnce(&mut [InternalHandle]) + Send + 'static {
 
             let ioref = RefCoroutine {
                 coroutine: self.coroutine.clone(),
