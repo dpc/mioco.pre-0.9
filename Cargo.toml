@@ -1,6 +1,6 @@
 [package]
 name = "mioco"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
 
 [profile.release]
