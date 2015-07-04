@@ -2,6 +2,14 @@
 name = "mioco"
 version = "0.0.4"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
+description = "Coroutine-based AIO handling for Rust"
+keywords = ["mio", "aio", "io", "coroutine"]
+license = "MPL-2.0"
+documentation = "https://dpc.github.io/mioco/"
+homepage = "https://github.com/dpc/mioco"
+repository = "https://github.com/dpc/mioco"
+readme = "README.md"
+
 
 [profile.release]
 opt-level = 3
@@ -16,6 +24,4 @@ path = "src/lib.rs"
 [dependencies]
 nix = "*"
 coroutine = "*"
-
-[dependencies.mio]
-git = "https://github.com/carllerche/mio"
+mio = "*"
