@@ -116,7 +116,7 @@ with new data, and may panic if this is impossible
 source of randomness).</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>13579</span>];
@@ -126,7 +126,7 @@ source of randomness).</p>
 </div><h3 id='method.gen' class='method stab '><code>fn <a href='#method.gen' class='fnname'>gen</a>&lt;T: <a class='trait' href='../rand/trait.Rand.html' title='rand::Rand'>Rand</a>&gt;(&amp;mut self) -&gt; T</code></h3><div class='docblock'><p>Return a random value of a <code>Rand</code> type.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
@@ -138,7 +138,7 @@ source of randomness).</p>
 generated items.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
@@ -160,7 +160,7 @@ uniformity, as they only happen on initialization.</p>
 <p>Panics if <code>low &gt;= high</code>.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
@@ -172,7 +172,7 @@ uniformity, as they only happen on initialization.</p>
 </div><h3 id='method.gen_weighted_bool' class='method stab '><code>fn <a href='#method.gen_weighted_bool' class='fnname'>gen_weighted_bool</a>(&amp;mut self, n: <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Return a bool with a 1 in n chance of true</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();
@@ -181,7 +181,7 @@ uniformity, as they only happen on initialization.</p>
 </div><h3 id='method.gen_ascii_chars' class='method stab '><code>fn <a href='#method.gen_ascii_chars' class='fnname'>gen_ascii_chars</a>&lt;'a&gt;(&amp;'a mut self) -&gt; <a class='struct' href='../rand/struct.AsciiGenerator.html' title='rand::AsciiGenerator'>AsciiGenerator</a>&lt;'a, Self&gt;</code></h3><div class='docblock'><p>Return an iterator of random characters from the set A-Z,a-z,0-9.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='ident'>s</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>().<span class='ident'>gen_ascii_chars</span>().<span class='ident'>take</span>(<span class='number'>10</span>).<span class='ident'>collect</span>();
@@ -192,7 +192,7 @@ uniformity, as they only happen on initialization.</p>
 <p>Return <code>None</code> if <code>values</code> is empty.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='ident'>choices</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>4</span>, <span class='number'>8</span>, <span class='number'>16</span>, <span class='number'>32</span>];
@@ -203,7 +203,7 @@ uniformity, as they only happen on initialization.</p>
 </div><h3 id='method.shuffle' class='method stab '><code>fn <a href='#method.shuffle' class='fnname'>shuffle</a>&lt;T&gt;(&amp;mut self, values: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>)</code></h3><div class='docblock'><p>Shuffle a mutable slice in place.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rng</span> <span class='op'>=</span> <span class='ident'>thread_rng</span>();

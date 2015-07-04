@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/git/checkouts/mio-5691da3eaf03baf8/master/src/event_loop.rs`.">
+    <meta name="description" content="Source to the Rust file `mio/src/event_loop.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>event_loop.rs.html -- source</title>
@@ -479,6 +479,12 @@
 <span id="437">437</span>
 <span id="438">438</span>
 <span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Handler</span>, <span class='ident'>Evented</span>, <span class='ident'>Poll</span>, <span class='ident'>NotifyError</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>event</span>::{<span class='ident'>IoEvent</span>, <span class='ident'>Interest</span>, <span class='ident'>PollOpt</span>};
@@ -659,6 +665,12 @@
     <span class='doccomment'>/// current iteration.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>shutdown</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
         <span class='self'>self</span>.<span class='ident'>run</span> <span class='op'>=</span> <span class='boolval'>false</span>;
+    }
+
+    <span class='doccomment'>/// Indicates whether the event loop is currently running. If it&#39;s not it has either</span>
+    <span class='doccomment'>/// stopped or is scheduled to stop on the next tick.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_running</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+        <span class='self'>self</span>.<span class='ident'>run</span>
     }
 
     <span class='doccomment'>/// Registers an IO handle with the event loop.</span>

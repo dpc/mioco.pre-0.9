@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.3.6/src/fcntl.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/nix-rust-8d1a824a13ec5246/master/src/fcntl.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>fcntl.rs.html -- source</title>
@@ -270,17 +270,21 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> {<span class='ident'>Error</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>NixPath</span>, <span class='ident'>AsExtStr</span>};
+<span class='kw'>use</span> {<span class='ident'>Error</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>NixPath</span>};
 <span class='kw'>use</span> <span class='ident'>errno</span>::<span class='ident'>Errno</span>;
-<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>mode_t</span>;
+<span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>mode_t</span>, <span class='ident'>c_int</span>};
 <span class='kw'>use</span> <span class='ident'>sys</span>::<span class='ident'>stat</span>::<span class='ident'>Mode</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::<span class='ident'>RawFd</span>;
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>ffi</span>::<span class='ident'>flock</span>;
-
-<span class='comment'>// Re-export Fd defined in std</span>
-<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>Fd</span> <span class='op'>=</span> ::<span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::<span class='ident'>RawFd</span>;
 
 <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>dead_code</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>ffi</span> {
@@ -292,7 +296,7 @@
         <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_short</span>, <span class='ident'>off_t</span>, <span class='ident'>pid_t</span>};
 
         <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
-        <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>, <span class='ident'>Default</span>, <span class='ident'>Debug</span>)]</span>
         <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>flock</span> {
             <span class='kw'>pub</span> <span class='ident'>l_type</span>: <span class='ident'>c_short</span>,
             <span class='kw'>pub</span> <span class='ident'>l_whence</span>: <span class='ident'>c_short</span>,
@@ -315,12 +319,12 @@
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_GETLK</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>5</span>;
     }
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>))]</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
     <span class='kw'>mod</span> <span class='ident'>os</span> {
         <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_short</span>, <span class='ident'>off_t</span>, <span class='ident'>pid_t</span>};
 
         <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
-        <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>, <span class='ident'>Default</span>, <span class='ident'>Debug</span>)]</span>
         <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>flock</span> {
             <span class='kw'>pub</span> <span class='ident'>l_start</span>: <span class='ident'>off_t</span>,
             <span class='kw'>pub</span> <span class='ident'>l_len</span>: <span class='ident'>off_t</span>,
@@ -344,9 +348,9 @@
     }
 }
 
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>open</span><span class='op'>&lt;</span><span class='ident'>P</span>: ?<span class='ident'>Sized</span> <span class='op'>+</span> <span class='ident'>NixPath</span><span class='op'>&gt;</span>(<span class='ident'>path</span>: <span class='kw-2'>&amp;</span><span class='ident'>P</span>, <span class='ident'>oflag</span>: <span class='ident'>OFlag</span>, <span class='ident'>mode</span>: <span class='ident'>Mode</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Fd</span><span class='op'>&gt;</span> {
-    <span class='kw'>let</span> <span class='ident'>fd</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>path</span>.<span class='ident'>with_nix_path</span>(<span class='op'>|</span><span class='ident'>osstr</span><span class='op'>|</span> {
-        <span class='kw'>unsafe</span> { <span class='ident'>ffi</span>::<span class='ident'>open</span>(<span class='ident'>osstr</span>.<span class='ident'>as_ext_str</span>(), <span class='ident'>oflag</span>.<span class='ident'>bits</span>(), <span class='ident'>mode</span>.<span class='ident'>bits</span>() <span class='kw'>as</span> <span class='ident'>mode_t</span>) }
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>open</span><span class='op'>&lt;</span><span class='ident'>P</span>: ?<span class='ident'>Sized</span> <span class='op'>+</span> <span class='ident'>NixPath</span><span class='op'>&gt;</span>(<span class='ident'>path</span>: <span class='kw-2'>&amp;</span><span class='ident'>P</span>, <span class='ident'>oflag</span>: <span class='ident'>OFlag</span>, <span class='ident'>mode</span>: <span class='ident'>Mode</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>RawFd</span><span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>fd</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>path</span>.<span class='ident'>with_nix_path</span>(<span class='op'>|</span><span class='ident'>cstr</span><span class='op'>|</span> {
+        <span class='kw'>unsafe</span> { <span class='ident'>ffi</span>::<span class='ident'>open</span>(<span class='ident'>cstr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>oflag</span>.<span class='ident'>bits</span>(), <span class='ident'>mode</span>.<span class='ident'>bits</span>() <span class='kw'>as</span> <span class='ident'>mode_t</span>) }
     }));
 
     <span class='kw'>if</span> <span class='ident'>fd</span> <span class='op'>&lt;</span> <span class='number'>0</span> {
@@ -357,8 +361,8 @@
 }
 
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>FcntlArg</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
-    <span class='ident'>F_DUPFD</span>(<span class='ident'>Fd</span>),
-    <span class='ident'>F_DUPFD_CLOEXEC</span>(<span class='ident'>Fd</span>),
+    <span class='ident'>F_DUPFD</span>(<span class='ident'>RawFd</span>),
+    <span class='ident'>F_DUPFD_CLOEXEC</span>(<span class='ident'>RawFd</span>),
     <span class='ident'>F_GETFD</span>,
     <span class='ident'>F_SETFD</span>(<span class='ident'>FdFlag</span>), <span class='comment'>// FD_FLAGS</span>
     <span class='ident'>F_GETFL</span>,
@@ -377,13 +381,21 @@
 }
 
 <span class='comment'>// TODO: Figure out how to handle value fcntl returns</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>fcntl</span>(<span class='ident'>fd</span>: <span class='ident'>Fd</span>, <span class='ident'>arg</span>: <span class='ident'>FcntlArg</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>fcntl</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>arg</span>: <span class='ident'>FcntlArg</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>c_int</span><span class='op'>&gt;</span> {
     <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>FcntlArg</span>::<span class='op'>*</span>;
 
     <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
         <span class='kw'>match</span> <span class='ident'>arg</span> {
+            <span class='ident'>F_DUPFD</span>(<span class='ident'>rawfd</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_DUPFD</span>, <span class='ident'>rawfd</span>),
+            <span class='ident'>F_DUPFD_CLOEXEC</span>(<span class='ident'>rawfd</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_DUPFD_CLOEXEC</span>, <span class='ident'>rawfd</span>),
+            <span class='ident'>F_GETFD</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_GETFD</span>),
             <span class='ident'>F_SETFD</span>(<span class='ident'>flag</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETFD</span>, <span class='ident'>flag</span>.<span class='ident'>bits</span>()),
+            <span class='ident'>F_GETFL</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_GETFL</span>),
             <span class='ident'>F_SETFL</span>(<span class='ident'>flag</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETFL</span>, <span class='ident'>flag</span>.<span class='ident'>bits</span>()),
+            <span class='ident'>F_SETLK</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETLK</span>, <span class='ident'>flock</span>),
+            <span class='ident'>F_SETLKW</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETLKW</span>, <span class='ident'>flock</span>),
+            <span class='ident'>F_GETLK</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_GETLK</span>, <span class='ident'>flock</span>),
+            <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
             _ <span class='op'>=&gt;</span> <span class='macro'>unimplemented</span><span class='macro'>!</span>()
         }
     };
@@ -392,7 +404,7 @@
         <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()));
     }
 
-    <span class='prelude-val'>Ok</span>(())
+    <span class='prelude-val'>Ok</span>(<span class='ident'>res</span>)
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
@@ -465,7 +477,7 @@
     );
 }
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>)]</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
 <span class='kw'>mod</span> <span class='ident'>consts</span> {
     <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 

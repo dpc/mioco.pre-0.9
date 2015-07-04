@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Stack","A task's stack. The name \"Stack\" is a vestige of segmented stacks."],["StackPool",""]]});
+initSidebarItems({"mod":[["stack_pool",""]]});

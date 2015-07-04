@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/git/checkouts/mio-5691da3eaf03baf8/master/src/util/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `mio/src/util/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -51,10 +51,10 @@
 <span class='doccomment'>//! Utilities for non-blocking IO programs</span>
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>mpmc_bounded_queue</span>::<span class='ident'>Queue</span> <span class='kw'>as</span> <span class='ident'>BoundedQueue</span>;
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>slab</span>::<span class='ident'>Slab</span>;
 
 <span class='kw'>mod</span> <span class='ident'>mpmc_bounded_queue</span>;
-<span class='kw'>mod</span> <span class='ident'>slab</span>;
+
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> ::<span class='ident'>slab</span>::<span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>T</span>, ::<span class='ident'>Token</span><span class='op'>&gt;</span>;
 </pre>
 </section>
     <section id='search' class="content hidden"></section>

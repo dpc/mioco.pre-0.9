@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/git/checkouts/mio-5691da3eaf03baf8/master/src/io.rs`.">
+    <meta name="description" content="Source to the Rust file `mio/src/io.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>io.rs.html -- source</title>
@@ -122,6 +122,10 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Interest</span>, <span class='ident'>Selector</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>buf</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
@@ -142,7 +146,9 @@
 }
 
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>TryRead</span> {
-    <span class='kw'>fn</span> <span class='ident'>try_read_buf</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>try_read_buf</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;&gt;</span>
+        <span class='kw'>where</span> <span class='kw'>Self</span> : <span class='ident'>Sized</span>
+    {
         <span class='comment'>// Reads the length of the slice supplied by buf.mut_bytes into the buffer</span>
         <span class='comment'>// This is not guaranteed to consume an entire datagram or segment.</span>
         <span class='comment'>// If your protocol is msg based (instead of continuous stream) you should</span>
@@ -161,7 +167,9 @@
 }
 
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>TryWrite</span> {
-    <span class='kw'>fn</span> <span class='ident'>try_write_buf</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>try_write_buf</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;&gt;</span>
+        <span class='kw'>where</span> <span class='kw'>Self</span> : <span class='ident'>Sized</span>
+    {
         <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_write</span>(<span class='ident'>buf</span>.<span class='ident'>bytes</span>());
 
         <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>cnt</span>)) <span class='op'>=</span> <span class='ident'>res</span> {

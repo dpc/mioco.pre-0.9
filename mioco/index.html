@@ -45,30 +45,77 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-238' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-553' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Coroutine-based handler library for mio</p>
 
 <p>Using coroutines, an event-based mio model can be simplified to a set of routines, seamlessly
 scheduled on demand in userspace.</p>
 
-<p>Using <code>mioco</code> a single input consuming and single output producing routine can be used to
-handle each connection.</p>
+<p>With <code>mioco</code> a coroutines can be used to simplify writing asynchronous io handilng in
+synchronous fashion.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Coroutine.html'
-                               title='mioco::Coroutine'>Coroutine</a></td>
+                        <td><a class='struct' href='struct.Builder.html'
+                               title='mioco::Builder'>Builder</a></td>
                         <td class='docblock short'>
-                             <p>Coroutine handling single <code>mio</code> connection</p>
+                             <p><code>mioco</code> coroutine builder</p>
 
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.IOHandle.html'
-                               title='mioco::IOHandle'>IOHandle</a></td>
+                        <td><a class='struct' href='struct.CoroutineHandle.html'
+                               title='mioco::CoroutineHandle'>CoroutineHandle</a></td>
                         <td class='docblock short'>
-                             <p>IO Handler passed to routine running inside <code>mioco</code> <code>Coroutine</code>.</p>
+                             <p>Coroutine control</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.ExternalHandle.html'
+                               title='mioco::ExternalHandle'>ExternalHandle</a></td>
+                        <td class='docblock short'>
+                             <p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.InternalHandle.html'
+                               title='mioco::InternalHandle'>InternalHandle</a></td>
+                        <td class='docblock short'>
+                             <p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='enum' href='enum.LastEvent.html'
+                               title='mioco::LastEvent'>LastEvent</a></td>
+                        <td class='docblock short'>
+                             <p>Last Event</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='enum' href='enum.SelectType.html'
+                               title='mioco::SelectType'>SelectType</a></td>
+                        <td class='docblock short'>
+                             <p>Select type</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.ReadWrite.html'
+                               title='mioco::ReadWrite'>ReadWrite</a></td>
+                        <td class='docblock short'>
+                             <p><code>mioco</code> can work on any type implementing this trait</p>
 
                         </td>
                     </tr>

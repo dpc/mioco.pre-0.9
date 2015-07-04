@@ -45,21 +45,21 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/coroutine/lib.rs.html#12-30' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/coroutine/lib.rs.html#12-154' title='goto source code'>[src]</a></span></h1>
 <h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use coroutine::<a class='struct' href='../coroutine/coroutine/struct.Builder.html' title='coroutine::coroutine::Builder'>Builder</a>;</code></td></tr><tr><td><code>pub use coroutine::{<a class='struct' href='../coroutine/coroutine/struct.Coroutine.html' title='coroutine::coroutine::Coroutine'>Coroutine</a>, <a class='fn' href='../coroutine/coroutine/fn.spawn.html' title='coroutine::coroutine::spawn'>spawn</a>, <a class='fn' href='../coroutine/coroutine/fn.sched.html' title='coroutine::coroutine::sched'>sched</a>, <a class='fn' href='../coroutine/coroutine/fn.current.html' title='coroutine::coroutine::current'>current</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr><td><code>pub use <a class='mod' href='../coroutine/coroutine_clonable/index.html' title='coroutine::coroutine_clonable'>coroutine_clonable</a> as coroutine;</code></td></tr><tr><td><code>pub use builder::<a class='struct' href='../coroutine/builder/struct.Builder.html' title='coroutine::builder::Builder'>Builder</a>;</code></td></tr><tr><td><code>pub use coroutine::{<a class='struct' href='../coroutine/coroutine_clonable/struct.Coroutine.html' title='coroutine::coroutine_clonable::Coroutine'>Coroutine</a>, <a class='struct' href='../coroutine/coroutine_clonable/struct.Handle.html' title='coroutine::coroutine_clonable::Handle'>Handle</a>};</code></td></tr><tr><td><code>pub use options::<a class='struct' href='../coroutine/options/struct.Options.html' title='coroutine::options::Options'>Options</a>;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='mod' href='context/index.html'
-                               title='coroutine::context'>context</a></td>
+                        <td><a class='mod' href='builder/index.html'
+                               title='coroutine::builder'>builder</a></td>
                         <td class='docblock short'>
                              
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='mod' href='coroutine/index.html'
-                               title='coroutine::coroutine'>coroutine</a></td>
+                        <td><a class='mod' href='coroutine_clonable/index.html'
+                               title='coroutine::coroutine_clonable'>coroutine_clonable</a></td>
                         <td class='docblock short'>
                              <p>Basic single threaded Coroutine</p>
 
@@ -67,10 +67,86 @@
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='mod' href='stack/index.html'
-                               title='coroutine::stack'>stack</a></td>
+                        <td><a class='mod' href='options/index.html'
+                               title='coroutine::options'>options</a></td>
                         <td class='docblock short'>
                              
+                        </td>
+                    </tr>
+                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='enum' href='enum.Error.html'
+                               title='coroutine::Error'>Error</a></td>
+                        <td class='docblock short'>
+                             <p>Resume Error</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='enum' href='enum.State.html'
+                               title='coroutine::State'>State</a></td>
+                        <td class='docblock short'>
+                             <p>State of a Coroutine</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.block.html'
+                               title='coroutine::block'>block</a></td>
+                        <td class='docblock short'>
+                             <p>Yield the current Coroutine with <code>Blocked</code> state</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.current.html'
+                               title='coroutine::current'>current</a></td>
+                        <td class='docblock short'>
+                             <p>Get the current Coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.resume.html'
+                               title='coroutine::resume'>resume</a></td>
+                        <td class='docblock short'>
+                             <p>Resume a Coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.sched.html'
+                               title='coroutine::sched'>sched</a></td>
+                        <td class='docblock short'>
+                             <p>Yield the current Coroutine with <code>Suspended</code> state</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.spawn.html'
+                               title='coroutine::spawn'>spawn</a></td>
+                        <td class='docblock short'>
+                             <p>Spawn a new Coroutine</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='type' href='type.Result.html'
+                               title='coroutine::Result'>Result</a></td>
+                        <td class='docblock short'>
+                             <p>Return type of resuming. Ok if resume successfully with the current state,
+Err if resume failed with <code>Error</code>.</p>
+
                         </td>
                     </tr>
                 </table></section>

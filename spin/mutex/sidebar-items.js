@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Mutex","This type provides MUTual EXclusion based on spinning."],["MutexGuard","A guard to which the protected data can be accessed"]]});

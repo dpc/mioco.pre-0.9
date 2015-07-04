@@ -71,7 +71,7 @@ configuration.</p>
 macros to log whatever information will be useful to downstream consumers.</p>
 
 <h3 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h3><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h3><pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 
@@ -107,7 +107,7 @@ initialized will be ignored.</p>
 <p>The logging system may only be initialized once.</p>
 
 <h3 id="examples-1" class='section-header'><a
-                           href="#examples-1">Examples</a></h3><pre id='rust-example-rendered' class='rust '>
+                           href="#examples-1">Examples</a></h3><pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>my_logger</span>;
@@ -125,7 +125,7 @@ initialized will be ignored.</p>
                            href="#logger-implementations">Logger implementations</a></h1>
 <p>Loggers implement the <code>Log</code> trait. Here&#39;s a very basic example that simply
 logs all messages at the <code>Error</code>, <code>Warn</code> or <code>Info</code> levels to stdout:</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 
 <span class='kw'>use</span> <span class='ident'>log</span>::{<span class='ident'>LogRecord</span>, <span class='ident'>LogLevel</span>, <span class='ident'>LogMetadata</span>};
@@ -154,7 +154,7 @@ we&#39;ll want to set the maximum log level to <code>Info</code>, since we ignor
 <code>Debug</code> or <code>Trace</code> level log messages. A logging framework should provide a
 function that wraps a call to <code>set_logger</code>, handling initialization of the
 logger:</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>init</span>() <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>SetLoggerError</span><span class='op'>&gt;</span> {
     <span class='ident'>log</span>::<span class='ident'>set_logger</span>(<span class='op'>|</span><span class='ident'>max_log_level</span><span class='op'>|</span> {
         <span class='ident'>max_log_level</span>.<span class='ident'>set</span>(<span class='ident'>LogLevelFilter</span>::<span class='ident'>Info</span>);

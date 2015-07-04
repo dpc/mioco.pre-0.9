@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.3.6/src/sys/socket/ffi.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/nix-rust-8d1a824a13ec5246/master/src/sys/socket/ffi.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>ffi.rs.html -- source</title>
@@ -60,7 +60,7 @@
 <span id="18">18</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_void</span>, <span class='ident'>socklen_t</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>socket</span>, <span class='ident'>listen</span>, <span class='ident'>bind</span>, <span class='ident'>accept</span>, <span class='ident'>connect</span>, <span class='ident'>setsockopt</span>, <span class='ident'>sendto</span>, <span class='ident'>recvfrom</span>, <span class='ident'>getsockname</span>, <span class='ident'>getpeername</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>socket</span>, <span class='ident'>listen</span>, <span class='ident'>bind</span>, <span class='ident'>accept</span>, <span class='ident'>connect</span>, <span class='ident'>setsockopt</span>, <span class='ident'>sendto</span>, <span class='ident'>recvfrom</span>, <span class='ident'>getsockname</span>, <span class='ident'>getpeername</span>, <span class='ident'>recv</span>, <span class='ident'>send</span>};
 
 <span class='kw'>extern</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>getsockopt</span>(

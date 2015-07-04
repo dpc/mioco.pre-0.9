@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.3.6/src/sys/wait.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/nix-rust-8d1a824a13ec5246/master/src/sys/wait.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>wait.rs.html -- source</title>
@@ -84,6 +84,10 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>pid_t</span>, <span class='ident'>c_int</span>};
 <span class='kw'>use</span> <span class='ident'>errno</span>::<span class='ident'>Errno</span>;
@@ -103,7 +107,7 @@
     }
 );
 
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>)]</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>, <span class='ident'>Clone</span>, <span class='ident'>Copy</span>, <span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>WaitStatus</span> {
     <span class='ident'>Exited</span>(<span class='ident'>pid_t</span>),
     <span class='ident'>StillAlive</span>
@@ -128,6 +132,10 @@
     } <span class='kw'>else</span> {
         <span class='prelude-val'>Ok</span>(<span class='ident'>Exited</span>(<span class='ident'>res</span>))
     }
+}
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>wait</span>() <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>WaitStatus</span><span class='op'>&gt;</span> {
+    <span class='ident'>waitpid</span>(<span class='op'>-</span><span class='number'>1</span>, <span class='prelude-val'>None</span>)
 }
 </pre>
 </section>

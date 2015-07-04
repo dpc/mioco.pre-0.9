@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/travis/.cargo/git/checkouts/mio-5691da3eaf03baf8/master/src/sys/unix/socket.rs`.">
+    <meta name="description" content="Source to the Rust file `mio/src/sys/unix/socket.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>socket.rs.html -- source</title>
@@ -113,7 +113,7 @@
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Socket</span> : <span class='ident'>AsRawFd</span> {
     <span class='doccomment'>/// Returns the value for the `SO_LINGER` socket option.</span>
     <span class='kw'>fn</span> <span class='ident'>linger</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='ident'>linger</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>nix</span>::<span class='ident'>getsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Linger</span>)
+        <span class='kw'>let</span> <span class='ident'>linger</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>nix</span>::<span class='ident'>getsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Linger</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>));
 
         <span class='kw'>if</span> <span class='ident'>linger</span>.<span class='ident'>l_onoff</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
@@ -130,22 +130,22 @@
             <span class='ident'>l_linger</span>: <span class='ident'>dur_s</span> <span class='kw'>as</span> <span class='ident'>nix</span>::<span class='ident'>c_int</span>
         };
 
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Linger</span>, <span class='kw-2'>&amp;</span><span class='ident'>linger</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Linger</span>, <span class='kw-2'>&amp;</span><span class='ident'>linger</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>set_reuseaddr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>val</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReuseAddr</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReuseAddr</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>set_reuseport</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>val</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReusePort</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReusePort</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>set_tcp_nodelay</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>val</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Tcp</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>TcpNoDelay</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(),  <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>TcpNoDelay</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
@@ -156,7 +156,7 @@
     <span class='doccomment'>/// stable duration type.</span>
     <span class='kw'>fn</span> <span class='ident'>set_read_timeout_ms</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>val</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>nix</span>::<span class='ident'>TimeVal</span>::<span class='ident'>milliseconds</span>(<span class='ident'>val</span> <span class='kw'>as</span> <span class='ident'>i64</span>);
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReceiveTimeout</span>, <span class='kw-2'>&amp;</span><span class='ident'>t</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>ReceiveTimeout</span>, <span class='kw-2'>&amp;</span><span class='ident'>t</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
@@ -167,7 +167,7 @@
     <span class='doccomment'>/// stable duration type.</span>
     <span class='kw'>fn</span> <span class='ident'>set_write_timeout_ms</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>val</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>nix</span>::<span class='ident'>TimeVal</span>::<span class='ident'>milliseconds</span>(<span class='ident'>val</span> <span class='kw'>as</span> <span class='ident'>i64</span>);
-        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>SockLevel</span>::<span class='ident'>Socket</span>, <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>SendTimeout</span>, <span class='kw-2'>&amp;</span><span class='ident'>t</span>)
+        <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>SendTimeout</span>, <span class='kw-2'>&amp;</span><span class='ident'>t</span>)
             .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 }

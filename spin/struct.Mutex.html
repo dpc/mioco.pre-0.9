@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Mutex` struct in crate `spin`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Mutex">
+
+    <title>spin::Mutex - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='index.html'>spin</a></p><script>window.sidebarCurrent = {name: 'Mutex', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>spin</a>::<wbr><a class='struct' href=''>Mutex</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-16' class='srclink' href='../src/spin/mutex.rs.html#75-79' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Mutex&lt;T&gt; {
+    // some fields omitted
+}</pre><div class='docblock'><p>This type provides MUTual EXclusion based on spinning.</p>
+
+<h1 id="description" class='section-header'><a
+                           href="#description">Description</a></h1>
+<p>This structure behaves a lot like a normal Mutex. There are some differences:</p>
+
+<ul>
+<li>It may be used outside the runtime.
+
+<ul>
+<li>A normal mutex will fail when used without the runtime, this will just lock</li>
+<li>When the runtime is present, it will call the deschedule function when appropriate</li>
+</ul></li>
+<li>No lock poisoning. When a fail occurs when the lock is held, no guarantees are made</li>
+</ul>
+
+<p>When calling rust functions from bare threads, such as C <code>pthread</code>s, this lock will be very
+helpful. In other cases however, you are encouraged to use the locks from the standard
+library.</p>
+
+<h1 id="simple-example" class='section-header'><a
+                           href="#simple-example">Simple example</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>spin</span>;
+<span class='kw'>let</span> <span class='ident'>spin_mutex</span> <span class='op'>=</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+
+<span class='comment'>// Modify the data</span>
+{
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>spin_mutex</span>.<span class='ident'>lock</span>();
+    <span class='op'>*</span><span class='ident'>data</span> <span class='op'>=</span> <span class='number'>2</span>;
+}
+
+<span class='comment'>// Read the data</span>
+<span class='kw'>let</span> <span class='ident'>answer</span> <span class='op'>=</span>
+{
+    <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>spin_mutex</span>.<span class='ident'>lock</span>();
+    <span class='op'>*</span><span class='ident'>data</span>
+};
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='number'>2</span>);
+</pre>
+
+<h1 id="thread-safety-example" class='section-header'><a
+                           href="#thread-safety-example">Thread-safety example</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>spin</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::{<span class='ident'>Arc</span>, <span class='ident'>Barrier</span>};
+
+<span class='kw'>let</span> <span class='ident'>numthreads</span> <span class='op'>=</span> <span class='number'>1000</span>;
+<span class='kw'>let</span> <span class='ident'>spin_mutex</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>spin</span>::<span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='number'>0</span>));
+
+<span class='comment'>// We use a barrier to ensure the readout happens after all writing</span>
+<span class='kw'>let</span> <span class='ident'>barrier</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>Barrier</span>::<span class='ident'>new</span>(<span class='ident'>numthreads</span> <span class='op'>+</span> <span class='number'>1</span>));
+
+<span class='kw'>for</span> _ <span class='kw'>in</span> (<span class='number'>0</span>..<span class='ident'>numthreads</span>)
+{
+    <span class='kw'>let</span> <span class='ident'>my_barrier</span> <span class='op'>=</span> <span class='ident'>barrier</span>.<span class='ident'>clone</span>();
+    <span class='kw'>let</span> <span class='ident'>my_lock</span> <span class='op'>=</span> <span class='ident'>spin_mutex</span>.<span class='ident'>clone</span>();
+    <span class='ident'>std</span>::<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span><span class='op'>||</span>
+    {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>guard</span> <span class='op'>=</span> <span class='ident'>my_lock</span>.<span class='ident'>lock</span>();
+        <span class='op'>*</span><span class='ident'>guard</span> <span class='op'>+=</span> <span class='number'>1</span>;
+
+        <span class='comment'>// Release the lock to prevent a deadlock</span>
+        <span class='ident'>drop</span>(<span class='ident'>guard</span>);
+        <span class='ident'>my_barrier</span>.<span class='ident'>wait</span>();
+    });
+}
+
+<span class='ident'>barrier</span>.<span class='ident'>wait</span>();
+
+<span class='kw'>let</span> <span class='ident'>answer</span> <span class='op'>=</span> { <span class='op'>*</span><span class='ident'>spin_mutex</span>.<span class='ident'>lock</span>() };
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='ident'>numthreads</span>);
+</pre>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>const fn <a href='#method.new' class='fnname'>new</a>(user_data: T) -&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h4>
+<div class='docblock'><p>Creates a new spinlock wrapping the supplied data.</p>
+
+<p>May be used statically:</p>
+<pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>const_fn</span>)]</span>
+<span class='kw'>use</span> <span class='ident'>spin</span>;
+
+<span class='kw'>static</span> <span class='ident'>MUTEX</span>: <span class='ident'>spin</span>::<span class='ident'>Mutex</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>::<span class='ident'>new</span>(());
+
+<span class='kw'>fn</span> <span class='ident'>demo</span>() {
+    <span class='kw'>let</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='ident'>MUTEX</span>.<span class='ident'>lock</span>();
+    <span class='comment'>// do something with lock</span>
+    <span class='ident'>drop</span>(<span class='ident'>lock</span>);
+}
+</pre>
+</div><h4 id='method.lock' class='method'><code>fn <a href='#method.lock' class='fnname'>lock</a>(&amp;self) -&gt; <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;T&gt;</code></h4>
+<div class='docblock'><p>Locks the spinlock and returns a guard.</p>
+
+<p>The returned value may be dereferenced for data access
+and the lock will be dropped when the guard falls out of scope.</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='ident'>mylock</span> <span class='op'>=</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+{
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>mylock</span>.<span class='ident'>lock</span>();
+    <span class='comment'>// The lock is now locked and the data can be accessed</span>
+    <span class='op'>*</span><span class='ident'>data</span> <span class='op'>+=</span> <span class='number'>1</span>;
+    <span class='comment'>// The lock is implicitly dropped</span>
+}
+</pre>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "spin";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>

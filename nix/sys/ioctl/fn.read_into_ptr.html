@@ -45,8 +45,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-12598' class='srclink' href='../../../src/nix/sys/ioctl.rs.html#202-204' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub unsafe fn read_into_ptr&lt;T&gt;(fd: <a class='type' href='../../../nix/fcntl/type.Fd.html' title='nix::fcntl::Fd'>Fd</a>, op: <a class='type' href='../../../nix/sys/ioctl/type.ioctl_op_t.html' title='nix::sys::ioctl::ioctl_op_t'>ioctl_op_t</a>, data_ptr: <a href='http://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut T</a>) -&gt; <a class='type' href='../../../nix/type.Result.html' title='nix::Result'>Result</a>&lt;<a class='type' href='../../../nix/type.c_int.html' title='nix::c_int'>c_int</a>&gt;</pre><div class='docblock'><p>Ioctl where the result from the kernel will be written to the
+        </span><a id='src-12759' class='srclink' href='../../../src/nix/sys/ioctl.rs.html#203-205' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub unsafe fn read_into_ptr&lt;T&gt;(fd: <a class='type' href='http://doc.rust-lang.org/nightly/std/sys/ext/io/type.RawFd.html' title='std::sys::ext::io::RawFd'>RawFd</a>, op: <a class='type' href='../../../nix/sys/ioctl/type.ioctl_op_t.html' title='nix::sys::ioctl::ioctl_op_t'>ioctl_op_t</a>, data_ptr: <a href='http://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut T</a>) -&gt; <a class='type' href='../../../nix/type.Result.html' title='nix::Result'>Result</a>&lt;<a class='type' href='../../../nix/type.c_int.html' title='nix::c_int'>c_int</a>&gt;</pre><div class='docblock'><p>Ioctl where the result from the kernel will be written to the
 provided pointer</p>
 
 <p>The refernced data may also contain information that will be consumed

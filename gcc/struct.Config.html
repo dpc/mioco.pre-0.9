@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-14' class='srclink' href='../src/gcc/lib.rs.html#56-64' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-14' class='srclink' href='../src/gcc/lib.rs.html#56-65' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Config {
     // some fields omitted
 }</pre><div class='docblock'><p>Extra configuration to pass to gcc.</p>
@@ -64,21 +64,41 @@
 </div><h4 id='method.file' class='method'><code>fn <a href='#method.file' class='fnname'>file</a>&lt;P: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/std/path/struct.Path.html' title='std::path::Path'>Path</a>&gt;&gt;(&amp;mut self, p: P) -&gt; &amp;mut <a class='struct' href='../gcc/struct.Config.html' title='gcc::Config'>Config</a></code></h4>
 <div class='docblock'><p>Add a file which will be compiled</p>
 </div><h4 id='method.cpp' class='method'><code>fn <a href='#method.cpp' class='fnname'>cpp</a>(&amp;mut self, cpp: <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut <a class='struct' href='../gcc/struct.Config.html' title='gcc::Config'>Config</a></code></h4>
-<div class='docblock'><p>Set C++ support</p>
-</div><h4 id='method.cpp_stdlib' class='method'><code>fn <a href='#method.cpp_stdlib' class='fnname'>cpp_stdlib</a>(&amp;mut self, cpp_stdlib: <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;) -&gt; &amp;mut <a class='struct' href='../gcc/struct.Config.html' title='gcc::Config'>Config</a></code></h4>
-<div class='docblock'><p>Set the standard library to use when compiling with C++ support.</p>
+<div class='docblock'><p>Set C++ support.</p>
+
+<p>The other <code>cpp_*</code> options will only become active if this is set to
+<code>true</code>.</p>
+</div><h4 id='method.cpp_link_stdlib' class='method'><code>fn <a href='#method.cpp_link_stdlib' class='fnname'>cpp_link_stdlib</a>(&amp;mut self, cpp_link_stdlib: <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;) -&gt; &amp;mut <a class='struct' href='../gcc/struct.Config.html' title='gcc::Config'>Config</a></code></h4>
+<div class='docblock'><p>Set the standard library to link against when compiling with C++
+support.</p>
 
 <p>The default value of this property depends on the current target: On
-OS X <code>Some(&quot;c++&quot;)</code> is used and for other supported targets
-<code>Some(&quot;stdc++&quot;)</code> is used.</p>
+OS X <code>Some(&quot;c++&quot;)</code> is used, when compiling for a Visual Studio based
+target <code>None</code> is used and for other targets <code>Some(&quot;stdc++&quot;)</code> is used.</p>
 
-<p>The choosen library is specified when compiling using the <code>-stdlib</code> flag
-and Cargo is instructed to link to the given library.</p>
+<p>A value of <code>None</code> indicates that no automatic linking should happen,
+otherwise cargo will link against the specified library.</p>
 
-<p>A value of <code>None</code> indicates that no special actions regarding the C++
-standard library should be take. This means that neither are linking
-instructions provided to Cargo nor is the compiler told to use a
-specific standard library.</p>
+<p>The given library name must not contain the <code>lib</code> prefix.</p>
+</div><h4 id='method.cpp_set_stdlib' class='method'><code>fn <a href='#method.cpp_set_stdlib' class='fnname'>cpp_set_stdlib</a>(&amp;mut self, cpp_set_stdlib: <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;) -&gt; &amp;mut <a class='struct' href='../gcc/struct.Config.html' title='gcc::Config'>Config</a></code></h4>
+<div class='docblock'><p>Force the C++ compiler to use the specified standard library.</p>
+
+<p>Setting this option will automatically set <code>cpp_link_stdlib</code> to the same
+value.</p>
+
+<p>The default value of this option is always <code>None</code>.</p>
+
+<p>This option has no effect when compiling for a Visual Studio based
+target.</p>
+
+<p>This option sets the <code>-stdlib</code> flag, which is only supported by some
+compilers (clang, icc) but not by others (gcc). The library will not
+detect which compiler is used, as such it is the responsibility of the
+caller to ensure that this option is only used in conjuction with a
+compiler which supports the <code>-stdlib</code> flag.</p>
+
+<p>A value of <code>None</code> indicates that no specific C++ standard library should
+be used, otherwise <code>-stdlib</code> is added to the compile invocation.</p>
 
 <p>The given library name must not contain the <code>lib</code> prefix.</p>
 </div><h4 id='method.compile' class='method'><code>fn <a href='#method.compile' class='fnname'>compile</a>(&amp;self, output: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></h4>

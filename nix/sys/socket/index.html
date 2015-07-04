@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-14006' class='srclink' href='../../../src/nix/sys/socket/mod.rs.html#1-367' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-14167' class='srclink' href='../../../src/nix/sys/socket/mod.rs.html#1-443' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Socket interface functions</p>
 
 <p><a href="http://man7.org/linux/man-pages/man7/socket.7.html">Further reading</a></p>
@@ -199,6 +199,14 @@
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='enum' href='enum.Shutdown.html'
+                               title='nix::sys::socket::Shutdown'>Shutdown</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='enum' href='enum.SockAddr.html'
                                title='nix::sys::socket::SockAddr'>SockAddr</a></td>
                         <td class='docblock short'>
@@ -260,11 +268,21 @@ argument to <code>getsockopt</code> and <code>setsockopt</code>.</p>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='trait' href='trait.SockOpt.html'
-                               title='nix::sys::socket::SockOpt'>SockOpt</a></td>
+                        <td><a class='trait' href='trait.GetSockOpt.html'
+                               title='nix::sys::socket::GetSockOpt'>GetSockOpt</a></td>
                         <td class='docblock short'>
                              <p>Represents a socket option that can be accessed or set. Used as an argument
-to <code>getsockopt</code> and <code>setsockopt</code>.</p>
+to <code>getsockopt</code></p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.SetSockOpt.html'
+                               title='nix::sys::socket::SetSockOpt'>SetSockOpt</a></td>
+                        <td class='docblock short'>
+                             <p>Represents a socket option that can be accessed or set. Used as an argument
+to <code>setsockopt</code></p>
 
                         </td>
                     </tr>
@@ -343,11 +361,30 @@ to <code>getsockopt</code> and <code>setsockopt</code>.</p>
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='fn' href='fn.recv.html'
+                               title='nix::sys::socket::recv'>recv</a></td>
+                        <td class='docblock short'>
+                             <p>Receive data from a connection-oriented socket. Returns the number of
+bytes read</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='fn' href='fn.recvfrom.html'
                                title='nix::sys::socket::recvfrom'>recvfrom</a></td>
                         <td class='docblock short'>
                              <p>Receive data from a connectionless or connection-oriented socket. Returns
 the number of bytes read and the socket address of the sender.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.send.html'
+                               title='nix::sys::socket::send'>send</a></td>
+                        <td class='docblock short'>
+                             <p>Send data to a connection-oriented socket. Returns the number of bytes read</p>
 
                         </td>
                     </tr>
@@ -365,6 +402,15 @@ the number of bytes read and the socket address of the sender.</p>
                                title='nix::sys::socket::setsockopt'>setsockopt</a></td>
                         <td class='docblock short'>
                              <p>Sets the value for the requested socket option</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.shutdown.html'
+                               title='nix::sys::socket::shutdown'>shutdown</a></td>
+                        <td class='docblock short'>
+                             <p>Shut down part of a full-duplex connection.</p>
 
                         </td>
                     </tr>

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BoundedQueue",""],["Slab","A preallocated chunk of memory for storing objects of the same type."]]});
+initSidebarItems({"struct":[["BoundedQueue",""]],"type":[["Slab",""]]});
