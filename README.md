@@ -1,6 +1,17 @@
-[![Build Status](https://travis-ci.org/dpc/mioco.svg?branch=master)](https://travis-ci.org/dpc/mioco)
-
 # mioco
+
+<p align="center">
+  <a href="https://travis-ci.org/dpc/mioco">
+      <img src="https://img.shields.io/travis/dpc/mioco/master.svg?style=flat-square" alt="Build Status">
+  </a>
+  <a href="https://crates.io/crates/mioco">
+      <img src="http://meritbadge.herokuapp.com/mioco?style=flat-square" alt="crates.io">
+  </a>
+  <img src="https://img.shields.io/badge/GITTER-join%20chat-green.svg?style=flat-square" alt="Gitter Chat">
+  <br>
+  <strong><a href="//dpc.github.io/mioco/">Documentation</a></strong>
+</p>
+
 
 ## Introduction
 
