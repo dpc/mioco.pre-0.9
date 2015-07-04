@@ -7,7 +7,9 @@
   <a href="https://crates.io/crates/mioco">
       <img src="http://meritbadge.herokuapp.com/mioco?style=flat-square" alt="crates.io">
   </a>
-  <img src="https://img.shields.io/badge/GITTER-join%20chat-green.svg?style=flat-square" alt="Gitter Chat">
+  <a href="https://gitter.im/dpc/mioco">
+      <img src="https://img.shields.io/badge/GITTER-join%20chat-green.svg?style=flat-square" alt="Gitter Chat">
+  </a>
   <br>
   <strong><a href="//dpc.github.io/mioco/">Documentation</a></strong>
 </p>
