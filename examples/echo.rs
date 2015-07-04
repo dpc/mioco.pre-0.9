@@ -1,4 +1,5 @@
 #![feature(result_expect)]
+#![feature(drain)]
 extern crate mio;
 extern crate nix;
 extern crate coroutine;
@@ -8,6 +9,7 @@ use mio::*;
 use mio::tcp::*;
 use mio::util::Slab;
 use std::io;
+use std::collections::HashSet;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -24,6 +26,7 @@ fn listend_addr() -> SocketAddr {
 struct Server {
     sock: TcpListener,
     conns: Slab<mioco::ExternalHandle>,
+    to_del: HashSet<Token>,
 }
 
 impl Server {
@@ -50,6 +53,7 @@ impl Server {
         Ok((Server {
             sock: sock,
             conns: Slab::new_starting_at(CONN_TOKEN_START, CONNS_MAX),
+            to_del: HashSet::new(),
         }, ev_loop))
     }
 
@@ -68,13 +72,17 @@ impl Server {
                     sock.as_raw_fd(), socket::SockLevel::Tcp, socket::sockopt::TcpNoDelay, &true
                     ).map_err(|e| io::Error::from_raw_os_error(e.errno() as i32)));
 
+            for token in self.to_del.drain() {
+                self.conns.remove(token);
+            }
+
             let _tok = self.conns.insert_with(|token| {
                 let mut builder = mioco::Builder::new();
                 let io : mioco::ExternalHandle = builder.wrap_io(event_loop, sock, token);
 
-                let f = move |handles : &mut [mioco::InternalHandle]| {
+                let f = move |io : &mut mioco::CoroutineHandle| {
                     use std::io::{Read, Write};
-                    let mut io = &mut handles[0];
+                    let mut io = &mut io.handles()[0];
 
                     let mut buf = [0u8; 1024 * 16];
                     loop {
@@ -110,9 +118,17 @@ impl Server {
         Ok(())
     }
 
-    fn conn_handle_finished(&mut self, token : Token, finished : bool) {
+    fn conn_handle_finished(&mut self, event_loop : &mut EventLoop<Server>, token : Token, finished : bool) {
         if finished {
-            self.conns.remove(token);
+            if !self.to_del.contains(&token) {
+                let handle = self.conns[token].clone();
+
+                handle.for_every_token(|token| {
+                    let mut handle = &mut self.conns[token];
+                    handle.deregister(event_loop);
+                    self.to_del.insert(token);
+                });
+            }
         }
     }
 
@@ -122,7 +138,7 @@ impl Server {
             conn.readable(event_loop, tok, hint);
             conn.is_finished()
         };
-        self.conn_handle_finished(tok, finished);
+        self.conn_handle_finished(event_loop, tok, finished);
     }
 
     fn conn_writable(&mut self, event_loop: &mut EventLoop<Server>, tok: Token) {
@@ -131,7 +147,7 @@ impl Server {
             conn.writable(event_loop, tok);
             conn.is_finished()
         };
-        self.conn_handle_finished(tok, finished);
+        self.conn_handle_finished(event_loop, tok, finished);
     }
 
     fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::ExternalHandle {
