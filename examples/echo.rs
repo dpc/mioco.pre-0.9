@@ -48,7 +48,7 @@ impl Server {
         };
         let mut ev_loop : EventLoop<Server> = try!(EventLoop::configured(config));
 
-        try!(ev_loop.register_opt(&sock, SERVER, Interest::readable(), PollOpt::edge()));
+        try!(ev_loop.register_opt(&sock, SERVER, EventSet::readable(), PollOpt::edge()));
 
         Ok((Server {
             sock: sock,
@@ -109,7 +109,7 @@ impl Server {
                     }
                 };
 
-                builder.start(f);
+                builder.start(f, event_loop);
 
                 io
             });
@@ -132,25 +132,17 @@ impl Server {
         }
     }
 
-    fn conn_readable(&mut self, event_loop: &mut EventLoop<Server>, tok: Token, hint: ReadHint) {
+    fn conn_ready(&mut self, event_loop : &mut EventLoop<Server>, tok: Token, events : EventSet) {
         let finished = {
             let conn = self.conn(tok);
-            conn.readable(event_loop, tok, hint);
+            conn.ready(event_loop, tok, events);
             conn.is_finished()
         };
         self.conn_handle_finished(event_loop, tok, finished);
     }
 
-    fn conn_writable(&mut self, event_loop: &mut EventLoop<Server>, tok: Token) {
-        let finished = {
-            let conn = self.conn(tok);
-            conn.writable(event_loop, tok);
-            conn.is_finished()
-        };
-        self.conn_handle_finished(event_loop, tok, finished);
-    }
 
-    fn conn<'a>(&'a mut self, tok: Token) -> &'a mut mioco::ExternalHandle {
+    fn conn<'a>(&'a mut self, tok : Token) -> &'a mut mioco::ExternalHandle {
         &mut self.conns[tok]
     }
 }
@@ -159,17 +151,10 @@ impl Handler for Server {
     type Timeout = usize;
     type Message = ();
 
-    fn readable(&mut self, event_loop: &mut EventLoop<Server>, token: Token, hint: ReadHint) {
+    fn ready(&mut self, event_loop: &mut EventLoop<Server>, token: Token, events: EventSet) {
         match token {
             SERVER => self.accept(event_loop).expect("accept(event_loop) failed"),
-            i => self.conn_readable(event_loop, i, hint),
-        };
-    }
-
-    fn writable(&mut self, event_loop: &mut EventLoop<Server>, token: Token) {
-        match token {
-            SERVER => panic!("received writable for token 0"),
-            _ => self.conn_writable(event_loop, token),
+            i => self.conn_ready(event_loop, i, events),
         };
     }
 }

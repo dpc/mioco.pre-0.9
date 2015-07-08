@@ -18,71 +18,131 @@ extern crate nix;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use mio::{TryRead, TryWrite, Evented, Token, Handler, EventLoop};
+use mio::{TryRead, TryWrite, Token, Handler, EventLoop, EventSet};
+use std::os::unix::io::AsRawFd;
 
-/// Select type
-///
-/// TBD.
+/// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum SelectType {
+pub enum RW {
     /// Read
     Read,
     /// Write
     Write,
-    /// Any
+    /// Any / Both (depends on context)
     Both,
+}
+
+impl RW {
+    fn has_read(&self) -> bool {
+        match *self {
+            RW::Read | RW::Both => true,
+            RW::Write => false,
+        }
+    }
+
+    fn has_write(&self) -> bool {
+        match *self {
+            RW::Write | RW::Both => true,
+            RW::Read => false,
+        }
+    }
 }
 
 /// Last Event
 ///
-/// Read or Write + index of handle
+/// Read or Write + index of the handle
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum LastEvent {
-    /// Read for InternalHandle of a given index
-    Read(usize),
-    /// Write for InternalHandle of a given index
-    Write(usize),
+pub struct LastEvent {
+    idx : usize,
+    rw : RW,
 }
 
 impl LastEvent {
     /// Index of the IO handle
     pub fn idx(&self) -> usize {
-        match *self {
-            LastEvent::Read(idx) | LastEvent::Write(idx) => idx,
-        }
+        self.idx
     }
 
     /// Was the event a read
-    pub fn is_read(&self) -> bool {
-        match *self {
-            LastEvent::Read(_) => true,
-            LastEvent::Write(_) => false,
-        }
+    pub fn has_read(&self) -> bool {
+        self.rw.has_read()
     }
 
     /// Was the event a write
-    pub fn is_write(&self) -> bool {
-        match *self {
-            LastEvent::Read(_) => false,
-            LastEvent::Write(_) => true,
-        }
+    pub fn has_write(&self) -> bool {
+        self.rw.has_write()
     }
 }
 
 /// State of `mioco` coroutine
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum State {
-    BlockedOnWrite(Token),
-    BlockedOnRead(Token),
-    Select(SelectType),
+    BlockedOn(RW),
     Running,
     Finished,
 }
 
-/// `mioco` can work on any type implementing this trait
-pub trait ReadWrite : TryRead+TryWrite+std::io::Read+std::io::Write+Evented { }
 
-impl<T> ReadWrite for T where T: TryRead+TryWrite+std::io::Read+std::io::Write+Evented {}
+/// `mioco` can work on any type implementing this trait
+pub trait Evented : mio::Evented {
+    /// `mio::TryRead::try_read`
+    fn try_read(&mut self, _buf: &mut [u8]) -> std::io::Result<Option<usize>> {
+        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
+    }
+    /// `mio::TryWrite::try_write`
+    fn try_write(&mut self, _buf: &[u8]) -> std::io::Result<Option<usize>> {
+        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
+    }
+    /// Close inbound
+    fn close_inbound(&mut self) -> std::io::Result<()> {
+        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
+    }
+    /// Close out
+    fn close_outbound(&mut self) -> std::io::Result<()> {
+        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
+    }
+    /// As mio::Evented
+    fn as_mio_evented(&self) -> &mio::Evented;
+    /// As mutable mio::Evented
+    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented;
+
+}
+
+impl Evented for mio::tcp::TcpStream {
+    fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
+        mio::io::TryRead::try_read(self, buf)
+    }
+    fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
+        mio::io::TryWrite::try_write(self, buf)
+    }
+    fn as_mio_evented(&self) -> &mio::Evented {
+        self
+    }
+    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented {
+        self
+    }
+}
+
+impl Evented for mio::unix::UnixStream {
+    fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
+        mio::io::TryRead::try_read(self, buf)
+    }
+    fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
+        mio::io::TryWrite::try_write(self, buf)
+    }
+    fn close_inbound(&mut self) -> std::io::Result<()> {
+        nix::unistd::close(self.as_raw_fd()).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "nix"))
+    }
+    fn close_outbound(&mut self) -> std::io::Result<()> {
+        nix::unistd::close(self.as_raw_fd()).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "nix"))
+    }
+    fn as_mio_evented(&self) -> &mio::Evented {
+        self
+    }
+    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented {
+        self
+    }
+}
 
 /// `mioco` coroutine
 ///
@@ -96,58 +156,99 @@ struct Coroutine {
     state : State,
     /// Last event that resumed the coroutine
     last_event: LastEvent,
-    /// All tokens associated with this cooroutine
+    /// All tokens associated with this cooroutine TODO: move to
+    /// CoroutineHandle?
     tokens : Vec<Token>,
+
+    /// All handles
+    io : Vec<Rc<RefCell<IO>>>,
+
+    /// Mask of handle indexes that we're blocked on
+    blocked_on_mask : u32,
+    registered_mask : u32,
 }
 
-/// Wrapped mio IO (Evented+TryRead+TryWrite)
+
+impl Coroutine {
+
+    fn reregister_blocked_on<H>(&mut self, event_loop: &mut EventLoop<H>)
+        where H : Handler
+    {
+
+        let rw = match self.state {
+            State::BlockedOn(rw) => rw,
+            _ => return,
+        };
+
+        for i in 0..32 {
+            if (self.blocked_on_mask & (1 << i)) != 0 {
+                let mut io = self.io[i].borrow_mut();
+                io.reregister(event_loop, rw);
+            } else if (self.registered_mask & (1 << i)) != 0 {
+                let mut io = self.io[i].borrow_mut();
+                io.unreregister(event_loop);
+            }
+        }
+
+        self.registered_mask = self.blocked_on_mask;
+        self.blocked_on_mask = 0;
+    }
+}
+/// Wrapped mio IO (mio::Evented+TryRead+TryWrite)
 ///
 /// `Handle` is just a cloneable reference to this struct
 struct IO {
     coroutine: Rc<RefCell<Coroutine>>,
     token: Token,
     idx : usize, /// Index in CoroutineHandle::handles
-    io : Box<ReadWrite+'static>,
-    pending_read : bool,
-    pending_write : bool,
+    io : Box<Evented+'static>,
     peer_hup: bool,
 }
 
 
 impl IO {
     /// Handle `hup` condition
-    fn hup<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token)
+    fn hup<H>(&mut self, _event_loop: &mut EventLoop<H>, _token: Token)
         where H : Handler {
             self.peer_hup = true;
-            self.reregister(event_loop, token)
         }
 
     /// Reregister oneshot handler for the next event
-    fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>, token : Token)
+    fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>, rw : RW)
         where H : Handler {
 
-            if self.coroutine.borrow().state == State::Finished {
-                return;
-            }
-
-            let mut interest =  mio::Interest::none();
+            let mut interest = mio::EventSet::none();
 
             if !self.peer_hup {
-                interest = interest | mio::Interest::hup()
+                interest = interest | mio::EventSet::hup();
+
+                if rw.has_read() {
+                    interest = interest | mio::EventSet::readable();
+                }
             }
 
-            if !self.pending_read {
-                interest = interest | mio::Interest::readable()
-            }
-            if !self.pending_write {
-                interest = interest | mio::Interest::writable()
+            if rw.has_write() {
+                interest = interest | mio::EventSet::writable();
             }
 
             event_loop.reregister(
-                &*self.io, token,
+                &*self.io, self.token,
                 interest, mio::PollOpt::edge() | mio::PollOpt::oneshot()
                 ).ok().expect("reregister failed")
         }
+
+
+    /// Un-reregister something we're not interested in anymore
+    fn unreregister<H>(&mut self, event_loop: &mut EventLoop<H>)
+        where H : Handler {
+            let interest = mio::EventSet::none();
+
+            event_loop.reregister(
+                &*self.io, self.token,
+                interest, mio::PollOpt::edge() | mio::PollOpt::oneshot()
+                ).ok().expect("reregister failed")
+        }
+
 }
 
 /// `mioco` wrapper over io associated with a given coroutine.
@@ -167,11 +268,29 @@ pub struct ExternalHandle {
 /// Passed to closure function.
 ///
 /// It implements standard library `Read` and `Write` traits that will
-/// take care of blocking and unblocking coroutine when needed. 
+/// take care of blocking and unblocking coroutine when needed.
 #[derive(Clone)]
 pub struct InternalHandle {
     inn : Rc<RefCell<IO>>,
 }
+
+impl InternalHandle {
+
+    /// Access the wrapped IO
+    pub fn with_raw<F>(&self, f : F)
+        where F : Fn(&Evented) {
+        let io = &self.inn.borrow().io;
+        f(&**io)
+    }
+
+    /// Access the wrapped IO as mutable
+    pub fn with_raw_mut<F>(&mut self, f : F)
+        where F : Fn(&mut Evented) {
+        let mut io = &mut self.inn.borrow_mut().io;
+        f(&mut **io)
+    }
+}
+
 impl ExternalHandle {
 
     /// Call for every token
@@ -193,14 +312,14 @@ impl ExternalHandle {
 
     /// Access the wrapped IO
     pub fn with_raw<F>(&self, f : F)
-        where F : Fn(&ReadWrite) {
+        where F : Fn(&Evented) {
         let io = &self.inn.borrow().io;
         f(&**io)
     }
 
     /// Access the wrapped IO as mutable
     pub fn with_raw_mut<F>(&mut self, f : F)
-        where F : Fn(&mut ReadWrite) {
+        where F : Fn(&mut Evented) {
         let mut io = &mut self.inn.borrow_mut().io;
         f(&mut **io)
     }
@@ -208,80 +327,45 @@ impl ExternalHandle {
     /// Readable event handler
     ///
     /// This corresponds to `mio::Hnalder::readable()`.
-    pub fn readable<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token, hint: mio::ReadHint)
+    pub fn ready<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token, events : EventSet)
     where H : Handler {
 
-        if hint.is_hup() {
+        let my_idx = {
+            let inn = self.inn.borrow();
+            let idx = inn.idx;
+            inn.coroutine.borrow_mut().blocked_on_mask &= !(1 << idx);
+            idx
+        };
+
+        if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
-            return;
         }
 
-        self.inn.borrow_mut().pending_read = true;
-
-        let state = {
-            let co = &self.inn.borrow().coroutine;
-            let co_b = co.borrow();
-            co_b.state
+        let event = match (events.is_readable(), events.is_writable()) {
+            (true, true) => RW::Both,
+            (true, false) => RW::Read,
+            (false, true) => RW::Write,
+            (false, false) => return,
         };
 
-
-        let resume = match state {
-            State::Select(SelectType::Both) | State::Select(SelectType::Read) => true,
-            State::BlockedOnRead(blocked_token) if token == blocked_token => true,
-            _ => false,
-        };
-
-        if resume {
-            let my_idx = self.inn.borrow().idx;
-            let handle = {
-                let inn = self.inn.borrow();
-                let coroutine_handle = inn.coroutine.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
-                inn.coroutine.borrow_mut().state = State::Running;
-                inn.coroutine.borrow_mut().last_event = LastEvent::Read(my_idx);
-                coroutine_handle
+        let handle = {
+            let inn = self.inn.borrow();
+            let coroutine_handle = inn.coroutine.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
+            inn.coroutine.borrow_mut().state = State::Running;
+            inn.coroutine.borrow_mut().last_event = LastEvent {
+                rw: event,
+                idx: my_idx,
             };
-            handle.resume().ok().expect("resume() failed");
-        }
-
-        let mut inn = self.inn.borrow_mut();
-        inn.reregister(event_loop, token);
-    }
-
-    /// Readable event handler
-    ///
-    /// This corresponds to `mio::Hnalder::writable()`.
-    pub fn writable<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token)
-    where H : Handler {
-
-        self.inn.borrow_mut().pending_write = true;
-
-        let state = {
-            let co = &self.inn.borrow().coroutine;
-            let co_b = co.borrow();
-            co_b.state
+            coroutine_handle
         };
+        handle.resume().ok().expect("resume() failed");
 
-        let resume = match state {
-            State::BlockedOnWrite(blocked_token) if token == blocked_token => true,
-            State::Select(SelectType::Both) | State::Select(SelectType::Write) => true,
-            _ => false,
+        let co = {
+            let inn = self.inn.borrow();
+            inn.coroutine.clone()
         };
-
-        if resume {
-            let my_idx = self.inn.borrow().idx;
-            let handle = {
-                let inn = self.inn.borrow();
-                let coroutine_handle = inn.coroutine.borrow().coroutine.as_ref().map(|c| c.clone()).unwrap();
-                inn.coroutine.borrow_mut().state = State::Running;
-                inn.coroutine.borrow_mut().last_event = LastEvent::Write(my_idx);
-                coroutine_handle
-            };
-            handle.resume().ok().expect("resume() failed");
-        }
-
-        let mut inn = self.inn.borrow_mut();
-        inn.reregister(event_loop, token)
+        co.borrow_mut().reregister_blocked_on(event_loop);
     }
 
     /// Deregister IO from event loop
@@ -298,31 +382,20 @@ impl std::io::Read for InternalHandle {
         loop {
             let res = {
                 let mut inn = self.inn.borrow_mut();
-
-                if inn.peer_hup {
-                    return Ok(0)
-                }
-
-                if inn.pending_read {
-                    inn.pending_read = false;
-                    inn.io.try_read(buf)
-                } else {
-                    Ok(None)
-                }
+                inn.io.try_read(buf)
             };
 
             match res {
                 Ok(None) => {
                     {
                         let inn = self.inn.borrow();
-                        inn.coroutine.borrow_mut().state = State::BlockedOnRead(inn.token);
-                        debug_assert!(!inn.pending_read);
+                        inn.coroutine.borrow_mut().state = State::BlockedOn(RW::Read);
+                        inn.coroutine.borrow_mut().blocked_on_mask = 1 << inn.idx;
                     }
                     coroutine::Coroutine::block();
                     {
                         let inn = self.inn.borrow_mut();
-                        debug_assert!(inn.pending_read);
-                        debug_assert!(inn.coroutine.borrow().last_event.is_read());
+                        debug_assert!(inn.coroutine.borrow().last_event.has_read());
                         debug_assert!(inn.coroutine.borrow().last_event.idx() == inn.idx);
                     }
                 },
@@ -342,26 +415,20 @@ impl std::io::Write for InternalHandle {
         loop {
             let res = {
                 let mut inn = self.inn.borrow_mut();
-                if inn.pending_write {
-                    inn.pending_write = false;
-                    inn.io.try_write(buf)
-                } else {
-                    Ok(None)
-                }
+                inn.io.try_write(buf)
             };
 
             match res {
                 Ok(None) => {
                     {
                         let inn = self.inn.borrow();
-                        inn.coroutine.borrow_mut().state = State::BlockedOnWrite(inn.token);
-                        debug_assert!(!inn.pending_write);
+                        inn.coroutine.borrow_mut().state = State::BlockedOn(RW::Read);
+                        inn.coroutine.borrow_mut().blocked_on_mask = 1 << inn.idx;
                     }
                     coroutine::Coroutine::block();
                     {
                         let inn = self.inn.borrow_mut();
-                        debug_assert!(inn.pending_write);
-                        debug_assert!(inn.coroutine.borrow().last_event.is_write());
+                        debug_assert!(inn.coroutine.borrow().last_event.has_write());
                         debug_assert!(inn.coroutine.borrow().last_event.idx() == inn.idx);
                     }
                 },
@@ -407,8 +474,11 @@ impl Builder {
             coroutine: Rc::new(RefCell::new(Coroutine {
                 state: State::Running,
                 coroutine: None,
-                last_event: LastEvent::Read(0),
+                last_event: LastEvent{ rw: RW::Read, idx: 0}, // dummy data
                 tokens: Vec::with_capacity(4),
+                io: Vec::with_capacity(4),
+                blocked_on_mask: 0,
+                registered_mask: 0,
             })),
             handles: Vec::with_capacity(4),
         }
@@ -419,12 +489,12 @@ impl Builder {
     /// Consumes the `io`, returns a `Handle` to a mio wrapper over it.
     pub fn wrap_io<H, T : 'static>(&mut self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> ExternalHandle
     where H : Handler,
-    T : ReadWrite {
+    T : Evented {
 
         event_loop.register_opt(
             &io, token,
-            mio::Interest::readable() | mio::Interest::writable() | mio::Interest::hup(),
-            mio::PollOpt::edge() | mio::PollOpt::oneshot(),
+            mio::EventSet::none(),
+            mio::PollOpt::edge(),
             ).expect("register_opt failed");
 
         self.coroutine.borrow_mut().tokens.push(token);
@@ -436,14 +506,14 @@ impl Builder {
                          token: token,
                          peer_hup: false,
                          idx: self.handles.len(),
-                         pending_read: false,
-                         pending_write: false,
                      }
                  ));
 
         let handle = ExternalHandle {
             inn: io.clone()
         };
+
+        self.coroutine.borrow_mut().io.push(io.clone());
 
         self.handles.push(InternalHandle {
             inn: io.clone()
@@ -456,12 +526,16 @@ impl Builder {
     ///
     /// `f` is routine handling connection. It should not use any blocking operations,
     /// and use it's argument for all IO with it's peer
-    pub fn start<F>(self, f : F)
-        where F : FnOnce(&mut CoroutineHandle) + Send + 'static {
+    pub fn start<F, H>(self, f : F,  event_loop: &mut mio::EventLoop<H>)
+        where F : FnOnce(&mut CoroutineHandle) + Send + 'static,
+        H : Handler,
+        {
 
             let ioref = RefCoroutine {
                 coroutine: self.coroutine.clone(),
             };
+
+            let coroutine = self.coroutine.clone();
 
             let handles = HandleSender(self.handles);
 
@@ -474,9 +548,14 @@ impl Builder {
                 };
                 f(&mut co_handle);
                 co_handle.coroutine.borrow_mut().state = State::Finished;
+                co_handle.coroutine.borrow_mut().blocked_on_mask = 0;
             });
 
             coroutine_handle.resume().ok().expect("resume() failed");
+            {
+                let mut co = coroutine.borrow_mut();
+                co.reregister_blocked_on(event_loop);
+            }
         }
 }
 
@@ -486,67 +565,119 @@ pub struct CoroutineHandle {
     coroutine : Rc<RefCell<Coroutine>>,
 }
 
+fn select_impl_set_mask_handles(handles : &[&InternalHandle], blocked_on_mask : &mut u32) {
+    {
+        *blocked_on_mask = 0;
+        for &handle in handles {
+            *blocked_on_mask |= 1u32 << handle.inn.borrow().idx;
+        }
+    }
+}
+
+fn select_impl_set_mask_rc_handles(handles : &[Rc<RefCell<IO>>], blocked_on_mask : &mut u32) {
+    {
+        *blocked_on_mask = 0;
+        for handle in handles {
+            *blocked_on_mask |= 1u32 << handle.borrow().idx;
+        }
+    }
+}
+
 impl CoroutineHandle {
 
-    /// Wait till an event is ready
-    pub fn select(&mut self) -> LastEvent {
-        for ref handle in &self.handles {
-            let inn = handle.inn.borrow();
-            if inn.pending_read {
-                return LastEvent::Read(inn.idx);
-            }
-            if inn.pending_write {
-                return LastEvent::Write(inn.idx);
-            }
-        }
-
-        self.coroutine.borrow_mut().state = State::Select(SelectType::Both);
+    /// Wait till a read event is ready
+    fn select_impl(&mut self, rw : RW) -> LastEvent {
+        self.coroutine.borrow_mut().state = State::BlockedOn(rw);
         coroutine::Coroutine::block();
         debug_assert!(self.coroutine.borrow().state == State::Running);
 
-        let idx = self.coroutine.borrow().last_event.idx();
-        debug_assert!(self.handles[idx].inn.borrow().pending_read || self.handles[idx].inn.borrow().pending_write);
         self.coroutine.borrow().last_event
+    }
+
+    /// Wait till an event is ready
+    pub fn select(&mut self) -> LastEvent {
+        {
+            let Coroutine {
+                ref io,
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
+
+            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
+        }
+        self.select_impl(RW::Both)
     }
 
     /// Wait till a read event is ready
     pub fn select_read(&mut self) -> LastEvent {
-        for ref handle in &self.handles {
-            let inn = handle.inn.borrow();
-            if inn.pending_read {
-                return LastEvent::Read(inn.idx);
-            }
+        {
+            let Coroutine {
+                ref io,
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
+
+            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
         }
-
-        self.coroutine.borrow_mut().state = State::Select(SelectType::Read);
-        coroutine::Coroutine::block();
-        debug_assert!(self.coroutine.borrow().state == State::Running);
-
-        let idx = self.coroutine.borrow().last_event.idx();
-        debug_assert!(self.handles[idx].inn.borrow().pending_read);
-        self.coroutine.borrow().last_event
+        self.select_impl(RW::Read)
     }
 
     /// Wait till a read event is ready
     pub fn select_write(&mut self) -> LastEvent {
-        for ref handle in &self.handles {
-            let inn = handle.inn.borrow();
-            if inn.pending_write {
-                return LastEvent::Write(inn.idx);
-            }
+        {
+            let Coroutine {
+                ref io,
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
+
+            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
+        }
+        self.select_impl(RW::Write)
+    }
+    /// Wait till any event is ready on a set of Handles
+    pub fn select_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+        {
+            let Coroutine {
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
+
+            select_impl_set_mask_handles(handles, blocked_on_mask);
         }
 
-        self.coroutine.borrow_mut().state = State::Select(SelectType::Write);
-        coroutine::Coroutine::block();
-        debug_assert!(self.coroutine.borrow().state == State::Running);
-
-        let idx = self.coroutine.borrow().last_event.idx();
-        debug_assert!(self.handles[idx].inn.borrow().pending_write);
-        self.coroutine.borrow().last_event
+        self.select_impl(RW::Both)
     }
 
+    /// Wait till write event is ready on a set of Handles
+    pub fn select_write_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+        {
+            let Coroutine {
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
 
-    /// Reference to a handle of a given index
+            select_impl_set_mask_handles(handles, blocked_on_mask);
+        }
+
+        self.select_impl(RW::Write)
+    }
+
+    /// Wait till read event is ready on a set of Handles
+    pub fn select_read_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+        {
+            let Coroutine {
+                ref mut blocked_on_mask,
+                ..
+            } = *self.coroutine.borrow_mut();
+
+            select_impl_set_mask_handles(handles, blocked_on_mask);
+        }
+
+        self.select_impl(RW::Read)
+    }
+
+    /// Array of all registered IO Handles
     pub fn handles(&mut self) -> &mut [InternalHandle] {
         &mut self.handles
     }
