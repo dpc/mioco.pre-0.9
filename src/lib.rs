@@ -115,6 +115,15 @@ impl Evented for mio::tcp::TcpStream {
     fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
         mio::io::TryWrite::try_write(self, buf)
     }
+
+    fn close_outbound(&mut self) -> std::io::Result<()> {
+        mio::tcp::TcpStream::shutdown(self, mio::tcp::Shutdown::Write)
+    }
+
+    fn close_inbound(&mut self) -> std::io::Result<()> {
+        mio::tcp::TcpStream::shutdown(self, mio::tcp::Shutdown::Read)
+    }
+
     fn as_mio_evented(&self) -> &mio::Evented {
         self
     }
@@ -156,9 +165,6 @@ struct Coroutine {
     state : State,
     /// Last event that resumed the coroutine
     last_event: LastEvent,
-    /// All tokens associated with this cooroutine TODO: move to
-    /// CoroutineHandle?
-    tokens : Vec<Token>,
 
     /// All handles
     io : Vec<Rc<RefCell<IO>>>,
@@ -180,12 +186,13 @@ impl Coroutine {
             _ => return,
         };
 
-        for i in 0..32 {
+//        for i in 0..32 {
+        for i in 0..self.io.len() {
             if (self.blocked_on_mask & (1 << i)) != 0 {
-                let mut io = self.io[i].borrow_mut();
+                let io = self.io[i].borrow();
                 io.reregister(event_loop, rw);
             } else if (self.registered_mask & (1 << i)) != 0 {
-                let mut io = self.io[i].borrow_mut();
+                let io = self.io[i].borrow();
                 io.unreregister(event_loop);
             }
         }
@@ -214,7 +221,7 @@ impl IO {
         }
 
     /// Reregister oneshot handler for the next event
-    fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>, rw : RW)
+    fn reregister<H>(&self, event_loop: &mut EventLoop<H>, rw : RW)
         where H : Handler {
 
             let mut interest = mio::EventSet::none();
@@ -239,7 +246,7 @@ impl IO {
 
 
     /// Un-reregister something we're not interested in anymore
-    fn unreregister<H>(&mut self, event_loop: &mut EventLoop<H>)
+    fn unreregister<H>(&self, event_loop: &mut EventLoop<H>)
         where H : Handler {
             let interest = mio::EventSet::none();
 
@@ -292,17 +299,6 @@ impl InternalHandle {
 }
 
 impl ExternalHandle {
-
-    /// Call for every token
-    pub fn for_every_token<F>(&self, mut f : F)
-        where F : FnMut(Token) {
-            let co = &self.inn.borrow().coroutine;
-            for &token in &co.borrow().tokens {
-                f(token)
-            }
-        }
-
-
     /// Is this coroutine finishd
     pub fn is_finished(&self) -> bool {
         let co = &self.inn.borrow().coroutine;
@@ -361,11 +357,9 @@ impl ExternalHandle {
         };
         handle.resume().ok().expect("resume() failed");
 
-        let co = {
-            let inn = self.inn.borrow();
-            inn.coroutine.clone()
-        };
-        co.borrow_mut().reregister_blocked_on(event_loop);
+        let inn = &self.inn.borrow();
+        let mut co = inn.coroutine.borrow_mut();
+        co.reregister_blocked_on(event_loop);
     }
 
     /// Deregister IO from event loop
@@ -474,8 +468,7 @@ impl Builder {
             coroutine: Rc::new(RefCell::new(Coroutine {
                 state: State::Running,
                 coroutine: None,
-                last_event: LastEvent{ rw: RW::Read, idx: 0}, // dummy data
-                tokens: Vec::with_capacity(4),
+                last_event: LastEvent{ rw: RW::Read, idx: 0},
                 io: Vec::with_capacity(4),
                 blocked_on_mask: 0,
                 registered_mask: 0,
@@ -496,8 +489,6 @@ impl Builder {
             mio::EventSet::none(),
             mio::PollOpt::edge(),
             ).expect("register_opt failed");
-
-        self.coroutine.borrow_mut().tokens.push(token);
 
         let io = Rc::new(RefCell::new(
                      IO {

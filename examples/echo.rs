@@ -54,19 +54,12 @@ impl Server {
     }
 
     fn accept(&mut self, event_loop: &mut EventLoop<Server>) -> io::Result<()> {
-
-        use std::os::unix::io::AsRawFd;
-        use nix::sys::socket;
         loop {
             let sock = match try!(self.sock.accept()) {
                 None => break,
                 Some(sock) => sock,
             };
-
-            // Don't buffer output in TCP - kills latency sensitive benchmarks
-            try!(socket::setsockopt(
-                    sock.as_raw_fd(), socket::SockLevel::Tcp, socket::sockopt::TcpNoDelay, &true
-                    ).map_err(|e| io::Error::from_raw_os_error(e.errno() as i32)));
+            sock.set_nodelay(true).expect("set_nodelay");
 
             let _tok = self.conns.insert_with(|token| {
                 let mut builder = mioco::Builder::new();
@@ -78,27 +71,20 @@ impl Server {
 
                     let mut buf = [0u8; 1024 * 16];
                     loop {
-
                         let res = io.read(&mut buf);
 
                         match res {
-                            Err(_) => return,
-                            Ok(0) => /* EOF */ return,
+                            Err(_) => break,
+                            Ok(0) => /* EOF */ break,
                             Ok(size) => {
-                                let mut write_i = 0;
-                                loop {
-                                    if write_i == size {
-                                        break;
-                                    }
-
-                                    match io.write(&mut buf[write_i..size]) {
-                                        Ok(written) => write_i += written,
-                                        Err(_) => return,
-                                    }
+                                if let Err(_) = io.write_all(&mut buf[0..size]) {
+                                    break;
                                 }
                             }
                         }
                     }
+
+                    io.with_raw_mut(|mut io| {let _ = io.close_outbound();} /* ignore errors */);
                 };
 
                 builder.start(f, event_loop);
@@ -110,21 +96,18 @@ impl Server {
         Ok(())
     }
 
-    fn conn_handle_finished(&mut self, token : Token, finished : bool) {
-        if finished {
-            self.conns.remove(token);
-        }
-    }
-
-    fn conn_ready(&mut self, event_loop : &mut EventLoop<Server>, tok: Token, events : EventSet) {
+    fn conn_ready(&mut self, event_loop : &mut EventLoop<Server>, token: Token, events : EventSet) {
         let finished = {
-            let conn = self.conn(tok);
-            conn.ready(event_loop, tok, events);
+            let conn = self.conn(token);
+            conn.ready(event_loop, token, events);
             conn.is_finished()
         };
-        self.conn_handle_finished(tok, finished);
-    }
 
+        if finished {
+            let mut io = self.conns.remove(token).unwrap();
+            io.deregister(event_loop);
+        }
+    }
 
     fn conn<'a>(&'a mut self, tok : Token) -> &'a mut mioco::ExternalHandle {
         &mut self.conns[tok]
