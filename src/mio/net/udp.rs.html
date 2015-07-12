@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `mio/src/net/udp.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/net/udp.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>udp.rs.html -- source</title>
@@ -159,11 +159,8 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> {<span class='ident'>io</span>, <span class='ident'>sys</span>, <span class='ident'>Evented</span>, <span class='ident'>Interest</span>, <span class='ident'>IpAddr</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Selector</span>, <span class='ident'>Token</span>};
+<span class='kw'>use</span> {<span class='ident'>io</span>, <span class='ident'>sys</span>, <span class='ident'>Evented</span>, <span class='ident'>EventSet</span>, <span class='ident'>IpAddr</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Selector</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>buf</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
 
@@ -241,11 +238,11 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>Evented</span> <span class='kw'>for</span> <span class='ident'>UdpSocket</span> {
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>sys</span>.<span class='ident'>register</span>(<span class='ident'>selector</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>opts</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>sys</span>.<span class='ident'>reregister</span>(<span class='ident'>selector</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>opts</span>)
     }
 
@@ -267,10 +264,7 @@
  */</span>
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>unix</span>)]</span>
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::{<span class='ident'>AsRawFd</span>, <span class='ident'>RawFd</span>};
-
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>unix</span>)]</span>
-<span class='kw'>use</span> <span class='ident'>unix</span>::<span class='ident'>FromRawFd</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::{<span class='ident'>AsRawFd</span>, <span class='ident'>FromRawFd</span>, <span class='ident'>RawFd</span>};
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>unix</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>UdpSocket</span> {

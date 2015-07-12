@@ -1748,50 +1748,66 @@
 <span id="1706">1706</span>
 <span id="1707">1707</span>
 <span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>consts</span>::<span class='ident'>Errno</span>::<span class='op'>*</span>;
 
-<span class='doccomment'>/// Returns the platform-specific value of errno</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>errno</span>() <span class='op'>-&gt;</span> <span class='ident'>i32</span> {
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>,
-              <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>,
-              <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span>
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span> {
-        <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__error</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span>; }
-        <span class='ident'>__error</span>()
-    }
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;bitrig&quot;</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span> {
-        <span class='kw'>extern</span> {
-            <span class='kw'>fn</span> <span class='ident'>__errno</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span>;
-        }
-        <span class='kw'>unsafe</span> {
-            <span class='ident'>__errno</span>()
-        }
-    }
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span>
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span> {
+    <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__error</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span>; }
+    <span class='ident'>__error</span>()
+}
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)]</span>
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span> {
-        <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__dfly_error</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span>; }
-        <span class='ident'>__dfly_error</span>()
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;bitrig&quot;</span>)]</span>
+<span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span> {
+    <span class='kw'>extern</span> {
+        <span class='kw'>fn</span> <span class='ident'>__errno</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span>;
     }
-
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>)]</span>
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span> {
-        <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__errno</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span>; }
+    <span class='kw'>unsafe</span> {
         <span class='ident'>__errno</span>()
     }
+}
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span> {
-        <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_int</span>; }
-        <span class='ident'>__errno_location</span>()
-    }
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)]</span>
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span> {
+    <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__dfly_error</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span>; }
+    <span class='ident'>__dfly_error</span>()
+}
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>)]</span>
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span> {
+    <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__errno</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span>; }
+    <span class='ident'>__errno</span>()
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span> {
+    <span class='kw'>extern</span> { <span class='kw'>fn</span> <span class='ident'>__errno_location</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_int</span>; }
+    <span class='ident'>__errno_location</span>()
+}
+
+<span class='doccomment'>/// Sets the platform-specific errno to no-error</span>
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>clear</span>() <span class='op'>-&gt;</span> () {
+    <span class='op'>*</span><span class='ident'>errno_location</span>() <span class='op'>=</span> <span class='number'>0</span>;
+}
+
+<span class='doccomment'>/// Returns the platform-specific value of errno</span>
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>errno</span>() <span class='op'>-&gt;</span> <span class='ident'>i32</span> {
     <span class='kw'>unsafe</span> {
         (<span class='op'>*</span><span class='ident'>errno_location</span>()) <span class='kw'>as</span> <span class='ident'>i32</span>
     }
@@ -1810,6 +1826,10 @@
 
             <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_i32</span>(<span class='ident'>err</span>: <span class='ident'>i32</span>) <span class='op'>-&gt;</span> <span class='ident'>Errno</span> {
                 <span class='ident'>from_i32</span>(<span class='ident'>err</span>)
+            }
+
+            <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>clear</span>() <span class='op'>-&gt;</span> () {
+                <span class='ident'>super</span>::<span class='ident'>clear</span>()
             }
         }
     }
@@ -3323,8 +3343,8 @@
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>test_linux_not_android_errnos</span>() {
         <span class='macro'>check_errno</span><span class='macro'>!</span>(
-            <span class='ident'>ERFKILL</span>,
-            <span class='ident'>EHWPOISON</span>);
+            <span class='ident'>ERFKILL</span> <span class='comment'>/*,
+            EHWPOISON */</span>);
     }
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>

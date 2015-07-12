@@ -100,7 +100,7 @@ handles receiving events from the OS and dispatching them to a supplied
     <span class='kw'>type</span> <span class='ident'>Timeout</span> <span class='op'>=</span> ();
     <span class='kw'>type</span> <span class='ident'>Message</span> <span class='op'>=</span> ();
 
-    <span class='kw'>fn</span> <span class='ident'>readable</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>MyHandler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, _: <span class='ident'>ReadHint</span>) {
+    <span class='kw'>fn</span> <span class='ident'>ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>MyHandler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, _: <span class='ident'>EventSet</span>) {
         <span class='kw'>match</span> <span class='ident'>token</span> {
             <span class='ident'>SERVER</span> <span class='op'>=&gt;</span> {
                 <span class='kw'>let</span> <span class='ident'>MyHandler</span>(<span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>server</span>) <span class='op'>=</span> <span class='op'>*</span><span class='self'>self</span>;
@@ -193,8 +193,8 @@ handles receiving events from the OS and dispatching them to a supplied
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Interest.html'
-                               title='mio::Interest'>Interest</a></td>
+                        <td><a class='struct' href='struct.EventSet.html'
+                               title='mio::EventSet'>EventSet</a></td>
                         <td class='docblock short'>
                              
                         </td>
@@ -229,14 +229,6 @@ handles receiving events from the OS and dispatching them to a supplied
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.PollOpt.html'
                                title='mio::PollOpt'>PollOpt</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.ReadHint.html'
-                               title='mio::ReadHint'>ReadHint</a></td>
                         <td class='docblock short'>
                              
                         </td>

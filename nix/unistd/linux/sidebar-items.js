@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["execvpe",""],["pivot_root",""]]});
+initSidebarItems({"fn":[["pivot_root",""]]});

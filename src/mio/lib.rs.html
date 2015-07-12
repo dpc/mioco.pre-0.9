@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `mio/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -268,7 +268,7 @@
 <span class='doccomment'>//!     type Timeout = ();</span>
 <span class='doccomment'>//!     type Message = ();</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//!     fn readable(&amp;mut self, event_loop: &amp;mut EventLoop&lt;MyHandler&gt;, token: Token, _: ReadHint) {</span>
+<span class='doccomment'>//!     fn ready(&amp;mut self, event_loop: &amp;mut EventLoop&lt;MyHandler&gt;, token: Token, _: EventSet) {</span>
 <span class='doccomment'>//!         match token {</span>
 <span class='doccomment'>//!             SERVER =&gt; {</span>
 <span class='doccomment'>//!                 let MyHandler(ref mut server) = *self;</span>
@@ -298,6 +298,7 @@
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>nix</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>clock_ticks</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>slab</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
 
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
@@ -324,8 +325,7 @@
 };
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>event</span>::{
     <span class='ident'>PollOpt</span>,
-    <span class='ident'>Interest</span>,
-    <span class='ident'>ReadHint</span>,
+    <span class='ident'>EventSet</span>,
 };
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>event_loop</span>::{
     <span class='ident'>EventLoop</span>,

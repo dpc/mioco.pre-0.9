@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `mio/src/handler.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/handler.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>handler.rs.html -- source</title>
@@ -62,26 +62,46 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> {<span class='ident'>EventLoop</span>, <span class='ident'>ReadHint</span>, <span class='ident'>Token</span>};
+<span class='kw'>use</span> {<span class='ident'>EventLoop</span>, <span class='ident'>EventSet</span>, <span class='ident'>Token</span>};
 
 <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>unused_variables</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Handler</span> {
     <span class='kw'>type</span> <span class='ident'>Timeout</span>;
     <span class='kw'>type</span> <span class='ident'>Message</span>: <span class='ident'>Send</span>;
 
-    <span class='kw'>fn</span> <span class='ident'>readable</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>hint</span>: <span class='ident'>ReadHint</span>) {
+    <span class='doccomment'>/// Invoked when the socket represented by `token` is ready to be operated</span>
+    <span class='doccomment'>/// on. `events` indicates the specific operations that are</span>
+    <span class='doccomment'>/// ready to be performed.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// For example, when a TCP socket is ready to be read from, `events` will</span>
+    <span class='doccomment'>/// have `readable` set. When the socket is ready to be written to,</span>
+    <span class='doccomment'>/// `events` will have `writable` set.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// This function will only be invoked a single time per socket per event</span>
+    <span class='doccomment'>/// loop tick.</span>
+    <span class='kw'>fn</span> <span class='ident'>ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>events</span>: <span class='ident'>EventSet</span>) {
     }
 
-    <span class='kw'>fn</span> <span class='ident'>writable</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>) {
-    }
-
+    <span class='doccomment'>/// Invoked when a message has been received via the event loop&#39;s channel.</span>
     <span class='kw'>fn</span> <span class='ident'>notify</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='ident'>Self</span>::<span class='ident'>Message</span>) {
     }
 
+    <span class='doccomment'>/// Invoked when a timeout has completed.</span>
     <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>timeout</span>: <span class='ident'>Self</span>::<span class='ident'>Timeout</span>) {
     }
 
+    <span class='doccomment'>/// Invoked when `EventLoop` has been interrupted by a signal interrupt.</span>
     <span class='kw'>fn</span> <span class='ident'>interrupted</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>) {
     }
 }

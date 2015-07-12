@@ -422,7 +422,6 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
-<span id="383">383</span>
 </pre><pre class='rust '>
 <span class='comment'>// Portions of this file are Copyright 2014 The Rust Project Developers.</span>
 <span class='comment'>// See http://rust-lang.org/COPYRIGHT.</span>
@@ -692,7 +691,6 @@
     <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>missing_copy_implementations</span>)]</span>
     <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>sigaction</span> {
         <span class='kw'>pub</span> <span class='ident'>sa_handler</span>: <span class='kw'>extern</span> <span class='kw'>fn</span>(<span class='ident'>libc</span>::<span class='ident'>c_int</span>),
-        <span class='ident'>sa_tramp</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>,
         <span class='kw'>pub</span> <span class='ident'>sa_mask</span>: <span class='ident'>sigset_t</span>,
         <span class='kw'>pub</span> <span class='ident'>sa_flags</span>: <span class='ident'>SockFlag</span>,
     }

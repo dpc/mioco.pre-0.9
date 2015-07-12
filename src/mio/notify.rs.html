@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `mio/src/notify.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/notify.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>notify.rs.html -- source</title>
@@ -265,7 +265,7 @@
 <span id="223">223</span>
 <span id="224">224</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> {<span class='ident'>sys</span>, <span class='ident'>Evented</span>, <span class='ident'>Interest</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Selector</span>, <span class='ident'>Token</span>};
+<span class='kw'>use</span> {<span class='ident'>sys</span>, <span class='ident'>Evented</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Selector</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>util</span>::<span class='ident'>BoundedQueue</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>fmt</span>, <span class='ident'>cmp</span>, <span class='ident'>io</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
@@ -455,11 +455,11 @@
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>M</span>: <span class='ident'>Send</span><span class='op'>&gt;</span> <span class='ident'>Evented</span> <span class='kw'>for</span> <span class='ident'>Notify</span><span class='op'>&lt;</span><span class='ident'>M</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>awaken</span>.<span class='ident'>register</span>(<span class='ident'>selector</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>opts</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Selector</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>awaken</span>.<span class='ident'>reregister</span>(<span class='ident'>selector</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>opts</span>)
     }
 

@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1282' class='srclink' href='../src/mioco/lib.rs.html#161-163' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1389' class='srclink' href='../src/mioco/lib.rs.html#262-264' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ExternalHandle {
     // some fields omitted
 }</pre><div class='docblock'><p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
@@ -59,18 +59,14 @@ methods. Call these from respective <code>mio::Handler</code>.</p>
 <div class='docblock'><p>Call for every token</p>
 </div><h4 id='method.is_finished' class='method'><code>fn <a href='#method.is_finished' class='fnname'>is_finished</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is this coroutine finishd</p>
-</div><h4 id='method.with_raw' class='method'><code>fn <a href='#method.with_raw' class='fnname'>with_raw</a>&lt;F&gt;(&amp;self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;<a class='trait' href='../mioco/trait.ReadWrite.html' title='mioco::ReadWrite'>ReadWrite</a>)</span></code></h4>
+</div><h4 id='method.with_raw' class='method'><code>fn <a href='#method.with_raw' class='fnname'>with_raw</a>&lt;F&gt;(&amp;self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;<a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a>)</span></code></h4>
 <div class='docblock'><p>Access the wrapped IO</p>
-</div><h4 id='method.with_raw_mut' class='method'><code>fn <a href='#method.with_raw_mut' class='fnname'>with_raw_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;mut <a class='trait' href='../mioco/trait.ReadWrite.html' title='mioco::ReadWrite'>ReadWrite</a>)</span></code></h4>
+</div><h4 id='method.with_raw_mut' class='method'><code>fn <a href='#method.with_raw_mut' class='fnname'>with_raw_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;mut <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a>)</span></code></h4>
 <div class='docblock'><p>Access the wrapped IO as mutable</p>
-</div><h4 id='method.readable' class='method'><code>fn <a href='#method.readable' class='fnname'>readable</a>&lt;H&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>, hint: <a class='struct' href='../mio/event/struct.ReadHint.html' title='mio::event::ReadHint'>ReadHint</a>) <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a></span></code></h4>
+</div><h4 id='method.ready' class='method'><code>fn <a href='#method.ready' class='fnname'>ready</a>&lt;H&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>, events: <a class='struct' href='../mio/event/struct.EventSet.html' title='mio::event::EventSet'>EventSet</a>) <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a></span></code></h4>
 <div class='docblock'><p>Readable event handler</p>
 
 <p>This corresponds to <code>mio::Hnalder::readable()</code>.</p>
-</div><h4 id='method.writable' class='method'><code>fn <a href='#method.writable' class='fnname'>writable</a>&lt;H&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>) <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a></span></code></h4>
-<div class='docblock'><p>Readable event handler</p>
-
-<p>This corresponds to <code>mio::Hnalder::writable()</code>.</p>
 </div><h4 id='method.deregister' class='method'><code>fn <a href='#method.deregister' class='fnname'>deregister</a>&lt;H&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;) <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a></span></code></h4>
 <div class='docblock'><p>Deregister IO from event loop</p>
 

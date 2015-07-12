@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Interest",""],["PollOpt",""],["ReadHint",""]]});
+initSidebarItems({"struct":[["EventSet",""],["PollOpt",""]]});

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/bytes-0.2.9/src/buf/byte.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/bytes-b21aba8e191ae1b0/master/src/buf/byte.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>byte.rs.html -- source</title>
@@ -354,6 +354,14 @@
 <span id="312">312</span>
 <span id="313">313</span>
 <span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>alloc</span>, <span class='ident'>Bytes</span>, <span class='ident'>SeqByteStr</span>, <span class='ident'>MAX_CAPACITY</span>};
 <span class='kw'>use</span> <span class='ident'>traits</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>, <span class='ident'>MutBufExt</span>, <span class='ident'>ByteStr</span>};
@@ -443,6 +451,14 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>MutByteBuf</span> { <span class='ident'>buf</span>: <span class='self'>self</span> };
         <span class='ident'>buf</span>.<span class='ident'>clear</span>();
         <span class='ident'>buf</span>
+    }
+
+    <span class='doccomment'>/// Flips the buffer back to mutable, resetting the write position</span>
+    <span class='doccomment'>/// to the byte after the previous write.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>resume</span>(<span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>MutByteBuf</span> {
+        <span class='self'>self</span>.<span class='ident'>pos</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>lim</span>;
+        <span class='self'>self</span>.<span class='ident'>lim</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>cap</span>;
+        <span class='ident'>MutByteBuf</span> { <span class='ident'>buf</span>: <span class='self'>self</span> }
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read_slice</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>dst</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {

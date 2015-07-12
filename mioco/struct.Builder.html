@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2265' class='srclink' href='../src/mioco/lib.rs.html#388-391' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2171' class='srclink' href='../src/mioco/lib.rs.html#455-458' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Builder {
     // some fields omitted
 }</pre><div class='docblock'><p><code>mioco</code> coroutine builder</p>
@@ -54,11 +54,11 @@
 that you spawn with <code>start</code>.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.Builder.html' title='mioco::Builder'>Builder</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../mioco/struct.Builder.html' title='mioco::Builder'>Builder</a></code></h4>
 <div class='docblock'><p>Create new Coroutine builder</p>
-</div><h4 id='method.wrap_io' class='method'><code>fn <a href='#method.wrap_io' class='fnname'>wrap_io</a>&lt;H, T: 'static&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, io: T, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>) -&gt; <a class='struct' href='../mioco/struct.ExternalHandle.html' title='mioco::ExternalHandle'>ExternalHandle</a> <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a>, T: <a class='trait' href='../mioco/trait.ReadWrite.html' title='mioco::ReadWrite'>ReadWrite</a></span></code></h4>
+</div><h4 id='method.wrap_io' class='method'><code>fn <a href='#method.wrap_io' class='fnname'>wrap_io</a>&lt;H, T: 'static&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, io: T, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>) -&gt; <a class='struct' href='../mioco/struct.ExternalHandle.html' title='mioco::ExternalHandle'>ExternalHandle</a> <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a>, T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Register <code>mio</code>&#39;s io to be used within <code>mioco</code> coroutine</p>
 
 <p>Consumes the <code>io</code>, returns a <code>Handle</code> to a mio wrapper over it.</p>
-</div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F&gt;(self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a>) + <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
+</div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F, H&gt;(self, f: F, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a>) + <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a></span></code></h4>
 <div class='docblock'><p>Create a <code>mioco</code> coroutine handler</p>
 
 <p><code>f</code> is routine handling connection. It should not use any blocking operations,

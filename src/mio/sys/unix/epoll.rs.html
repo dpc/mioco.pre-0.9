@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `mio/src/sys/unix/epoll.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/sys/unix/epoll.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>epoll.rs.html -- source</title>
@@ -199,10 +199,8 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> {<span class='ident'>io</span>, <span class='ident'>Interest</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Token</span>};
+<span class='kw'>use</span> {<span class='ident'>io</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>event</span>::<span class='ident'>IoEvent</span>;
 <span class='kw'>use</span> <span class='ident'>nix</span>::<span class='ident'>sys</span>::<span class='ident'>epoll</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>nix</span>::<span class='ident'>unistd</span>::<span class='ident'>close</span>;
@@ -246,7 +244,7 @@
     }
 
     <span class='doccomment'>/// Register event interests for the given IO handle with the OS</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interests</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interests</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>info</span> <span class='op'>=</span> <span class='ident'>EpollEvent</span> {
             <span class='ident'>events</span>: <span class='ident'>ioevent_to_epoll</span>(<span class='ident'>interests</span>, <span class='ident'>opts</span>),
             <span class='ident'>data</span>: <span class='ident'>token</span>.<span class='ident'>as_usize</span>() <span class='kw'>as</span> <span class='ident'>u64</span>
@@ -257,7 +255,7 @@
     }
 
     <span class='doccomment'>/// Register event interests for the given IO handle with the OS</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interests</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interests</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>info</span> <span class='op'>=</span> <span class='ident'>EpollEvent</span> {
             <span class='ident'>events</span>: <span class='ident'>ioevent_to_epoll</span>(<span class='ident'>interests</span>, <span class='ident'>opts</span>),
             <span class='ident'>data</span>: <span class='ident'>token</span>.<span class='ident'>as_usize</span>() <span class='kw'>as</span> <span class='ident'>u64</span>
@@ -282,7 +280,7 @@
     }
 }
 
-<span class='kw'>fn</span> <span class='ident'>ioevent_to_epoll</span>(<span class='ident'>interest</span>: <span class='ident'>Interest</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>EpollEventKind</span> {
+<span class='kw'>fn</span> <span class='ident'>ioevent_to_epoll</span>(<span class='ident'>interest</span>: <span class='ident'>EventSet</span>, <span class='ident'>opts</span>: <span class='ident'>PollOpt</span>) <span class='op'>-&gt;</span> <span class='ident'>EpollEventKind</span> {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>EpollEventKind</span>::<span class='ident'>empty</span>();
 
     <span class='kw'>if</span> <span class='ident'>interest</span>.<span class='ident'>is_readable</span>() {
@@ -324,7 +322,9 @@
 
 <span class='kw'>impl</span> <span class='ident'>Events</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>Events</span> {
-        <span class='ident'>Events</span> { <span class='ident'>events</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>1024</span>) }
+        <span class='ident'>Events</span> {
+            <span class='ident'>events</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>1024</span>),
+        }
     }
 
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
@@ -334,33 +334,29 @@
 
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>idx</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>IoEvent</span> {
-        <span class='kw'>if</span> <span class='ident'>idx</span> <span class='op'>&gt;=</span> <span class='self'>self</span>.<span class='ident'>len</span>() {
-            <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;invalid index&quot;</span>);
-        }
-
         <span class='kw'>let</span> <span class='ident'>epoll</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>events</span>[<span class='ident'>idx</span>].<span class='ident'>events</span>;
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>Interest</span>::<span class='ident'>hinted</span>();
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>EventSet</span>::<span class='ident'>none</span>();
 
         <span class='kw'>if</span> <span class='ident'>epoll</span>.<span class='ident'>contains</span>(<span class='ident'>EPOLLIN</span>) {
-            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>Interest</span>::<span class='ident'>readable</span>();
+            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>EventSet</span>::<span class='ident'>readable</span>();
         }
 
         <span class='kw'>if</span> <span class='ident'>epoll</span>.<span class='ident'>contains</span>(<span class='ident'>EPOLLOUT</span>) {
-            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>Interest</span>::<span class='ident'>writable</span>();
+            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>EventSet</span>::<span class='ident'>writable</span>();
         }
 
         <span class='comment'>// EPOLLHUP - Usually means a socket error happened</span>
         <span class='kw'>if</span> <span class='ident'>epoll</span>.<span class='ident'>contains</span>(<span class='ident'>EPOLLERR</span>) {
-            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>Interest</span>::<span class='ident'>error</span>();
+            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>EventSet</span>::<span class='ident'>error</span>();
         }
 
         <span class='kw'>if</span> <span class='ident'>epoll</span>.<span class='ident'>contains</span>(<span class='ident'>EPOLLRDHUP</span>) <span class='op'>|</span> <span class='ident'>epoll</span>.<span class='ident'>contains</span>(<span class='ident'>EPOLLHUP</span>) {
-            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>Interest</span>::<span class='ident'>hup</span>();
+            <span class='ident'>kind</span> <span class='op'>=</span> <span class='ident'>kind</span> <span class='op'>|</span> <span class='ident'>EventSet</span>::<span class='ident'>hup</span>();
         }
 
         <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>events</span>[<span class='ident'>idx</span>].<span class='ident'>data</span>;
 
-        <span class='ident'>IoEvent</span>::<span class='ident'>new</span>(<span class='ident'>kind</span>, <span class='ident'>token</span> <span class='kw'>as</span> <span class='ident'>usize</span>)
+        <span class='ident'>IoEvent</span>::<span class='ident'>new</span>(<span class='ident'>kind</span>, <span class='ident'>Token</span>(<span class='ident'>token</span> <span class='kw'>as</span> <span class='ident'>usize</span>))
     }
 }
 </pre>
