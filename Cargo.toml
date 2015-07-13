@@ -24,4 +24,6 @@ path = "src/lib.rs"
 [dependencies]
 nix = "*"
 coroutine = "*"
-mio = "*"
+
+[dependencies.mio]
+git = "https://github.com/carllerche/mio"
