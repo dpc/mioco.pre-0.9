@@ -17,25 +17,39 @@
 
 ## Introduction
 
-`mioco` is [rust language][rust] library that allows handling [mio][mio]
-connections inside coroutines based on [coroutine][coroutine]
+`mioco` is [mio][mio]-based framework that allows handling asynchronous and scalable IO
+inside coroutines, simplifying the handling logic.
 
-[rust]: http://rust-lang.org
-[mio]: https://github.com/carllerche/mio
-[coroutine]: https://github.com/rustcc/coroutine-rs
+Thanks to this your asynchronous IO handling code can be as simple as(*):
+
+```
+let _ = std::io::copy(&mut from, &mut to);
+```
+
+`mioco` will block and unblock coroutines, taking care of the details. `mioco`
+support coroutines handling multiple IO at once, `select`-like operations. All
+of this without sacrificing performance.
+
+`mioco` is still very experimental, but already usable. For real-life project using
+`mioco` see [colerr][colerr].
+
 
 Read [Documentation](//dpc.github.io/mioco/) for details.
 
+[rust]: http://rust-lang.org
+[mio]: https://github.com/carllerche/mio
+[colerr]: https://github.com/dpc/colerr
+
 ## Building & running
 
-    cargo run --release
+    cargo build --release
     make echo
 
 # Semi-benchmarks
 
 `mioco` comes with tcp echo server example, that is being benchmarked here.
 
-Beware: This is amateurish and probably misleading comparison!
+Beware: This is amateurish and naive comparison!
 
 Using: https://gist.github.com/dpc/8cacd3b6fa5273ffdcce
 
