@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1389' class='srclink' href='../src/mioco/lib.rs.html#262-264' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1412' class='srclink' href='../src/mioco/lib.rs.html#269-271' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ExternalHandle {
     // some fields omitted
 }</pre><div class='docblock'><p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
@@ -55,9 +55,7 @@
 
 <p>It implements <code>readable</code> and <code>writable</code>, corresponding to original <code>mio::Handler</code>
 methods. Call these from respective <code>mio::Handler</code>.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.ExternalHandle.html' title='mioco::ExternalHandle'>ExternalHandle</a></code></h3><div class='impl-items'><h4 id='method.for_every_token' class='method'><code>fn <a href='#method.for_every_token' class='fnname'>for_every_token</a>&lt;F&gt;(&amp;self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(<a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>)</span></code></h4>
-<div class='docblock'><p>Call for every token</p>
-</div><h4 id='method.is_finished' class='method'><code>fn <a href='#method.is_finished' class='fnname'>is_finished</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.ExternalHandle.html' title='mioco::ExternalHandle'>ExternalHandle</a></code></h3><div class='impl-items'><h4 id='method.is_finished' class='method'><code>fn <a href='#method.is_finished' class='fnname'>is_finished</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is this coroutine finishd</p>
 </div><h4 id='method.with_raw' class='method'><code>fn <a href='#method.with_raw' class='fnname'>with_raw</a>&lt;F&gt;(&amp;self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;<a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a>)</span></code></h4>
 <div class='docblock'><p>Access the wrapped IO</p>

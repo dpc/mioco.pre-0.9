@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/lab/rust/colorout/mio/src/timer.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-75006fe295376f74/master/src/timer.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>timer.rs.html -- source</title>
@@ -672,7 +672,7 @@
         <span class='comment'>// Update the head slot</span>
         <span class='self'>self</span>.<span class='ident'>wheel</span>[<span class='ident'>slot</span>] <span class='op'>=</span> <span class='ident'>token</span>;
 
-        <span class='macro'>debug</span><span class='macro'>!</span>(<span class='string'>&quot;inserted timout; slot={}; token={:?}&quot;</span>, <span class='ident'>slot</span>, <span class='ident'>token</span>);
+        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;inserted timout; slot={}; token={:?}&quot;</span>, <span class='ident'>slot</span>, <span class='ident'>token</span>);
 
         <span class='comment'>// Return the new timeout</span>
         <span class='prelude-val'>Ok</span>(<span class='ident'>Timeout</span> {
@@ -682,7 +682,7 @@
     }
 
     <span class='kw'>fn</span> <span class='ident'>unlink</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>links</span>: <span class='kw-2'>&amp;</span><span class='ident'>EntryLinks</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>) {
-        <span class='macro'>debug</span><span class='macro'>!</span>(<span class='string'>&quot;unlinking timeout; slot={}; token={:?}&quot;</span>,
+       <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;unlinking timeout; slot={}; token={:?}&quot;</span>,
                <span class='self'>self</span>.<span class='ident'>slot_for</span>(<span class='ident'>links</span>.<span class='ident'>tick</span>), <span class='ident'>token</span>);
 
         <span class='kw'>if</span> <span class='ident'>links</span>.<span class='ident'>prev</span> <span class='op'>==</span> <span class='ident'>EMPTY</span> {
