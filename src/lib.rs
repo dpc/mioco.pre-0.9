@@ -10,6 +10,7 @@
 //! synchronous fashion.
 
 #![feature(result_expect)]
+#![feature(reflect_marker)]
 #![warn(missing_docs)]
 
 extern crate mio;
@@ -19,7 +20,8 @@ extern crate nix;
 use std::cell::RefCell;
 use std::rc::Rc;
 use mio::{TryRead, TryWrite, Token, Handler, EventLoop, EventSet};
-use std::os::unix::io::AsRawFd;
+use std::any::Any;
+use std::marker::{PhantomData, Reflect};
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -82,74 +84,22 @@ enum State {
     Finished,
 }
 
-
 /// `mioco` can work on any type implementing this trait
-pub trait Evented : mio::Evented {
-    /// `mio::TryRead::try_read`
-    fn try_read(&mut self, _buf: &mut [u8]) -> std::io::Result<Option<usize>> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
-    }
-    /// `mio::TryWrite::try_write`
-    fn try_write(&mut self, _buf: &[u8]) -> std::io::Result<Option<usize>> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
-    }
-    /// Close inbound
-    fn close_inbound(&mut self) -> std::io::Result<()> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
-    }
-    /// Close out
-    fn close_outbound(&mut self) -> std::io::Result<()> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "not implemented"))
-    }
-    /// As mio::Evented
-    fn as_mio_evented(&self) -> &mio::Evented;
-    /// As mutable mio::Evented
-    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented;
-
+pub trait Evented : mio::Evented + Any {
+    /// Convert to &Any
+    fn as_any(&self) -> &Any;
+    /// Convert to &mut Any
+    fn as_any_mut(&mut self) -> &mut Any;
 }
 
-impl Evented for mio::tcp::TcpStream {
-    fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
-        mio::io::TryRead::try_read(self, buf)
-    }
-    fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
-        mio::io::TryWrite::try_write(self, buf)
+impl<T> Evented for T
+where T : mio::Evented+Reflect+'static {
+    fn as_any(&self) -> &Any {
+        self as &Any
     }
 
-    fn close_outbound(&mut self) -> std::io::Result<()> {
-        mio::tcp::TcpStream::shutdown(self, mio::tcp::Shutdown::Write)
-    }
-
-    fn close_inbound(&mut self) -> std::io::Result<()> {
-        mio::tcp::TcpStream::shutdown(self, mio::tcp::Shutdown::Read)
-    }
-
-    fn as_mio_evented(&self) -> &mio::Evented {
-        self
-    }
-    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented {
-        self
-    }
-}
-
-impl Evented for mio::unix::UnixStream {
-    fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
-        mio::io::TryRead::try_read(self, buf)
-    }
-    fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
-        mio::io::TryWrite::try_write(self, buf)
-    }
-    fn close_inbound(&mut self) -> std::io::Result<()> {
-        nix::unistd::close(self.as_raw_fd()).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "nix"))
-    }
-    fn close_outbound(&mut self) -> std::io::Result<()> {
-        nix::unistd::close(self.as_raw_fd()).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "nix"))
-    }
-    fn as_mio_evented(&self) -> &mio::Evented {
-        self
-    }
-    fn as_mio_evented_mut(&mut self) -> &mut mio::Evented {
-        self
+    fn as_any_mut(&mut self) -> &mut Any {
+        self as &mut Any
     }
 }
 
@@ -212,7 +162,6 @@ struct IO {
     peer_hup: bool,
 }
 
-
 impl IO {
     /// Handle `hup` condition
     fn hup<H>(&mut self, _event_loop: &mut EventLoop<H>, _token: Token)
@@ -266,7 +215,7 @@ impl IO {
 /// It implements `readable` and `writable`, corresponding to original `mio::Handler`
 /// methods. Call these from respective `mio::Handler`.
 #[derive(Clone)]
-pub struct ExternalHandle {
+pub struct IOHandle {
     inn : Rc<RefCell<IO>>,
 }
 
@@ -277,47 +226,35 @@ pub struct ExternalHandle {
 /// It implements standard library `Read` and `Write` traits that will
 /// take care of blocking and unblocking coroutine when needed.
 #[derive(Clone)]
-pub struct InternalHandle {
+pub struct TypedIOHandle<T> {
     inn : Rc<RefCell<IO>>,
+    _t: PhantomData<T>,
 }
 
-impl InternalHandle {
+impl<T> TypedIOHandle<T>
+where T : Reflect+'static {
 
     /// Access the wrapped IO
     pub fn with_raw<F>(&self, f : F)
-        where F : Fn(&Evented) {
+        where F : Fn(&T) {
         let io = &self.inn.borrow().io;
-        f(&**io)
+        f(io.as_any().downcast_ref::<T>().unwrap())
     }
 
     /// Access the wrapped IO as mutable
     pub fn with_raw_mut<F>(&mut self, f : F)
-        where F : Fn(&mut Evented) {
+        where F : Fn(&mut T) {
         let mut io = &mut self.inn.borrow_mut().io;
-        f(&mut **io)
+        f(io.as_any_mut().downcast_mut::<T>().unwrap())
     }
 }
 
-impl ExternalHandle {
+impl IOHandle {
     /// Is this coroutine finishd
     pub fn is_finished(&self) -> bool {
         let co = &self.inn.borrow().coroutine;
         let co_b = co.borrow();
         co_b.state == State::Finished
-    }
-
-    /// Access the wrapped IO
-    pub fn with_raw<F>(&self, f : F)
-        where F : Fn(&Evented) {
-        let io = &self.inn.borrow().io;
-        f(&**io)
-    }
-
-    /// Access the wrapped IO as mutable
-    pub fn with_raw_mut<F>(&mut self, f : F)
-        where F : Fn(&mut Evented) {
-        let mut io = &mut self.inn.borrow_mut().io;
-        f(&mut **io)
     }
 
     /// Readable event handler
@@ -374,12 +311,13 @@ impl ExternalHandle {
     }
 }
 
-impl std::io::Read for InternalHandle {
+impl<T> std::io::Read for TypedIOHandle<T>
+where T : TryRead+Reflect+'static {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
             let res = {
                 let mut inn = self.inn.borrow_mut();
-                inn.io.try_read(buf)
+                inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_read(buf)
             };
 
             match res {
@@ -407,12 +345,13 @@ impl std::io::Read for InternalHandle {
     }
 }
 
-impl std::io::Write for InternalHandle {
+impl<T> std::io::Write for TypedIOHandle<T>
+where T : TryWrite+Reflect+'static {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         loop {
             let res = {
                 let mut inn = self.inn.borrow_mut();
-                inn.io.try_write(buf)
+                inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_write(buf)
             };
 
             match res {
@@ -451,7 +390,7 @@ impl std::io::Write for InternalHandle {
 /// that you spawn with `start`.
 pub struct Builder {
     coroutine : Rc<RefCell<Coroutine>>,
-    handles : Vec<InternalHandle>
+    handles : Vec<IOHandle>
 }
 
 struct RefCoroutine {
@@ -459,7 +398,7 @@ struct RefCoroutine {
 }
 unsafe impl Send for RefCoroutine { }
 
-struct HandleSender(Vec<InternalHandle>);
+struct HandleSender(Vec<IOHandle>);
 
 unsafe impl Send for HandleSender {}
 
@@ -483,7 +422,7 @@ impl Builder {
     /// Register `mio`'s io to be used within `mioco` coroutine
     ///
     /// Consumes the `io`, returns a `Handle` to a mio wrapper over it.
-    pub fn wrap_io<H, T : 'static>(&mut self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> ExternalHandle
+    pub fn wrap_io<H, T : 'static>(&mut self, event_loop: &mut mio::EventLoop<H>, io : T, token : Token) -> IOHandle
     where H : Handler,
     T : Evented {
 
@@ -503,14 +442,14 @@ impl Builder {
                      }
                  ));
 
-        let handle = ExternalHandle {
+        let handle = IOHandle {
             inn: io.clone()
         };
 
         self.coroutine.borrow_mut().io.push(io.clone());
 
-        self.handles.push(InternalHandle {
-            inn: io.clone()
+        self.handles.push(IOHandle {
+            inn: io.clone(),
         });
 
         handle
@@ -555,15 +494,15 @@ impl Builder {
 
 /// Coroutine control
 pub struct CoroutineHandle {
-    handles : Vec<InternalHandle>,
+    handles : Vec<IOHandle>,
     coroutine : Rc<RefCell<Coroutine>>,
 }
 
-fn select_impl_set_mask_handles(handles : &[&InternalHandle], blocked_on_mask : &mut u32) {
+fn select_impl_set_mask_from_indices(indices : &[usize], blocked_on_mask : &mut u32) {
     {
         *blocked_on_mask = 0;
-        for &handle in handles {
-            *blocked_on_mask |= 1u32 << handle.inn.borrow().idx;
+        for &idx in indices {
+            *blocked_on_mask |= 1u32 << idx;
         }
     }
 }
@@ -629,50 +568,58 @@ impl CoroutineHandle {
         }
         self.select_impl(RW::Write)
     }
+
     /// Wait till any event is ready on a set of Handles
-    pub fn select_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+    pub fn select_from(&mut self, indices : &[usize]) -> LastEvent {
         {
             let Coroutine {
                 ref mut blocked_on_mask,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_handles(handles, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on_mask);
         }
 
         self.select_impl(RW::Both)
     }
 
     /// Wait till write event is ready on a set of Handles
-    pub fn select_write_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+    pub fn select_write_from(&mut self, indices : &[usize]) -> LastEvent {
         {
             let Coroutine {
                 ref mut blocked_on_mask,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_handles(handles, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on_mask);
         }
 
         self.select_impl(RW::Write)
     }
 
     /// Wait till read event is ready on a set of Handles
-    pub fn select_read_from(&mut self, handles : &[&InternalHandle]) -> LastEvent {
+    pub fn select_read_from(&mut self, indices : &[usize]) -> LastEvent {
         {
             let Coroutine {
                 ref mut blocked_on_mask,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_handles(handles, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on_mask);
         }
 
         self.select_impl(RW::Read)
     }
 
-    /// Array of all registered IO Handles
-    pub fn handles(&mut self) -> &mut [InternalHandle] {
-        &mut self.handles
+    /// Get typed handle by `idx`
+    ///
+    /// `idx` corresponds to order of `wrap_io` calls.
+    pub fn handle<T>(&mut self, idx : usize) -> TypedIOHandle<T> {
+        let untyped_handle = &mut self.handles[idx];
+
+        TypedIOHandle {
+            inn: untyped_handle.inn.clone(),
+            _t: PhantomData,
+        }
     }
 }

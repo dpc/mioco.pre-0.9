@@ -30,3 +30,6 @@ docview: doc
 .PHONY: echo
 echo:
 	cargo run --example echo --release
+
+decho:
+	cargo run --example echo

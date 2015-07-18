@@ -23,7 +23,7 @@ fn listend_addr() -> SocketAddr {
 
 struct Server {
     sock: TcpListener,
-    conns: Slab<mioco::ExternalHandle>,
+    conns: Slab<mioco::IOHandle>,
 }
 
 impl Server {
@@ -63,11 +63,11 @@ impl Server {
 
             let _tok = self.conns.insert_with(|token| {
                 let mut builder = mioco::Builder::new();
-                let io : mioco::ExternalHandle = builder.wrap_io(event_loop, sock, token);
+                let io : mioco::IOHandle = builder.wrap_io(event_loop, sock, token);
 
                 let f = move |io : &mut mioco::CoroutineHandle| {
                     use std::io::{Read, Write};
-                    let mut io = &mut io.handles()[0];
+                    let mut io : mioco::TypedIOHandle<TcpStream> = io.handle(0);
 
                     let mut buf = [0u8; 1024 * 16];
                     loop {
@@ -84,7 +84,7 @@ impl Server {
                         }
                     }
 
-                    io.with_raw_mut(|mut io| {let _ = io.close_outbound();} /* ignore errors */);
+                    io.with_raw_mut(|io| {let _ = io.shutdown(Shutdown::Write);} /* ignore errors */);
                 };
 
                 builder.start(f, event_loop);
@@ -109,7 +109,7 @@ impl Server {
         }
     }
 
-    fn conn<'a>(&'a mut self, tok : Token) -> &'a mut mioco::ExternalHandle {
+    fn conn<'a>(&'a mut self, tok : Token) -> &'a mut mioco::IOHandle {
         &mut self.conns[tok]
     }
 }
