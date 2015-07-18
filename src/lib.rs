@@ -338,7 +338,8 @@ impl ExternalHandle {
             inn.hup(event_loop, token);
         }
 
-        let event = match (events.is_readable(), events.is_writable()) {
+        // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
+        let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
             (true, true) => RW::Both,
             (true, false) => RW::Read,
             (false, true) => RW::Write,
@@ -355,7 +356,9 @@ impl ExternalHandle {
             };
             coroutine_handle
         };
-        handle.resume().ok().expect("resume() failed");
+
+        // ignore errors: the coroutine could have ended before all events for it were delivered
+        let _ = handle.resume();
 
         let inn = &self.inn.borrow();
         let mut co = inn.coroutine.borrow_mut();
