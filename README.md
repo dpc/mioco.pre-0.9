@@ -17,33 +17,42 @@
 
 ## Introduction
 
-`mioco` is [mio][mio]-based framework that allows handling asynchronous and scalable IO
-inside coroutines, simplifying the handling logic.
+Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).
 
-Thanks to this your asynchronous IO handling code can be as simple as(*):
+Using `mioco` you can handle scalable, asynchronous [`mio`][mio]-based IO, using set of synchronous-IO
+handling functions. Based on asynchronous [`mio`][mio] events `mioco` will cooperatively schedule your
+handlers.
 
-```
-let _ = std::io::copy(&mut from, &mut to);
-```
-
-`mioco` will block and unblock coroutines, taking care of the details. `mioco`
-support coroutines handling multiple IO at once, `select`-like operations. All
-of this without sacrificing performance.
+You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.
 
 `mioco` is still very experimental, but already usable. For real-life project using
 `mioco` see [colerr][colerr].
 
-
 Read [Documentation](//dpc.github.io/mioco/) for details.
 
+If you need help, try asking on [#mioco gitter.im][mioco gitter]. If still no
+luck, try [rust user forum][rust user forum].
+
+To report a bug or ask for features use [github issues][issues].
+
 [rust]: http://rust-lang.org
-[mio]: https://github.com/carllerche/mio
-[colerr]: https://github.com/dpc/colerr
+[mio]: //github.com/carllerche/mio
+[colerr]: //github.com/dpc/colerr
+[mioco gitter]: https://gitter.im/dpc/mioco
+[rust user forum]: https://users.rust-lang.org/
+[issues]: //github.com/dpc/mioco/issues
 
 ## Building & running
 
+Note: You must be using [nightly Rust][nightly rust] release. If you're using
+[multirust][multirust], which is highly recommended, switch with `multirust default
+nightly` command.
+
     cargo build --release
     make echo
+
+[nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
+[multirust]: https://github.com/brson/multirust
 
 # Semi-benchmarks
 

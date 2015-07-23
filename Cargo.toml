@@ -24,6 +24,8 @@ path = "src/lib.rs"
 [dependencies]
 nix = "*"
 coroutine = "*"
+log = "*"
+env_logger = "*"
 
 [dependencies.mio]
 git = "https://github.com/carllerche/mio"
