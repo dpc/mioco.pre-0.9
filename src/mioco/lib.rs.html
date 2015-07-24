@@ -909,17 +909,21 @@
 <span id="867">867</span>
 <span id="868">868</span>
 <span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
 
-<span class='doccomment'>//! Coroutine-based handler library for mio</span>
+<span class='doccomment'>//! Scalable, asynchronous IO coroutine-based handling toolkit library</span>
+<span class='doccomment'>//! (aka MIO COroutines).</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Using coroutines, an event-based mio model can be simplified to a set of routines, seamlessly</span>
-<span class='doccomment'>//! scheduled on demand in userspace.</span>
+<span class='doccomment'>//! Using `mioco` you can handle scalable, asynchronous `mio`-based IO, using set of synchronous-IO</span>
+<span class='doccomment'>//! handling functions. Based on asynchronous `mio` events `mioco` will cooperatively schedule your</span>
+<span class='doccomment'>//! handlers.</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! With `mioco` a coroutines can be used to simplify writing asynchronous io handling in</span>
-<span class='doccomment'>//! synchronous fashion.</span>
+<span class='doccomment'>//! You can think of `mioco` as of *Node.js for Rust*. Or if you&#39;re familiar with *green threads* as</span>
+<span class='doccomment'>//! of *green threads for `mio`*.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! See `examples/echo.rs` for an example TCP echo server.</span>
 <span class='doccomment'>//!</span>
