@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-871' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-867' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling
  (aka MIO COroutines).</p>
 
@@ -58,17 +58,13 @@
 
 <p>See <code>examples/echo.rs</code> for an example TCP echo server.</p>
 <pre class='rust rust-example-rendered'>
-<span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
-<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mio</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mioco</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>env_logger</span>;
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>::<span class='ident'>FromStr</span>;
-
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='ident'>Read</span>, <span class='ident'>Write</span>};
-
 <span class='kw'>use</span> <span class='ident'>mio</span>::<span class='ident'>tcp</span>::{<span class='ident'>TcpSocket</span>};
 
 <span class='kw'>const</span> <span class='ident'>DEFAULT_LISTEN_ADDR</span> : <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>str</span> <span class='op'>=</span> <span class='string'>&quot;127.0.0.1:5555&quot;</span>;

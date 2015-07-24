@@ -907,10 +907,6 @@
 <span id="865">865</span>
 <span id="866">866</span>
 <span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -929,17 +925,13 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>/*!
 ```
-#[macro_use]
-extern crate log;
 extern crate mio;
 extern crate mioco;
 extern crate env_logger;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
-
 use std::io::{Read, Write};
-
 use mio::tcp::{TcpSocket};
 
 const DEFAULT_LISTEN_ADDR : &amp;&#39;static str = &quot;127.0.0.1:5555&quot;;
