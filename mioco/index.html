@@ -45,16 +45,14 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-867' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling
- (aka MIO COroutines).</p>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-868' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</p>
 
-<p>Using <code>mioco</code> you can handle scalable, asynchronous <code>mio</code>-based IO, using set of synchronous-IO
- handling functions. Based on asynchronous <code>mio</code> events <code>mioco</code> will cooperatively schedule your
+<p>Using <code>mioco</code> you can handle scalable, asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using set of synchronous-IO
+ handling functions. Based on asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a> events <code>mioco</code> will cooperatively schedule your
  handlers.</p>
 
-<p>You can think of <code>mioco</code> as of <em>Node.js for Rust</em>. Or if you&#39;re familiar with <em>green threads</em> as
- of <em>green threads for <code>mio</code></em>.</p>
+<p>You can think of <code>mioco</code> as of <em>Node.js for Rust</em> or <em><a href="https://en.wikipedia.org/wiki/Green_threads">green threads</a> on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a></em>.</p>
 
 <p>See <code>examples/echo.rs</code> for an example TCP echo server.</p>
 <pre class='rust rust-example-rendered'>
