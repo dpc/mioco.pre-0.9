@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -77,8 +77,7 @@ to allow access to the contained of the lock.</p>
     <span class='kw'>let</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='ident'>RW_LOCK</span>.<span class='ident'>read</span>();
     <span class='comment'>// do something with lock</span>
     <span class='ident'>drop</span>(<span class='ident'>lock</span>);
-}
-</pre>
+}</pre>
 </div><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;'a, T&gt;</code></h4>
 <div class='docblock'><p>Locks this rwlock with shared read access, blocking the current thread
 until it can be acquired.</p>
@@ -98,8 +97,7 @@ once it is dropped.</p>
     <span class='comment'>// The lock is now locked and the data can be read</span>
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='op'>*</span><span class='ident'>data</span>);
     <span class='comment'>// The lock is dropped</span>
-}
-</pre>
+}</pre>
 </div><h4 id='method.try_read' class='method'><code>fn <a href='#method.try_read' class='fnname'>try_read</a>(&amp;self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;T&gt;&gt;</code></h4>
 <div class='docblock'><p>Attempt to acquire this lock with shared read access.</p>
 
@@ -120,8 +118,7 @@ or writers will acquire the lock first.</p>
         },
         <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> (), <span class='comment'>// no cigar</span>
     };
-}
-</pre>
+}</pre>
 </div><h4 id='method.write' class='method'><code>fn <a href='#method.write' class='fnname'>write</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'a, T&gt;</code></h4>
 <div class='docblock'><p>Lock this rwlock with exclusive write access, blocking the current
 thread until it can be acquired.</p>
@@ -138,8 +135,7 @@ when dropped.</p>
     <span class='comment'>// The lock is now locked and the data can be written</span>
     <span class='op'>*</span><span class='ident'>data</span> <span class='op'>+=</span> <span class='number'>1</span>;
     <span class='comment'>// The lock is dropped</span>
-}
-</pre>
+}</pre>
 </div><h4 id='method.try_write' class='method'><code>fn <a href='#method.try_write' class='fnname'>try_write</a>(&amp;self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;T&gt;&gt;</code></h4>
 <div class='docblock'><p>Attempt to lock this rwlock with exclusive write access.</p>
 
@@ -157,8 +153,7 @@ returned.</p>
         },
         <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> (), <span class='comment'>// no cigar</span>
     };
-}
-</pre>
+}</pre>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: 'static + <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='http://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
@@ -166,37 +161,44 @@ returned.</p>
     <section class="footer"></section>
 
     <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
-        </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>typedef</code> (or
+                    <code>tdef</code>).
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
     </div>
 

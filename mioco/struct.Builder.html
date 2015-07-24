@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2140' class='srclink' href='../src/mioco/lib.rs.html#449-452' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1915' class='srclink' href='../src/mioco/lib.rs.html#391-394' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Builder {
     // some fields omitted
 }</pre><div class='docblock'><p><code>mioco</code> coroutine builder</p>
@@ -54,7 +54,7 @@
 that you spawn with <code>start</code>.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.Builder.html' title='mioco::Builder'>Builder</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../mioco/struct.Builder.html' title='mioco::Builder'>Builder</a></code></h4>
 <div class='docblock'><p>Create new Coroutine builder</p>
-</div><h4 id='method.wrap_io' class='method'><code>fn <a href='#method.wrap_io' class='fnname'>wrap_io</a>&lt;H, T: 'static&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, io: T, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>) -&gt; <a class='struct' href='../mioco/struct.ExternalHandle.html' title='mioco::ExternalHandle'>ExternalHandle</a> <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a>, T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
+</div><h4 id='method.wrap_io' class='method'><code>fn <a href='#method.wrap_io' class='fnname'>wrap_io</a>&lt;H, T: 'static&gt;(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;H&gt;, io: T, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>) -&gt; <a class='struct' href='../mioco/struct.IOHandle.html' title='mioco::IOHandle'>IOHandle</a> <span class='where'>where H: <a class='trait' href='../mio/handler/trait.Handler.html' title='mio::handler::Handler'>Handler</a>, T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Register <code>mio</code>&#39;s io to be used within <code>mioco</code> coroutine</p>
 
 <p>Consumes the <code>io</code>, returns a <code>Handle</code> to a mio wrapper over it.</p>
@@ -70,7 +70,7 @@ and use it&#39;s argument for all IO with it&#39;s peer</p>
 
     <div id="help" class="hidden">
         <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
+            <h1>Keyboard Shortcuts</h1>
             <dl>
                 <dt>?</dt>
                 <dd>Show this help dialog</dd>
@@ -85,7 +85,7 @@ and use it&#39;s argument for all IO with it&#39;s peer</p>
             </dl>
         </div>
         <div class="infos">
-            <h1>Search tricks</h1>
+            <h1>Search Tricks</h1>
             <p>
                 Prefix searches with a type followed by a colon (e.g.
                 <code>fn:</code>) to restrict the search to a given type.

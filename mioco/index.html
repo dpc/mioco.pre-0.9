@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -45,57 +45,41 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-675' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-812' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Coroutine-based handler library for mio</p>
 
 <p>Using coroutines, an event-based mio model can be simplified to a set of routines, seamlessly
 scheduled on demand in userspace.</p>
 
-<p>With <code>mioco</code> a coroutines can be used to simplify writing asynchronous io handilng in
+<p>With <code>mioco</code> a coroutines can be used to simplify writing asynchronous io handling in
 synchronous fashion.</p>
+
+<p>See <code>examples/echo.rs</code> for an example TCP echo server.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Builder.html'
-                               title='mioco::Builder'>Builder</a></td>
-                        <td class='docblock short'>
-                             <p><code>mioco</code> coroutine builder</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.CoroutineHandle.html'
-                               title='mioco::CoroutineHandle'>CoroutineHandle</a></td>
-                        <td class='docblock short'>
-                             <p>Coroutine control</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.ExternalHandle.html'
-                               title='mioco::ExternalHandle'>ExternalHandle</a></td>
-                        <td class='docblock short'>
-                             <p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.InternalHandle.html'
-                               title='mioco::InternalHandle'>InternalHandle</a></td>
-                        <td class='docblock short'>
-                             <p><code>mioco</code> wrapper over io associated with a given coroutine.</p>
-
-                        </td>
-                    </tr>
-                
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.LastEvent.html'
                                title='mioco::LastEvent'>LastEvent</a></td>
                         <td class='docblock short'>
                              <p>Last Event</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MiocoHandle.html'
+                               title='mioco::MiocoHandle'>MiocoHandle</a></td>
+                        <td class='docblock short'>
+                             <p>Mioco Handle</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.TypedIOSource.html'
+                               title='mioco::TypedIOSource'>TypedIOSource</a></td>
+                        <td class='docblock short'>
+                             <p><code>mioco</code> wrapper over raw mio IO structure</p>
 
                         </td>
                     </tr>
@@ -119,43 +103,60 @@ synchronous fashion.</p>
 
                         </td>
                     </tr>
+                </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.start.html'
+                               title='mioco::start'>start</a></td>
+                        <td class='docblock short'>
+                             <p>Start mioco handling</p>
+
+                        </td>
+                    </tr>
                 </table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
 
     <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
-        </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>typedef</code> (or
+                    <code>tdef</code>).
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
     </div>
 

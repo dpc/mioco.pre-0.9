@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2385' class='srclink' href='../src/mioco/lib.rs.html#554-557' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2160' class='srclink' href='../src/mioco/lib.rs.html#496-499' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CoroutineHandle {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine control</p>
@@ -55,14 +55,16 @@
 <div class='docblock'><p>Wait till a read event is ready</p>
 </div><h4 id='method.select_write' class='method'><code>fn <a href='#method.select_write' class='fnname'>select_write</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
 <div class='docblock'><p>Wait till a read event is ready</p>
-</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, handles: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;<a class='struct' href='../mioco/struct.InternalHandle.html' title='mioco::InternalHandle'>InternalHandle</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
 <div class='docblock'><p>Wait till any event is ready on a set of Handles</p>
-</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, handles: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;<a class='struct' href='../mioco/struct.InternalHandle.html' title='mioco::InternalHandle'>InternalHandle</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
 <div class='docblock'><p>Wait till write event is ready on a set of Handles</p>
-</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, handles: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;<a class='struct' href='../mioco/struct.InternalHandle.html' title='mioco::InternalHandle'>InternalHandle</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
 <div class='docblock'><p>Wait till read event is ready on a set of Handles</p>
-</div><h4 id='method.handles' class='method'><code>fn <a href='#method.handles' class='fnname'>handles</a>(&amp;mut self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a class='struct' href='../mioco/struct.InternalHandle.html' title='mioco::InternalHandle'>InternalHandle</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
-<div class='docblock'><p>Array of all registered IO Handles</p>
+</div><h4 id='method.handle' class='method'><code>fn <a href='#method.handle' class='fnname'>handle</a>&lt;T&gt;(&amp;mut self, idx: <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../mioco/struct.TypedIOHandle.html' title='mioco::TypedIOHandle'>TypedIOHandle</a>&lt;T&gt;</code></h4>
+<div class='docblock'><p>Get typed handle by <code>idx</code></p>
+
+<p><code>idx</code> corresponds to order of <code>wrap_io</code> calls.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
 
@@ -70,7 +72,7 @@
 
     <div id="help" class="hidden">
         <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
+            <h1>Keyboard Shortcuts</h1>
             <dl>
                 <dt>?</dt>
                 <dd>Show this help dialog</dd>
@@ -85,7 +87,7 @@
             </dl>
         </div>
         <div class="infos">
-            <h1>Search tricks</h1>
+            <h1>Search Tricks</h1>
             <p>
                 Prefix searches with a type followed by a colon (e.g.
                 <code>fn:</code>) to restrict the search to a given type.

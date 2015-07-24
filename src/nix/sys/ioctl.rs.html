@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `nix-rust/src/sys/ioctl.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.3.9/src/sys/ioctl.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>ioctl.rs.html -- source</title>
@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -253,6 +253,17 @@
 <span id="211">211</span>
 <span id="212">212</span>
 <span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Provide helpers for making ioctl system calls</span>
 <span class='doccomment'>//!</span>
@@ -333,6 +344,17 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::<span class='ident'>RawFd</span>;
 
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ioctl_op_t</span> <span class='op'>=</span> <span class='ident'>c_ulong</span>;
+
+<span class='comment'>// the libc definiton of the &#39;op&#39; type is platform dependent</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>))]</span>
+<span class='kw'>type</span> <span class='ident'>os_ioctl_op_t</span> <span class='op'>=</span> <span class='ident'>c_ulong</span>;
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
+<span class='kw'>type</span> <span class='ident'>os_ioctl_op_t</span> <span class='op'>=</span> <span class='ident'>c_int</span>;
 
 <span class='comment'>// low-level ioctl functions and definitions matching the</span>
 <span class='comment'>// macros provided in ioctl.h from the kernel</span>
@@ -446,7 +468,7 @@
 <span class='doccomment'>/// The refernced data may also contain information that will be consumed</span>
 <span class='doccomment'>/// by the kernel.</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>read_into_ptr</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>op</span>: <span class='ident'>ioctl_op_t</span>, <span class='ident'>data_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>c_int</span><span class='op'>&gt;</span> {
-    <span class='ident'>convert_ioctl_res</span>(<span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span>, <span class='ident'>data_ptr</span>))
+    <span class='ident'>convert_ioctl_res</span>(<span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span> <span class='kw'>as</span> <span class='ident'>os_ioctl_op_t</span>, <span class='ident'>data_ptr</span>))
 }
 
 <span class='doccomment'>/// Ioctl call that sends a value to the kernel but</span>
@@ -458,14 +480,14 @@
 <span class='doccomment'>/// Ioctl call that sends a value to the kernel but</span>
 <span class='doccomment'>/// does not return anything (pure side effect).</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>write_ptr</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>op</span>: <span class='ident'>ioctl_op_t</span>, <span class='ident'>data</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>c_int</span><span class='op'>&gt;</span> {
-    <span class='ident'>convert_ioctl_res</span>(<span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span>, <span class='ident'>data</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>T</span>))
+    <span class='ident'>convert_ioctl_res</span>(<span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span> <span class='kw'>as</span> <span class='ident'>os_ioctl_op_t</span>, <span class='ident'>data</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>T</span>))
 }
 
 <span class='doccomment'>/// Ioctl call for which no data pointer is provided to the kernel.</span>
 <span class='doccomment'>/// That is, the kernel has sufficient information about what to</span>
 <span class='doccomment'>/// do based on the op alone.</span>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execute</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>op</span>: <span class='ident'>ioctl_op_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>c_int</span><span class='op'>&gt;</span> {
-    <span class='ident'>convert_ioctl_res</span>(<span class='kw'>unsafe</span> { <span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span>) })
+    <span class='ident'>convert_ioctl_res</span>(<span class='kw'>unsafe</span> { <span class='ident'>libc_ioctl</span>(<span class='ident'>fd</span>, <span class='ident'>op</span> <span class='kw'>as</span> <span class='ident'>os_ioctl_op_t</span>) })
 }
 </pre>
 </section>
@@ -474,37 +496,44 @@
     <section class="footer"></section>
 
     <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
-        </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>typedef</code> (or
+                    <code>tdef</code>).
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
     </div>
 

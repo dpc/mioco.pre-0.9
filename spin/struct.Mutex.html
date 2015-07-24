@@ -34,7 +34,7 @@
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -86,8 +86,7 @@ library.</p>
     <span class='op'>*</span><span class='ident'>data</span>
 };
 
-<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='number'>2</span>);
-</pre>
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='number'>2</span>);</pre>
 
 <h1 id="thread-safety-example" class='section-header'><a
                            href="#thread-safety-example">Thread-safety example</a></h1><pre class='rust rust-example-rendered'>
@@ -118,8 +117,7 @@ library.</p>
 <span class='ident'>barrier</span>.<span class='ident'>wait</span>();
 
 <span class='kw'>let</span> <span class='ident'>answer</span> <span class='op'>=</span> { <span class='op'>*</span><span class='ident'>spin_mutex</span>.<span class='ident'>lock</span>() };
-<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='ident'>numthreads</span>);
-</pre>
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>answer</span>, <span class='ident'>numthreads</span>);</pre>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>const fn <a href='#method.new' class='fnname'>new</a>(user_data: T) -&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Creates a new spinlock wrapping the supplied data.</p>
 
@@ -134,8 +132,7 @@ library.</p>
     <span class='kw'>let</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='ident'>MUTEX</span>.<span class='ident'>lock</span>();
     <span class='comment'>// do something with lock</span>
     <span class='ident'>drop</span>(<span class='ident'>lock</span>);
-}
-</pre>
+}</pre>
 </div><h4 id='method.lock' class='method'><code>fn <a href='#method.lock' class='fnname'>lock</a>(&amp;self) -&gt; <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Locks the spinlock and returns a guard.</p>
 
@@ -157,37 +154,44 @@ and the lock will be dropped when the guard falls out of scope.</p>
     <section class="footer"></section>
 
     <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
-        </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>typedef</code> (or
+                    <code>tdef</code>).
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
     </div>
 
