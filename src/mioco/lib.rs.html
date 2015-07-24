@@ -852,6 +852,63 @@
 <span id="810">810</span>
 <span id="811">811</span>
 <span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -866,6 +923,63 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! See `examples/echo.rs` for an example TCP echo server.</span>
 <span class='doccomment'>//!</span>
+<span class='doccomment'>/*!
+```
+#[macro_use]
+extern crate log;
+extern crate mio;
+extern crate mioco;
+extern crate env_logger;
+
+use std::net::SocketAddr;
+use std::str::FromStr;
+
+use std::io::{Read, Write};
+
+use mio::tcp::{TcpSocket};
+
+const DEFAULT_LISTEN_ADDR : &amp;&#39;static str = &quot;127.0.0.1:5555&quot;;
+
+fn listend_addr() -&gt; SocketAddr {
+    FromStr::from_str(DEFAULT_LISTEN_ADDR).unwrap()
+}
+
+fn main() {
+    env_logger::init().unwrap();
+
+    mioco::start(move |mioco| {
+        let addr = listend_addr();
+
+        let sock = try!(TcpSocket::v4());
+        try!(sock.bind(&amp;addr));
+        let sock = try!(sock.listen(1024));
+
+        println!(&quot;Starting tcp echo server on {:?}&quot;, sock.local_addr().unwrap());
+        let sock = mioco.wrap(sock);
+
+        loop {
+            let conn = try!(sock.accept());
+
+            mioco.spawn(move |mioco| {
+                let mut conn = mioco.wrap(conn);
+
+                let mut buf = [0u8; 1024 * 16];
+                loop {
+                    let size = try!(conn.read(&amp;mut buf));
+                    if size == 0 {
+                        /* eof */
+                        break;
+                    }
+                    try!(conn.write_all(&amp;mut buf[0..size]))
+                }
+
+                Ok(())
+            })
+        }
+    });
+}
+```
+*/</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>result_expect</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>reflect_marker</span>)]</span>
