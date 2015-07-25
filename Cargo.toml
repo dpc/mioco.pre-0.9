@@ -1,15 +1,14 @@
 [package]
 name = "mioco"
-version = "0.0.4"
+version = "0.1.0-rc1pre"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
-description = "Coroutine-based AIO handling for Rust"
+description = "Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines)."
 keywords = ["mio", "aio", "io", "coroutine"]
 license = "MPL-2.0"
 documentation = "https://dpc.github.io/mioco/"
 homepage = "https://github.com/dpc/mioco"
 repository = "https://github.com/dpc/mioco"
 readme = "README.md"
-
 
 [profile.release]
 opt-level = 3
@@ -27,5 +26,9 @@ coroutine = "*"
 log = "*"
 env_logger = "*"
 
+# TODO:
+# mio = "0.5.*"
+
 [dependencies.mio]
 git = "https://github.com/carllerche/mio"
+
