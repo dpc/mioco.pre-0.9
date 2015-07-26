@@ -155,7 +155,7 @@ struct Coroutine {
 
 
 impl Coroutine {
-    fn new(server : RefServerShared) -> Coroutine {
+    fn new(server : RefServerShared) -> Self {
         Coroutine {
             state: State::Running,
             handle: None,
@@ -736,7 +736,7 @@ struct ServerShared {
 }
 
 impl ServerShared {
-    fn new() -> ServerShared {
+    fn new() -> Self {
         ServerShared {
             sources: Slab::new(1024),
             coroutines_no: 0,
@@ -808,7 +808,7 @@ struct Server {
 }
 
 impl Server {
-    fn new(shared : RefServerShared) -> Server {
+    fn new(shared : RefServerShared) -> Self {
         Server {
             shared: shared,
         }
