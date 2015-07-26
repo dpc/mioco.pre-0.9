@@ -45,15 +45,14 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-4345' class='srclink' href='../src/mioco/lib.rs.html#848-868' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-4347' class='srclink' href='../src/mioco/lib.rs.html#895-915' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn start&lt;F&gt;(f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + 'static</span></pre><div class='docblock'><p>Start mioco handling</p>
 
-<p>Takes a starting handler function that will be executed in mioco environment.</p>
+<p>Takes a starting handler function that will be executed in <code>mioco</code> environment.</p>
 
-<p>Will block until mioco is finished (which currently means indefinitely).</p>
+<p>Will block until <code>mioco</code> is finished - there are no more handlers to run.</p>
 
-<p>TODO: Finish mioco when all handling coroutines are gone.
-TODO: Provide an explicit finish function.</p>
+<p>See <code>MiocoHandle::spawn()</code>.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

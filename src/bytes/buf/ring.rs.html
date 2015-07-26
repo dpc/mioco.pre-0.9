@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/bytes-0.2.10/src/buf/ring.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/bytes-b21aba8e191ae1b0/master/src/buf/ring.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>ring.rs.html -- source</title>
@@ -275,6 +275,14 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>alloc</span>, <span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>cmp</span>, <span class='ident'>fmt</span>, <span class='ident'>io</span>, <span class='ident'>ptr</span>};
@@ -287,6 +295,8 @@
 <span class='doccomment'>/// Buf backed by a continous chunk of memory. Maintains a read cursor and a</span>
 <span class='doccomment'>/// write cursor. When reads and writes reach the end of the allocated buffer,</span>
 <span class='doccomment'>/// wraps around to the start.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// This type is suited for use cases where reads and writes are intermixed.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>RingBuf</span> {
     <span class='ident'>ptr</span>: <span class='ident'>alloc</span>::<span class='ident'>MemRef</span>,  <span class='comment'>// Pointer to the memory</span>
     <span class='ident'>cap</span>: <span class='ident'>usize</span>,          <span class='comment'>// Capacity of the buffer</span>
@@ -297,6 +307,7 @@
 
 <span class='comment'>// TODO: There are most likely many optimizations that can be made</span>
 <span class='kw'>impl</span> <span class='ident'>RingBuf</span> {
+    <span class='doccomment'>/// Allocates a new `RingBuf` with the specified capacity.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='kw-2'>mut</span> <span class='ident'>capacity</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>RingBuf</span> {
         <span class='comment'>// Handle the 0 length buffer case</span>
         <span class='kw'>if</span> <span class='ident'>capacity</span> <span class='op'>==</span> <span class='number'>0</span> {
@@ -323,14 +334,17 @@
         }
     }
 
+    <span class='doccomment'>/// Returns `true` if the buf cannot accept any further writes.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_full</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='self'>self</span>.<span class='ident'>cap</span> <span class='op'>==</span> <span class='self'>self</span>.<span class='ident'>len</span>
     }
 
+    <span class='doccomment'>/// Returns `true` if the buf cannot accept any further reads.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_empty</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>==</span> <span class='number'>0</span>
     }
 
+    <span class='doccomment'>/// Returns the number of bytes that the buf can hold.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>capacity</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>cap</span>
     }
@@ -363,10 +377,12 @@
         }
     }
 
+    <span class='doccomment'>/// Returns the number of bytes remaining to read.</span>
     <span class='kw'>fn</span> <span class='ident'>read_remaining</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>len</span>
     }
 
+    <span class='doccomment'>/// Returns the remaining write capacity until which the buf becomes full.</span>
     <span class='kw'>fn</span> <span class='ident'>write_remaining</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>cap</span> <span class='op'>-</span> <span class='self'>self</span>.<span class='ident'>len</span>
     }

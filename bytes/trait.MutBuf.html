@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2378' class='srclink' href='../src/bytes/buf/mod.rs.html#90-160' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2401' class='srclink' href='../src/bytes/buf/mod.rs.html#90-160' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait MutBuf: <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> {
     fn <a href='#tymethod.remaining' class='fnname'>remaining</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>;
     fn <a href='#tymethod.advance' class='fnname'>advance</a>(&amp;mut self, cnt: <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>);
@@ -89,6 +89,7 @@ Returns the number of bytes written.</p>
     <li><code>impl <a class='trait' href='../bytes/trait.MutBuf.html' title='bytes::MutBuf'>MutBuf</a> for MutByteBuf</code></li>
 <li><code>impl <a class='trait' href='../bytes/trait.MutBuf.html' title='bytes::MutBuf'>MutBuf</a> for RingBuf</code></li>
 <li><code>impl&lt;'a&gt; <a class='trait' href='../bytes/trait.MutBuf.html' title='bytes::MutBuf'>MutBuf</a> for MutSliceBuf&lt;'a&gt;</code></li>
+<li><code>impl <a class='trait' href='../bytes/trait.MutBuf.html' title='bytes::MutBuf'>MutBuf</a> for <a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></li>
 </ul><script type="text/javascript" async
                               src="../implementors/bytes/trait.MutBuf.js">
                       </script></section>

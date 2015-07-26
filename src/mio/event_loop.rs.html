@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `../mio/src/event_loop.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-75006fe295376f74/master/src/event_loop.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>event_loop.rs.html -- source</title>
@@ -484,6 +484,7 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
+<span id="445">445</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Handler</span>, <span class='ident'>Evented</span>, <span class='ident'>Poll</span>, <span class='ident'>NotifyError</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>event</span>::{<span class='ident'>IoEvent</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>};
@@ -867,7 +868,8 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::<span class='ident'>AtomicIsize</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::<span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>;
     <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>EventLoop</span>;
-    <span class='kw'>use</span> {<span class='ident'>buf</span>, <span class='ident'>unix</span>, <span class='ident'>Buf</span>, <span class='ident'>Handler</span>, <span class='ident'>Token</span>, <span class='ident'>TryRead</span>, <span class='ident'>TryWrite</span>, <span class='ident'>EventSet</span>};
+    <span class='kw'>use</span> {<span class='ident'>unix</span>, <span class='ident'>Handler</span>, <span class='ident'>Token</span>, <span class='ident'>TryRead</span>, <span class='ident'>TryWrite</span>, <span class='ident'>EventSet</span>};
+    <span class='kw'>use</span> <span class='ident'>bytes</span>::{<span class='ident'>Buf</span>, <span class='ident'>SliceBuf</span>, <span class='ident'>ByteBuf</span>};
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>test_event_loop_size</span>() {
@@ -916,11 +918,11 @@
         <span class='kw'>let</span> <span class='ident'>wcount</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>AtomicIsize</span>::<span class='ident'>new</span>(<span class='number'>0</span>));
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handler</span> <span class='op'>=</span> <span class='ident'>Funtimes</span>::<span class='ident'>new</span>(<span class='ident'>rcount</span>.<span class='ident'>clone</span>(), <span class='ident'>wcount</span>.<span class='ident'>clone</span>());
 
-        <span class='ident'>writer</span>.<span class='ident'>try_write_buf</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>::<span class='ident'>SliceBuf</span>::<span class='ident'>wrap</span>(<span class='string'>&quot;hello&quot;</span>.<span class='ident'>as_bytes</span>())).<span class='ident'>unwrap</span>();
+        <span class='ident'>writer</span>.<span class='ident'>try_write_buf</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SliceBuf</span>::<span class='ident'>wrap</span>(<span class='string'>&quot;hello&quot;</span>.<span class='ident'>as_bytes</span>())).<span class='ident'>unwrap</span>();
         <span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='ident'>reader</span>, <span class='ident'>Token</span>(<span class='number'>10</span>)).<span class='ident'>unwrap</span>();
 
         <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>event_loop</span>.<span class='ident'>run_once</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>handler</span>);
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='ident'>buf</span>::<span class='ident'>ByteBuf</span>::<span class='ident'>mut_with_capacity</span>(<span class='number'>16</span>);
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='ident'>ByteBuf</span>::<span class='ident'>mut_with_capacity</span>(<span class='number'>16</span>);
 
         <span class='macro'>assert_eq</span><span class='macro'>!</span>((<span class='op'>*</span><span class='ident'>rcount</span>).<span class='ident'>load</span>(<span class='ident'>SeqCst</span>), <span class='number'>1</span>);
 

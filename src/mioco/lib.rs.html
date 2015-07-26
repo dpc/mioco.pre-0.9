@@ -908,6 +908,53 @@
 <span id="866">866</span>
 <span id="867">867</span>
 <span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -1031,14 +1078,14 @@ fn main() {
 <span class='doccomment'>/// Read and/or Write + index of the handle in the order of `wrap` calls.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Copy</span>, <span class='ident'>Clone</span>, <span class='ident'>Debug</span>, <span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>LastEvent</span> {
-    <span class='ident'>idx</span> : <span class='ident'>usize</span>,
+    <span class='ident'>index</span> : <span class='ident'>EventSourceIndex</span>,
     <span class='ident'>rw</span> : <span class='ident'>RW</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>LastEvent</span> {
-    <span class='doccomment'>/// Index of the IOSourceShared handle</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>idx</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
-        <span class='self'>self</span>.<span class='ident'>idx</span>
+    <span class='doccomment'>/// Index of the EventSourceShared handle</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>index</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>EventSourceIndex</span> {
+        <span class='self'>self</span>.<span class='ident'>index</span>
     }
 
     <span class='doccomment'>/// Was the event a read</span>
@@ -1083,38 +1130,42 @@ fn main() {
 
 <span class='doccomment'>/// `mioco` coroutine</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Referenced by IOSourceShared running within it.</span>
+<span class='doccomment'>/// Referenced by EventSourceShared running within it.</span>
 <span class='kw'>struct</span> <span class='ident'>Coroutine</span> {
     <span class='doccomment'>/// Coroutine of Coroutine itself. Stored here so it&#39;s available</span>
     <span class='doccomment'>/// through every handle and `Coroutine` itself without referencing</span>
     <span class='doccomment'>/// back</span>
     <span class='ident'>handle</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>coroutine</span>::<span class='ident'>coroutine</span>::<span class='ident'>Handle</span><span class='op'>&gt;</span>,
+
     <span class='doccomment'>/// Current state</span>
     <span class='ident'>state</span> : <span class='ident'>State</span>,
+
     <span class='doccomment'>/// Last event that resumed the coroutine</span>
     <span class='ident'>last_event</span>: <span class='ident'>LastEvent</span>,
 
-    <span class='doccomment'>/// All handles</span>
-    <span class='ident'>io</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Weak</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>IOSourceShared</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
+    <span class='doccomment'>/// All handles, weak to avoid `Rc`-cycle</span>
+    <span class='ident'>io</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Weak</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>EventSourceShared</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Mask of handle indexes that we&#39;re blocked on</span>
     <span class='ident'>blocked_on_mask</span> : <span class='ident'>u32</span>,
+
+    <span class='doccomment'>/// Mask of handle indexes that are registered in Server</span>
     <span class='ident'>registered_mask</span> : <span class='ident'>u32</span>,
 
-    <span class='doccomment'>/// Server coroutine is running in</span>
+    <span class='doccomment'>/// `Server` shared data that this `Coroutine` is running in</span>
     <span class='ident'>server_shared</span> : <span class='ident'>RefServerShared</span>,
 
+    <span class='doccomment'>/// Newly spawned `Coroutine`-es</span>
     <span class='ident'>children_to_start</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>RefCoroutine</span><span class='op'>&gt;</span>,
 }
 
 
 <span class='kw'>impl</span> <span class='ident'>Coroutine</span> {
-
     <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>server</span> : <span class='ident'>RefServerShared</span>) <span class='op'>-&gt;</span> <span class='ident'>Coroutine</span> {
         <span class='ident'>Coroutine</span> {
             <span class='ident'>state</span>: <span class='ident'>State</span>::<span class='ident'>Running</span>,
             <span class='ident'>handle</span>: <span class='prelude-val'>None</span>,
-            <span class='ident'>last_event</span>: <span class='ident'>LastEvent</span>{ <span class='ident'>rw</span>: <span class='ident'>RW</span>::<span class='ident'>Read</span>, <span class='ident'>idx</span>: <span class='number'>0</span>},
+            <span class='ident'>last_event</span>: <span class='ident'>LastEvent</span>{ <span class='ident'>rw</span>: <span class='ident'>RW</span>::<span class='ident'>Read</span>, <span class='ident'>index</span>: <span class='ident'>EventSourceIndex</span>(<span class='number'>0</span>)},
             <span class='ident'>io</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>4</span>),
             <span class='ident'>blocked_on_mask</span>: <span class='number'>0</span>,
             <span class='ident'>registered_mask</span>: <span class='number'>0</span>,
@@ -1123,11 +1174,44 @@ fn main() {
         }
     }
 
+    <span class='doccomment'>/// After `resume()` on the `Coroutine.handle` finished,</span>
+    <span class='doccomment'>/// the `Coroutine` have blocked or finished and we need to</span>
+    <span class='doccomment'>/// perform the following maintenance</span>
+    <span class='kw'>fn</span> <span class='ident'>after_resume</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>)
+        <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span>
+    {
+        <span class='comment'>// If there were any newly spawned child-coroutines: start them now</span>
+        <span class='kw'>for</span> <span class='ident'>coroutine</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>children_to_start</span> {
+            <span class='kw'>let</span> <span class='ident'>handle</span> <span class='op'>=</span> {
+                <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
+                <span class='ident'>co</span>.<span class='ident'>handle</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>c</span><span class='op'>|</span> <span class='ident'>c</span>.<span class='ident'>clone</span>()).<span class='ident'>unwrap</span>()
+            };
+            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Resume new child coroutine&quot;</span>);
+            <span class='ident'>handle</span>.<span class='ident'>resume</span>().<span class='ident'>expect</span>(<span class='string'>&quot;resume() failed&quot;</span>);
+            {
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
+                <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Reregister new child coroutine&quot;</span>);
+                <span class='ident'>co</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
+            }
+        }
+        <span class='self'>self</span>.<span class='ident'>children_to_start</span>.<span class='ident'>clear</span>();
+
+        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Reregister coroutine&quot;</span>);
+        <span class='self'>self</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
+    }
+
     <span class='kw'>fn</span> <span class='ident'>reregister</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>)
         <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span>
     {
         <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>state</span> <span class='op'>==</span> <span class='ident'>State</span>::<span class='ident'>Finished</span> {
-            <span class='self'>self</span>.<span class='ident'>deregister_all</span>(<span class='ident'>event_loop</span>)
+            <span class='macro'>debug</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine: deregistering&quot;</span>);
+            <span class='self'>self</span>.<span class='ident'>deregister_all</span>(<span class='ident'>event_loop</span>);
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>server_shared</span>.<span class='ident'>borrow_mut</span>();
+            <span class='ident'>shared</span>.<span class='ident'>coroutines_no</span> <span class='op'>-=</span> <span class='number'>1</span>;
+            <span class='kw'>if</span> <span class='ident'>shared</span>.<span class='ident'>coroutines_no</span> <span class='op'>==</span> <span class='number'>0</span> {
+                <span class='macro'>debug</span><span class='macro'>!</span>(<span class='string'>&quot;Shutdown event loop - 0 coroutines left&quot;</span>);
+                <span class='ident'>event_loop</span>.<span class='ident'>shutdown</span>();
+            }
         } <span class='kw'>else</span> {
             <span class='self'>self</span>.<span class='ident'>reregister_blocked_on</span>(<span class='ident'>event_loop</span>)
         }
@@ -1174,21 +1258,21 @@ fn main() {
     }
 }
 
-<span class='kw'>type</span> <span class='ident'>RefIOSourceShared</span> <span class='op'>=</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>IOSourceShared</span><span class='op'>&gt;&gt;</span>;
+<span class='kw'>type</span> <span class='ident'>RefEventSourceShared</span> <span class='op'>=</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>EventSourceShared</span><span class='op'>&gt;&gt;</span>;
 
 <span class='doccomment'>/// Wrapped mio IO (mio::Evented+TryRead+TryWrite)</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// `Handle` is just a cloneable reference to this struct</span>
-<span class='kw'>struct</span> <span class='ident'>IOSourceShared</span> {
+<span class='kw'>struct</span> <span class='ident'>EventSourceShared</span> {
     <span class='ident'>coroutine</span>: <span class='ident'>RefCoroutine</span>,
     <span class='ident'>token</span>: <span class='ident'>Token</span>,
-    <span class='ident'>idx</span> : <span class='ident'>usize</span>, <span class='doccomment'>/// Index in MiocoHandle::handles</span>
+    <span class='ident'>index</span>: <span class='ident'>usize</span>, <span class='doccomment'>/// Index in MiocoHandle::handles</span>
     <span class='ident'>io</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Evented</span><span class='op'>+</span><span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
     <span class='ident'>peer_hup</span>: <span class='ident'>bool</span>,
     <span class='ident'>registered</span>: <span class='ident'>bool</span>,
 }
 
-<span class='kw'>impl</span> <span class='ident'>IOSourceShared</span> {
+<span class='kw'>impl</span> <span class='ident'>EventSourceShared</span> {
     <span class='doccomment'>/// Handle `hup` condition</span>
     <span class='kw'>fn</span> <span class='ident'>hup</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>_event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>, <span class='ident'>_token</span>: <span class='ident'>Token</span>)
         <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span> {
@@ -1228,8 +1312,7 @@ fn main() {
              }
         }
 
-
-    <span class='doccomment'>/// Un-reregister something we&#39;re not interested in anymore</span>
+    <span class='doccomment'>/// Un-reregister events we&#39;re not interested in anymore</span>
     <span class='kw'>fn</span> <span class='ident'>unreregister</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>)
         <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span> {
             <span class='kw'>let</span> <span class='ident'>interest</span> <span class='op'>=</span> <span class='ident'>mio</span>::<span class='ident'>EventSet</span>::<span class='ident'>none</span>();
@@ -1242,7 +1325,7 @@ fn main() {
                 ).<span class='ident'>ok</span>().<span class='ident'>expect</span>(<span class='string'>&quot;reregister failed&quot;</span>)
         }
 
-    <span class='doccomment'>/// Un-reregister something we&#39;re not interested in anymore</span>
+    <span class='doccomment'>/// Un-reregister events we&#39;re not interested in anymore</span>
     <span class='kw'>fn</span> <span class='ident'>deregister</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>)
         <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span> {
             <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>registered</span> {
@@ -1252,10 +1335,10 @@ fn main() {
         }
 }
 
-<span class='doccomment'>/// `mioco` wrapper over raw mio IO structure</span>
+<span class='doccomment'>/// `mioco` wrapper over raw structure implementing `mio::Evented` trait</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
-<span class='kw'>struct</span> <span class='ident'>IOSource</span> {
-    <span class='ident'>inn</span> : <span class='ident'>RefIOSourceShared</span>,
+<span class='kw'>struct</span> <span class='ident'>EventSource</span> {
+    <span class='ident'>inn</span> : <span class='ident'>RefEventSourceShared</span>,
 }
 
 <span class='doccomment'>/// `mioco` wrapper over raw mio IO structure</span>
@@ -1263,16 +1346,44 @@ fn main() {
 <span class='doccomment'>/// Create using `MiocoHandle::wrap()`</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// It implements standard library `Read` and `Write` and other</span>
-<span class='doccomment'>/// operations, blocking, switching and resuming handler function</span>
+<span class='doccomment'>/// blocking-semantic operations, that switch and resume handler function</span>
 <span class='doccomment'>/// to build cooperative scheduling on top of asynchronous operations.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>inn</span> : <span class='ident'>RefIOSourceShared</span>,
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='ident'>inn</span> : <span class='ident'>RefEventSourceShared</span>,
     <span class='ident'>_t</span>: <span class='ident'>PhantomData</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+<span class='doccomment'>/// Index identification of a `TypedEventSource` used in `select`-like operations.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Copy</span>, <span class='ident'>Clone</span>, <span class='ident'>Debug</span>, <span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>)]</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>EventSourceIndex</span>(<span class='ident'>usize</span>);
+
+<span class='kw'>impl</span> <span class='ident'>EventSourceIndex</span> {
+    <span class='kw'>fn</span> <span class='ident'>as_usize</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='self'>self</span>.<span class='number'>0</span>
+    }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>T</span> : <span class='ident'>Reflect</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> {
+    <span class='doccomment'>/// Mark the `EventSource` blocked and block until `Server` does</span>
+    <span class='doccomment'>/// not wake us up again.</span>
+    <span class='kw'>fn</span> <span class='ident'>block_on</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>rw</span> : <span class='ident'>RW</span>) {
+        {
+            <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
+            <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>BlockedOn</span>(<span class='ident'>rw</span>);
+            <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>inn</span>.<span class='ident'>index</span>;
+        }
+        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;coroutine blocked on {:?}&quot;</span>, <span class='ident'>rw</span>);
+        <span class='ident'>coroutine</span>::<span class='ident'>Coroutine</span>::<span class='ident'>block</span>();
+        {
+            <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
+            <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>rw</span>.<span class='ident'>has_read</span>() <span class='op'>||</span> <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>has_write</span>());
+            <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>rw</span>.<span class='ident'>has_write</span>() <span class='op'>||</span> <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>has_read</span>());
+            <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>index</span>().<span class='ident'>as_usize</span>() <span class='op'>==</span> <span class='ident'>inn</span>.<span class='ident'>index</span>);
+        }
+    }
+
     <span class='doccomment'>/// Access raw mio type</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>with_raw</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span> : <span class='ident'>F</span>)
         <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>Fn</span>(<span class='kw-2'>&amp;</span><span class='ident'>T</span>) {
@@ -1286,22 +1397,19 @@ fn main() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>io</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>;
         <span class='ident'>f</span>(<span class='ident'>io</span>.<span class='ident'>as_any_mut</span>().<span class='ident'>downcast_mut</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>().<span class='ident'>unwrap</span>())
     }
+
+    <span class='doccomment'>/// Index identificator of a `TypedEventSource`</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>index</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>EventSourceIndex</span> {
+        <span class='ident'>EventSourceIndex</span>(<span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>().<span class='ident'>index</span>)
+    }
 }
 
-<span class='kw'>impl</span> <span class='ident'>IOSource</span> {
+<span class='kw'>impl</span> <span class='ident'>EventSource</span> {
     <span class='doccomment'>/// Readable event handler</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This corresponds to `mio::Hnalder::readable()`.</span>
+    <span class='doccomment'>/// This corresponds to `mio::Handler::readable()`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ready</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>H</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>events</span> : <span class='ident'>EventSet</span>)
     <span class='kw'>where</span> <span class='ident'>H</span> : <span class='ident'>Handler</span> {
-        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine ready()&quot;</span>);
-        <span class='kw'>let</span> <span class='ident'>my_idx</span> <span class='op'>=</span> {
-            <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
-            <span class='kw'>let</span> <span class='ident'>idx</span> <span class='op'>=</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>;
-            <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>blocked_on_mask</span> <span class='op'>&amp;=</span> <span class='op'>!</span>(<span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>idx</span>);
-            <span class='ident'>idx</span>
-        };
-
         <span class='kw'>if</span> <span class='ident'>events</span>.<span class='ident'>is_hup</span>() {
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
             <span class='ident'>inn</span>.<span class='ident'>hup</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>);
@@ -1315,13 +1423,21 @@ fn main() {
             (<span class='boolval'>false</span>, <span class='boolval'>false</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
         };
 
+        <span class='kw'>let</span> <span class='ident'>my_index</span> <span class='op'>=</span> {
+            <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
+            <span class='kw'>let</span> <span class='ident'>index</span> <span class='op'>=</span> <span class='ident'>inn</span>.<span class='ident'>index</span>;
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
+            <span class='ident'>co</span>.<span class='ident'>blocked_on_mask</span> <span class='op'>&amp;=</span> <span class='op'>!</span>(<span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>index</span>);
+            <span class='ident'>index</span>
+        };
+
         <span class='kw'>let</span> <span class='ident'>handle</span> <span class='op'>=</span> {
             <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
             <span class='kw'>let</span> <span class='ident'>coroutine_handle</span> <span class='op'>=</span> <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>handle</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>c</span><span class='op'>|</span> <span class='ident'>c</span>.<span class='ident'>clone</span>()).<span class='ident'>unwrap</span>();
             <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Running</span>;
             <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>last_event</span> <span class='op'>=</span> <span class='ident'>LastEvent</span> {
                 <span class='ident'>rw</span>: <span class='ident'>event</span>,
-                <span class='ident'>idx</span>: <span class='ident'>my_idx</span>,
+                <span class='ident'>index</span>: <span class='ident'>EventSourceIndex</span>(<span class='ident'>my_index</span>),
             };
             <span class='ident'>coroutine_handle</span>
         };
@@ -1335,30 +1451,13 @@ fn main() {
 
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
 
-        <span class='comment'>// If there were any newly spawned child-coroutines: start them now</span>
-        <span class='kw'>for</span> <span class='ident'>coroutine</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='ident'>co</span>.<span class='ident'>children_to_start</span> {
-            <span class='kw'>let</span> <span class='ident'>handle</span> <span class='op'>=</span> {
-                <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
-                <span class='ident'>co</span>.<span class='ident'>handle</span>.<span class='ident'>as_ref</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>c</span><span class='op'>|</span> <span class='ident'>c</span>.<span class='ident'>clone</span>()).<span class='ident'>unwrap</span>()
-            };
-            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Resume new child coroutine&quot;</span>);
-            <span class='ident'>handle</span>.<span class='ident'>resume</span>().<span class='ident'>expect</span>(<span class='string'>&quot;resume() failed&quot;</span>);
-            {
-                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
-                <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Reregister new child coroutine&quot;</span>);
-                <span class='ident'>co</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
-            }
-        }
-        <span class='ident'>co</span>.<span class='ident'>children_to_start</span>.<span class='ident'>clear</span>();
-
-        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Reregister coroutine&quot;</span>);
-        <span class='ident'>co</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
+        <span class='ident'>co</span>.<span class='ident'>after_resume</span>(<span class='ident'>event_loop</span>);
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>T</span> : <span class='ident'>mio</span>::<span class='ident'>TryAccept</span><span class='op'>+</span><span class='ident'>Reflect</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> {
-    <span class='doccomment'>/// Blocked accept</span>
+    <span class='doccomment'>/// Block on accept</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>accept</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span>::<span class='ident'>Output</span><span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> {
@@ -1368,18 +1467,7 @@ fn main() {
 
             <span class='kw'>match</span> <span class='ident'>res</span> {
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>BlockedOn</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>);
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>;
-                    }
-                    <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;coroutine blocked on accept&quot;</span>);
-                    <span class='ident'>coroutine</span>::<span class='ident'>Coroutine</span>::<span class='ident'>block</span>();
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>has_read</span>());
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>idx</span>() <span class='op'>==</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>);
-                    }
+                    <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>)
                 },
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>r</span>))  <span class='op'>=&gt;</span> {
                     <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>r</span>);
@@ -1392,8 +1480,9 @@ fn main() {
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Read</span> <span class='kw'>for</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Read</span> <span class='kw'>for</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>T</span> : <span class='ident'>TryRead</span><span class='op'>+</span><span class='ident'>Reflect</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> {
+    <span class='doccomment'>/// Block on read</span>
     <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> {
@@ -1403,18 +1492,7 @@ fn main() {
 
             <span class='kw'>match</span> <span class='ident'>res</span> {
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>BlockedOn</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>);
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>;
-                    }
-                    <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;coroutine blocked on read&quot;</span>);
-                    <span class='ident'>coroutine</span>::<span class='ident'>Coroutine</span>::<span class='ident'>block</span>();
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>has_read</span>());
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>idx</span>() <span class='op'>==</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>);
-                    }
+                    <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>)
                 },
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>r</span>))  <span class='op'>=&gt;</span> {
                     <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>r</span>);
@@ -1427,8 +1505,9 @@ fn main() {
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span> <span class='kw'>for</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span> <span class='kw'>for</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>T</span> : <span class='ident'>TryWrite</span><span class='op'>+</span><span class='ident'>Reflect</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> {
+    <span class='doccomment'>/// Block on write</span>
     <span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> {
@@ -1438,18 +1517,7 @@ fn main() {
 
             <span class='kw'>match</span> <span class='ident'>res</span> {
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow</span>();
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>BlockedOn</span>(<span class='ident'>RW</span>::<span class='ident'>Write</span>);
-                        <span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>1</span> <span class='op'>&lt;&lt;</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>;
-                    }
-                    <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;coroutine blocked on write&quot;</span>);
-                    <span class='ident'>coroutine</span>::<span class='ident'>Coroutine</span>::<span class='ident'>block</span>();
-                    {
-                        <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>has_write</span>());
-                        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>inn</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>.<span class='ident'>idx</span>() <span class='op'>==</span> <span class='ident'>inn</span>.<span class='ident'>idx</span>);
-                    }
+                    <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>Write</span>)
                 },
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>r</span>)) <span class='op'>=&gt;</span> {
                     <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>r</span>);
@@ -1461,7 +1529,9 @@ fn main() {
         }
     }
 
-    <span class='comment'>/* TODO: Should we pass flush to TcpStream/ignore? */</span>
+    <span class='doccomment'>/// Flush. This currently does nothing</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// TODO: Should we do something with the flush? --dpc */</span>
     <span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='prelude-val'>Ok</span>(())
     }
@@ -1474,21 +1544,21 @@ fn main() {
     <span class='ident'>coroutine</span> : <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>Coroutine</span><span class='op'>&gt;&gt;</span>,
 }
 
-<span class='kw'>fn</span> <span class='ident'>select_impl_set_mask_from_indices</span>(<span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>usize</span>], <span class='ident'>blocked_on_mask</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>u32</span>) {
+<span class='kw'>fn</span> <span class='ident'>select_impl_set_mask_from_indices</span>(<span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>EventSourceIndex</span>], <span class='ident'>blocked_on_mask</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>u32</span>) {
     {
         <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>0</span>;
-        <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='ident'>idx</span> <span class='kw'>in</span> <span class='ident'>indices</span> {
-            <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>|=</span> <span class='number'>1u32</span> <span class='op'>&lt;&lt;</span> <span class='ident'>idx</span>;
+        <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='ident'>index</span> <span class='kw'>in</span> <span class='ident'>indices</span> {
+            <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>|=</span> <span class='number'>1u32</span> <span class='op'>&lt;&lt;</span> <span class='ident'>index</span>.<span class='ident'>as_usize</span>();
         }
     }
 }
 
-<span class='kw'>fn</span> <span class='ident'>select_impl_set_mask_rc_handles</span>(<span class='ident'>handles</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>Weak</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>IOSourceShared</span><span class='op'>&gt;&gt;</span>], <span class='ident'>blocked_on_mask</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>u32</span>) {
+<span class='kw'>fn</span> <span class='ident'>select_impl_set_mask_rc_handles</span>(<span class='ident'>handles</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>Weak</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>EventSourceShared</span><span class='op'>&gt;&gt;</span>], <span class='ident'>blocked_on_mask</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>u32</span>) {
     {
         <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>for</span> <span class='ident'>handle</span> <span class='kw'>in</span> <span class='ident'>handles</span> {
             <span class='kw'>let</span> <span class='ident'>io</span> <span class='op'>=</span> <span class='ident'>handle</span>.<span class='ident'>upgrade</span>().<span class='ident'>unwrap</span>();
-            <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>|=</span> <span class='number'>1u32</span> <span class='op'>&lt;&lt;</span> <span class='ident'>io</span>.<span class='ident'>borrow</span>().<span class='ident'>idx</span>;
+            <span class='op'>*</span><span class='ident'>blocked_on_mask</span> <span class='op'>|=</span> <span class='number'>1u32</span> <span class='op'>&lt;&lt;</span> <span class='ident'>io</span>.<span class='ident'>borrow</span>().<span class='ident'>index</span>;
         }
     }
 }
@@ -1497,31 +1567,33 @@ fn main() {
 
     <span class='doccomment'>/// Create a `mioco` coroutine handler</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// `f` is routine handling connection. It should not use any blocking operations,</span>
-    <span class='doccomment'>/// and use it&#39;s argument for all IOSourceShared with it&#39;s peer</span>
+    <span class='doccomment'>/// `f` is routine handling connection. It must not use any real blocking-IO operations, only</span>
+    <span class='doccomment'>/// `mioco` provided types (`TypedEventSource`) and `MiocoHandle` functions. Otherwise `mioco`</span>
+    <span class='doccomment'>/// cooperative scheduling can block on real blocking-IO which defeats using mioco.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>spawn</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span> : <span class='ident'>F</span>)
         <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> {
             <span class='kw'>let</span> <span class='ident'>coroutine_ref</span> <span class='op'>=</span> <span class='ident'>spawn_impl</span>(<span class='ident'>f</span>, <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>server_shared</span>.<span class='ident'>clone</span>());
             <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>children_to_start</span>.<span class='ident'>push</span>(<span class='ident'>coroutine_ref</span>);
         }
 
-    <span class='doccomment'>/// Register `mio`&#39;s io to be used within `mioco` coroutine</span>
+    <span class='doccomment'>/// Register `mio`&#39;s native io type to be used within `mioco` coroutine</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Consumes the `io`, returns a `Handle` to a mio wrapper over it.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>wrap</span><span class='op'>&lt;</span><span class='ident'>T</span> : <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>io</span> : <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>TypedIOSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+    <span class='doccomment'>/// Consumes the `io`, returns a mioco wrapper over it. Use this wrapped IO</span>
+    <span class='doccomment'>/// to perform IO.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>wrap</span><span class='op'>&lt;</span><span class='ident'>T</span> : <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>io</span> : <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>TypedEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
     <span class='kw'>where</span> <span class='ident'>T</span> : <span class='ident'>Evented</span> {
         <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> {
             <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>co</span>.<span class='ident'>server_shared</span>.<span class='ident'>borrow_mut</span>();
             <span class='ident'>shared</span>.<span class='ident'>sources</span>.<span class='ident'>insert_with</span>(<span class='op'>|</span><span class='ident'>token</span><span class='op'>|</span> {
-                <span class='ident'>IOSource</span> {
+                <span class='ident'>EventSource</span> {
                     <span class='ident'>inn</span>: <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(
-                                 <span class='ident'>IOSourceShared</span> {
+                                 <span class='ident'>EventSourceShared</span> {
                                      <span class='ident'>coroutine</span>: <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>clone</span>(),
                                      <span class='ident'>io</span>: <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>io</span>),
                                      <span class='ident'>token</span>: <span class='ident'>token</span>,
                                      <span class='ident'>peer_hup</span>: <span class='boolval'>false</span>,
-                                     <span class='ident'>idx</span>: <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>len</span>(),
+                                     <span class='ident'>index</span>: <span class='self'>self</span>.<span class='ident'>coroutine</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>len</span>(),
                                      <span class='ident'>registered</span>: <span class='boolval'>false</span>,
                                  }
                                  )),
@@ -1536,7 +1608,7 @@ fn main() {
             <span class='ident'>shared</span>.<span class='ident'>sources</span>[<span class='ident'>token</span>].<span class='ident'>inn</span>.<span class='ident'>clone</span>()
         };
 
-        <span class='kw'>let</span> <span class='ident'>handle</span> <span class='op'>=</span> <span class='ident'>TypedIOSource</span> {
+        <span class='kw'>let</span> <span class='ident'>handle</span> <span class='op'>=</span> <span class='ident'>TypedEventSource</span> {
             <span class='ident'>inn</span>: <span class='ident'>io</span>.<span class='ident'>clone</span>(),
             <span class='ident'>_t</span>: <span class='ident'>PhantomData</span>,
         };
@@ -1556,6 +1628,9 @@ fn main() {
     }
 
     <span class='doccomment'>/// Wait till an event is ready</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// The returned value contains event type and the index id of the `TypedEventSource`.</span>
+    <span class='doccomment'>/// See `TypedEventSource::index()`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
@@ -1570,6 +1645,8 @@ fn main() {
     }
 
     <span class='doccomment'>/// Wait till a read event is ready</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See `MiocoHandle::select`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
@@ -1583,7 +1660,9 @@ fn main() {
         <span class='self'>self</span>.<span class='ident'>select_impl</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>)
     }
 
-    <span class='doccomment'>/// Wait till a read event is ready</span>
+    <span class='doccomment'>/// Wait till a read event is ready.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See `MiocoHandle::select`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
@@ -1597,8 +1676,11 @@ fn main() {
         <span class='self'>self</span>.<span class='ident'>select_impl</span>(<span class='ident'>RW</span>::<span class='ident'>Write</span>)
     }
 
-    <span class='doccomment'>/// Wait till any event is ready on a set of Handles</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>usize</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
+    <span class='doccomment'>/// Wait till any event is ready on a set of Handles.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See `TypedEventSource::index()`.</span>
+    <span class='doccomment'>/// See `MiocoHandle::select()`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>EventSourceIndex</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
                 <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>blocked_on_mask</span>,
@@ -1611,8 +1693,10 @@ fn main() {
         <span class='self'>self</span>.<span class='ident'>select_impl</span>(<span class='ident'>RW</span>::<span class='ident'>Both</span>)
     }
 
-    <span class='doccomment'>/// Wait till write event is ready on a set of Handles</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_write_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>usize</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
+    <span class='doccomment'>/// Wait till write event is ready on a set of Handles.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See `MiocoHandle::select_from`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_write_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>EventSourceIndex</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
                 <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>blocked_on_mask</span>,
@@ -1625,8 +1709,10 @@ fn main() {
         <span class='self'>self</span>.<span class='ident'>select_impl</span>(<span class='ident'>RW</span>::<span class='ident'>Write</span>)
     }
 
-    <span class='doccomment'>/// Wait till read event is ready on a set of Handles</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_read_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>usize</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
+    <span class='doccomment'>/// Wait till read event is ready on a set of Handles.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See `MiocoHandle::select_from`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select_read_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span>[<span class='ident'>EventSourceIndex</span>]) <span class='op'>-&gt;</span> <span class='ident'>LastEvent</span> {
         {
             <span class='kw'>let</span> <span class='ident'>Coroutine</span> {
                 <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>blocked_on_mask</span>,
@@ -1641,16 +1727,25 @@ fn main() {
 }
 
 <span class='kw'>type</span> <span class='ident'>RefServerShared</span> <span class='op'>=</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>ServerShared</span><span class='op'>&gt;&gt;</span>;
-<span class='doccomment'>/// Here we pass what server is supposed to do</span>
-<span class='doccomment'>/// after coroutine blocks</span>
+<span class='doccomment'>/// Data belonging to `Server`, but referenced and manipulated by `Coroutine`-es</span>
+<span class='doccomment'>/// belonging to it.</span>
 <span class='kw'>struct</span> <span class='ident'>ServerShared</span> {
-    <span class='ident'>sources</span> : <span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>IOSource</span><span class='op'>&gt;</span>, <span class='comment'>// TODO: growing slab would be better; or a fast hashmap?</span>
+    <span class='doccomment'>/// Slab allocator</span>
+    <span class='doccomment'>/// TODO: dynamically growing slab would be better; or a fast hashmap?</span>
+    <span class='doccomment'>/// FIXME: See https://github.com/carllerche/mio/issues/219 . Using an allocator</span>
+    <span class='doccomment'>/// in which just-deleted entries are not potentially reused right away might prevent</span>
+    <span class='doccomment'>/// potentical sporious wakeups on newly allocated entries.</span>
+    <span class='ident'>sources</span> : <span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>EventSource</span><span class='op'>&gt;</span>,
+
+    <span class='doccomment'>/// Number of `Coroutine`-s running in the `Server`.</span>
+    <span class='ident'>coroutines_no</span> : <span class='ident'>u32</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>ServerShared</span> {
     <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>ServerShared</span> {
         <span class='ident'>ServerShared</span> {
             <span class='ident'>sources</span>: <span class='ident'>Slab</span>::<span class='ident'>new</span>(<span class='number'>1024</span>),
+            <span class='ident'>coroutines_no</span>: <span class='number'>0</span>,
         }
     }
 }
@@ -1664,9 +1759,9 @@ fn main() {
         <span class='ident'>f</span> : <span class='ident'>F</span>
     }
 
-    <span class='comment'>// We fake the `Send` because mioco guarantees serialized</span>
+    <span class='comment'>// We fake the `Send` because `mioco` guarantees serialized</span>
     <span class='comment'>// execution between coroutines, switching between them</span>
-    <span class='comment'>// only in predefined points</span>
+    <span class='comment'>// only in predefined points.</span>
     <span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>SendFnOnce</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>
         <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
         {
@@ -1677,9 +1772,11 @@ fn main() {
         <span class='ident'>coroutine</span>: <span class='ident'>RefCoroutine</span>,
     }
 
-    <span class='comment'>// Same logic as in SendFnOnce applies here.</span>
+    <span class='comment'>// Same logic as in `SendFnOnce` applies here.</span>
     <span class='kw'>unsafe</span> <span class='kw'>impl</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>SendRefCoroutine</span> { }
 
+    <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine: spawning&quot;</span>);
+    <span class='ident'>server</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>coroutines_no</span> <span class='op'>+=</span> <span class='number'>1</span>;
 
     <span class='kw'>let</span> <span class='ident'>coroutine_ref</span> <span class='op'>=</span> <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>Coroutine</span>::<span class='ident'>new</span>(<span class='ident'>server</span>)));
 
@@ -1691,7 +1788,6 @@ fn main() {
         <span class='ident'>f</span>: <span class='ident'>f</span>,
     };
 
-    <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine: spawning&quot;</span>);
     <span class='kw'>let</span> <span class='ident'>coroutine_handle</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>coroutine</span>::<span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine: started&quot;</span>);
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>mioco_handle</span> <span class='op'>=</span> <span class='ident'>MiocoHandle</span> {
@@ -1712,8 +1808,7 @@ fn main() {
     <span class='ident'>coroutine_ref</span>
 }
 
-<span class='doccomment'>/// This is what is registered in the event loop</span>
-<span class='doccomment'>/// and handles events in the source</span>
+<span class='doccomment'>/// `Server` registered in `mio::EventLoop` and implementing `mio::Handler`.</span>
 <span class='kw'>struct</span> <span class='ident'>Server</span> {
     <span class='ident'>shared</span> : <span class='ident'>RefServerShared</span>,
 }
@@ -1750,12 +1845,11 @@ fn main() {
 
 <span class='doccomment'>/// Start mioco handling</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Takes a starting handler function that will be executed in mioco environment.</span>
+<span class='doccomment'>/// Takes a starting handler function that will be executed in `mioco` environment.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Will block until mioco is finished (which currently means indefinitely).</span>
+<span class='doccomment'>/// Will block until `mioco` is finished - there are no more handlers to run.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// TODO: Finish mioco when all handling coroutines are gone.</span>
-<span class='doccomment'>/// TODO: Provide an explicit finish function.</span>
+<span class='doccomment'>/// See `MiocoHandle::spawn()`.</span>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>start</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>f</span> : <span class='ident'>F</span>)
     <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
 {
@@ -1771,7 +1865,7 @@ fn main() {
     <span class='ident'>coroutine_handle</span>.<span class='ident'>resume</span>().<span class='ident'>expect</span>(<span class='string'>&quot;resume() failed&quot;</span>);
     {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine_ref</span>.<span class='ident'>borrow_mut</span>();
-        <span class='ident'>co</span>.<span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>);
+        <span class='ident'>co</span>.<span class='ident'>after_resume</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>);
     }
 
     <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Start event loop&quot;</span>);

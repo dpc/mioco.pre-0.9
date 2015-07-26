@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/bytes-0.2.10/src/buf/byte.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/bytes-b21aba8e191ae1b0/master/src/buf/byte.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>byte.rs.html -- source</title>
@@ -362,6 +362,13 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>alloc</span>, <span class='ident'>Bytes</span>, <span class='ident'>SeqByteStr</span>, <span class='ident'>MAX_CAPACITY</span>};
 <span class='kw'>use</span> <span class='ident'>traits</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>, <span class='ident'>MutBufExt</span>, <span class='ident'>ByteStr</span>};
@@ -374,6 +381,9 @@
  */</span>
 
 <span class='doccomment'>/// A `Buf` backed by a contiguous region of memory.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// This `Buf` is better suited for cases where there is a clear delineation</span>
+<span class='doccomment'>/// between reading and writing.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>ByteBuf</span> {
     <span class='ident'>mem</span>: <span class='ident'>alloc</span>::<span class='ident'>MemRef</span>,
     <span class='ident'>cap</span>: <span class='ident'>u32</span>,
@@ -667,6 +677,10 @@
             <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>pos</span> <span class='op'>+=</span> <span class='ident'>len</span>;
             <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>usize</span>
         }
+    }
+
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bytes</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> [<span class='ident'>u8</span>] {
+        <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>mem</span>.<span class='ident'>bytes</span>()[..<span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>pos</span>()]
     }
 }
 
