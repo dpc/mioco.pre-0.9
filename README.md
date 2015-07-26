@@ -56,46 +56,38 @@ nightly` command.
 
 # Semi-benchmarks
 
-`mioco` comes with tcp echo server example, that is being benchmarked here.
+Beware: This is very naive comparison! I tried to run it fairly,
+but I might have missed something. Also no effort was spent on optimizing
+neither `mioco` nor other tested tcp echo implementations
 
-Beware: This is amateurish and naive comparison!
-
+Machine is: 
 Using: https://gist.github.com/dpc/8cacd3b6fa5273ffdcce
 
-```
-# mioco echo example
-% GOMAXPROCS=64 ./tcp_bench  -c=128 -t=10  -a="127.0.0.1:5555"
-Benchmarking: 127.0.0.1:5555
-128 clients, running 26 bytes, 10 sec.
+In thousands requests per second:
 
-Speed: 171022 request/sec, 171022 response/sec
-Requests: 1710222
-Responses: 1710221
+|         | `bench1` | `bench2` |
+|:--------|---------:|---------:|
+| `libev` | 183      | 225      |
+| `node`  | 37       | 42       |
+| `mio`   | TBD      | TBD      |
+| `mioco` | 157      | 177      |
 
-# server_libev (simple libev based server):
-% GOMAXPROCS=64 ./tcp_bench  -c=128 -t=10  -a="127.0.0.1:5000"
-Benchmarking: 127.0.0.1:3100
-128 clients, running 26 bytes, 10 sec.
 
-Speed: 210485 request/sec, 210485 response/sec
-Requests: 2104856
-Responses: 2104854
-```
+Server implementation tested:
 
-Using: https://github.com/dpc/benchmark-echo
+* `libev` - https://github.com/dpc/benchmark-echo/blob/master/server_libev.c ;
+   Note: this implementation "cheats", by waiting only for read events, which works
+   in this particular scenario.
+* `node` - https://github.com/dpc/node-tcp-echo-server ;
+* `mio` - TBD. See: https://github.com/hjr3/mob/issues/1 ;
+* `mioco` - https://github.com/dpc/mioco/blob/new-design/examples/echo.rs ;
 
-```
-# rust mioco echo example :5555
-Throughput: 148697.85 [reqests/sec], errors: 0
-Throughput: 145282.09 [reqests/sec], errors: 0
-Throughput: 157900.81 [reqests/sec], errors: 0
-Throughput: 155722.21 [reqests/sec], errors: 0
-Throughput: 160203.92 [reqests/sec], errors: 0
+Benchmarks used:
 
-c ./server_libev 3100
-Throughput: 192770.52 [reqests/sec], errors: 0
-Throughput: 156105.10 [reqests/sec], errors: 0
-Throughput: 162632.05 [reqests/sec], errors: 0
-Throughput: 179868.05 [reqests/sec], errors: 0
-Throughput: 187706.06 [reqests/sec], errors: 0
-```
+* `bench1` - https://github.com/dpc/benchmark-echo ; `PARAMS='-t64 -c10 -e10000 -fdata.json'`;
+* `bench2` - https://gist.github.com/dpc/8cacd3b6fa5273ffdcce ; `GOMAXPROCS=64 ./tcp_bench  -c=128 -t=30 -a=""`;
+
+Machine used:
+
+* i7-3770K CPU @ 3.50GHz, 32GB DDR3 1800Mhz, some basic overclocking, Fedora 21;
+
