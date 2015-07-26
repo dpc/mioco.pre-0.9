@@ -41,6 +41,7 @@ To report a bug or ask for features use [github issues][issues].
 [mioco gitter]: https://gitter.im/dpc/mioco
 [rust user forum]: https://users.rust-lang.org/
 [issues]: //github.com/dpc/mioco/issues
+[green threads]: https://en.wikipedia.org/wiki/Green_threads
 
 ## Building & running
 
@@ -54,14 +55,11 @@ nightly` command.
 [nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
 [multirust]: https://github.com/brson/multirust
 
-# Semi-benchmarks
+# Benchmarks
 
 Beware: This is very naive comparison! I tried to run it fairly,
 but I might have missed something. Also no effort was spent on optimizing
-neither `mioco` nor other tested tcp echo implementations
-
-Machine is: 
-Using: https://gist.github.com/dpc/8cacd3b6fa5273ffdcce
+neither `mioco` nor other tested tcp echo implementations.
 
 In thousands requests per second:
 
@@ -80,7 +78,7 @@ Server implementation tested:
    in this particular scenario.
 * `node` - https://github.com/dpc/node-tcp-echo-server ;
 * `mio` - TBD. See: https://github.com/hjr3/mob/issues/1 ;
-* `mioco` - https://github.com/dpc/mioco/blob/new-design/examples/echo.rs ;
+* `mioco` - https://github.com/dpc/mioco/blob/master/examples/echo.rs;
 
 Benchmarks used:
 
