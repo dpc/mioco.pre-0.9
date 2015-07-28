@@ -107,6 +107,15 @@ pub trait Evented : mio::Evented + Any {
     fn as_any(&self) -> &Any;
     /// Convert to &mut Any
     fn as_any_mut(&mut self) -> &mut Any;
+
+    /// Register
+    fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet);
+
+    /// Reregister
+    fn reregister(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet);
+
+    /// Deregister
+    fn deregister(&self, event_loop : &mut EventLoop<Server>, token : Token);
 }
 
 impl<T> Evented for T
@@ -117,6 +126,26 @@ where T : mio::Evented+Reflect+'static {
 
     fn as_any_mut(&mut self) -> &mut Any {
         self as &mut Any
+    }
+
+    fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        event_loop.register_opt(
+            self, token,
+            interest,
+            mio::PollOpt::edge(),
+            ).expect("register_opt failed");
+    }
+
+    fn reregister(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        event_loop.reregister(
+            self, token,
+            interest,
+            mio::PollOpt::edge(),
+            ).expect("reregister failed");
+    }
+
+    fn deregister(&self, event_loop : &mut EventLoop<Server>, _token : Token) {
+        event_loop.deregister(self).expect("deregister failed");
     }
 }
 
@@ -282,35 +311,23 @@ impl EventSourceShared {
 
             if !self.registered {
                 self.registered = true;
-                event_loop.register_opt(
-                    &*self.io, self.token,
-                    interest,
-                    mio::PollOpt::edge(),
-                    ).expect("register_opt failed");
+                Evented::register(&*self.io, event_loop, self.token, interest);
             } else {
-                 event_loop.reregister(
-                     &*self.io, self.token,
-                     interest, mio::PollOpt::edge() | mio::PollOpt::oneshot()
-                     ).ok().expect("reregister failed")
+                Evented::reregister(&*self.io, event_loop, self.token, interest);
              }
         }
 
     /// Un-reregister events we're not interested in anymore
     fn unreregister(&self, event_loop: &mut EventLoop<Server>) {
-            let interest = mio::EventSet::none();
-
             debug_assert!(self.registered);
-
-            event_loop.reregister(
-                &*self.io, self.token,
-                interest, mio::PollOpt::edge() | mio::PollOpt::oneshot()
-                ).ok().expect("reregister failed")
+            let interest = mio::EventSet::none();
+            Evented::reregister(&*self.io, event_loop, self.token, interest);
         }
 
     /// Un-reregister events we're not interested in anymore
     fn deregister(&mut self, event_loop: &mut EventLoop<Server>) {
             if self.registered {
-                event_loop.deregister(&*self.io).expect("deregister failed");
+                Evented::deregister(&*self.io, event_loop, self.token);
                 self.registered = false;
             }
         }
