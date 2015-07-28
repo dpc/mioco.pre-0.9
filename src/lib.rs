@@ -171,9 +171,7 @@ impl Coroutine {
     /// After `resume()` on the `Coroutine.handle` finished,
     /// the `Coroutine` have blocked or finished and we need to
     /// perform the following maintenance
-    fn after_resume<H>(&mut self, event_loop: &mut EventLoop<H>)
-        where H : Handler
-    {
+    fn after_resume(&mut self, event_loop: &mut EventLoop<Server>) {
         // If there were any newly spawned child-coroutines: start them now
         for coroutine in &self.children_to_start {
             let handle = {
@@ -194,9 +192,7 @@ impl Coroutine {
         self.reregister(event_loop);
     }
 
-    fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>)
-        where H : Handler
-    {
+    fn reregister(&mut self, event_loop: &mut EventLoop<Server>) {
         if self.state == State::Finished {
             debug!("Coroutine: deregistering");
             self.deregister_all(event_loop);
@@ -211,9 +207,7 @@ impl Coroutine {
         }
     }
 
-    fn deregister_all<H>(&mut self, event_loop: &mut EventLoop<H>)
-        where H : Handler
-    {
+    fn deregister_all(&mut self, event_loop: &mut EventLoop<Server>) {
         let mut shared = self.server_shared.borrow_mut();
 
         for i in 0..self.io.len() {
@@ -225,9 +219,7 @@ impl Coroutine {
         }
     }
 
-    fn reregister_blocked_on<H>(&mut self, event_loop: &mut EventLoop<H>)
-        where H : Handler
-    {
+    fn reregister_blocked_on(&mut self, event_loop: &mut EventLoop<Server>) {
 
         let rw = match self.state {
             State::BlockedOn(rw) => rw,
@@ -268,15 +260,12 @@ struct EventSourceShared {
 
 impl EventSourceShared {
     /// Handle `hup` condition
-    fn hup<H>(&mut self, _event_loop: &mut EventLoop<H>, _token: Token)
-        where H : Handler {
+    fn hup(&mut self, _event_loop: &mut EventLoop<Server>, _token: Token) {
             self.peer_hup = true;
         }
 
     /// Reregister oneshot handler for the next event
-    fn reregister<H>(&mut self, event_loop: &mut EventLoop<H>, rw : RW)
-        where H : Handler {
-
+    fn reregister(&mut self, event_loop: &mut EventLoop<Server>, rw : RW) {
             let mut interest = mio::EventSet::none();
 
             if !self.peer_hup {
@@ -307,8 +296,7 @@ impl EventSourceShared {
         }
 
     /// Un-reregister events we're not interested in anymore
-    fn unreregister<H>(&self, event_loop: &mut EventLoop<H>)
-        where H : Handler {
+    fn unreregister(&self, event_loop: &mut EventLoop<Server>) {
             let interest = mio::EventSet::none();
 
             debug_assert!(self.registered);
@@ -320,8 +308,7 @@ impl EventSourceShared {
         }
 
     /// Un-reregister events we're not interested in anymore
-    fn deregister<H>(&mut self, event_loop: &mut EventLoop<H>)
-        where H : Handler {
+    fn deregister(&mut self, event_loop: &mut EventLoop<Server>) {
             if self.registered {
                 event_loop.deregister(&*self.io).expect("deregister failed");
                 self.registered = false;
@@ -402,8 +389,7 @@ impl EventSource {
     /// Readable event handler
     ///
     /// This corresponds to `mio::Handler::readable()`.
-    pub fn ready<H>(&mut self, event_loop: &mut EventLoop<H>, token: Token, events : EventSet)
-    where H : Handler {
+    pub fn ready(&mut self, event_loop: &mut EventLoop<Server>, token: Token, events : EventSet) {
         if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
@@ -803,7 +789,7 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
 }
 
 /// `Server` registered in `mio::EventLoop` and implementing `mio::Handler`.
-struct Server {
+pub struct Server {
     shared : RefServerShared,
 }
 
