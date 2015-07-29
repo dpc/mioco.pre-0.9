@@ -840,31 +840,59 @@ impl mio::Handler for Server {
     }
 }
 
-/// Start mioco handling
-///
-/// Takes a starting handler function that will be executed in `mioco` environment.
-///
-/// Will block until `mioco` is finished - there are no more handlers to run.
-///
-/// See `MiocoHandle::spawn()`.
+/// Mioco struct
+pub struct Mioco {
+    event_loop : EventLoop<Server>,
+    server : Server,
+}
+
+impl Mioco {
+    /// Create new `Mioco` instance
+    pub fn new() -> Self {
+        let shared = Rc::new(RefCell::new(ServerShared::new()));
+        Mioco {
+            event_loop: EventLoop::new().expect("new EventLoop"),
+            server: Server::new(shared.clone()),
+        }
+    }
+
+    /// Start mioco handling
+    ///
+    /// Takes a starting handler function that will be executed in `mioco` environment.
+    ///
+    /// Will block until `mioco` is finished - there are no more handlers to run.
+    ///
+    /// See `MiocoHandle::spawn()`.
+    pub fn start<F>(&mut self, f : F)
+        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+        {
+            let Mioco {
+                ref mut server,
+                ref mut event_loop,
+            } = *self;
+
+            let shared = server.shared.clone();
+
+            let coroutine_ref = spawn_impl(f, shared);
+
+            let coroutine_handle = coroutine_ref.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
+
+            trace!("Initial resume");
+            coroutine_handle.resume().expect("resume() failed");
+            {
+                let mut co = coroutine_ref.borrow_mut();
+                co.after_resume(event_loop);
+            }
+
+            trace!("Start event loop");
+            event_loop.run(server).unwrap();
+        }
+}
+
+/// Shorthand for creating new `Mioco` instance and starting it right away.
 pub fn start<F>(f : F)
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
 {
-    let mut event_loop : EventLoop<Server> = EventLoop::new().expect("new EventLoop");
-
-    let shared = Rc::new(RefCell::new(ServerShared::new()));
-    let mut server = Server::new(shared.clone());
-    let coroutine_ref = spawn_impl(f, shared);
-
-    let coroutine_handle = coroutine_ref.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
-
-    trace!("Initial resume");
-    coroutine_handle.resume().expect("resume() failed");
-    {
-        let mut co = coroutine_ref.borrow_mut();
-        co.after_resume(&mut event_loop);
-    }
-
-    trace!("Start event loop");
-    event_loop.run(&mut server).unwrap();
+    let mut mioco = Mioco::new();
+    mioco.start(f);
 }
