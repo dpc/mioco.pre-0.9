@@ -40,6 +40,8 @@ use std::any::Any;
 use std::marker::{PhantomData, Reflect};
 use mio::util::Slab;
 
+use std::sync::{Arc, Mutex};
+
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum RW {
@@ -899,7 +901,65 @@ impl Mioco {
             trace!("Start event loop");
             event_loop.run(server).unwrap();
         }
+
+    /// Create a Mailbox
+    ///
+    /// Mailbox can be used to deliver notifications to handlers from different threads
+    pub fn mailbox<T>(&mut self) -> (MailboxOutsideHandle<T>, MailboxMiocoHandle<T>) {
+
+        let shared = MailboxShared {
+            token: None,
+            inn: None,
+            out: None,
+        };
+
+        let shared = Arc::new(Mutex::new(RefCell::new(shared)));
+
+        (MailboxOutsideHandle::new(shared.clone()), MailboxMiocoHandle::new(shared))
+    }
 }
+
+type RefMailboxShared<T> = Arc<Mutex<RefCell<MailboxShared<T>>>>;
+type MailboxQueue<T> = Option<T>;
+
+struct MailboxShared<T> {
+    /// Token, put here when the MiocoHandle is consumed with `wrap()` and
+    /// first registered,
+    token : Option<Token>,
+    /// Queue from the world into Mioco
+    inn : MailboxQueue<T>,
+    /// Queue to the world from Mioco
+    out : MailboxQueue<T>,
+}
+
+pub struct MailboxOutsideHandle<T> {
+    shared : RefMailboxShared<T>,
+    // Token of the Recv side, copied here so we don't have to obtain lock anymore
+    // after first successful notification
+    token : Option<Token>,
+}
+
+pub struct MailboxMiocoHandle<T> {
+    shared : RefMailboxShared<T>,
+}
+
+impl<T> MailboxOutsideHandle<T> {
+    fn new(shared : RefMailboxShared<T>) -> Self {
+        MailboxOutsideHandle {
+            token: None,
+            shared: shared
+        }
+    }
+}
+
+impl<T> MailboxMiocoHandle<T> {
+    fn new(shared : RefMailboxShared<T>) -> Self {
+        MailboxMiocoHandle {
+            shared: shared
+        }
+    }
+}
+
 
 /// Shorthand for creating new `Mioco` instance and starting it right away.
 pub fn start<F>(f : F)
