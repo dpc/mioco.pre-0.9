@@ -20,15 +20,15 @@ fn main() {
 
     let mut mioco = Mioco::new();
 
-    let (mail_send, mail_recv) = mioco.mailbox::<i32>();
+    let (mail_send, mail_recv) = mioco::mailbox::<i32>();
 
     thread::spawn(move|| {
         loop {
             let stdin = io::stdin();
             let mut line = String::new();
-            println!("bLa");
+            println!("Print Enter to handle on pending connection.");
             stdin.lock().read_line(&mut line).unwrap();
-            mail_send.send(0);
+            let _ = mail_send.send(0);
         }
     });
 
