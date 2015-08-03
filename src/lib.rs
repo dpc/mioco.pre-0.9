@@ -103,8 +103,14 @@ enum State {
     Finished,
 }
 
+/// Message delivered through `mioco::Evented::notify`.
+pub type Message = Box<Any+'static+Send>;
+
+/// Sends notify `Message` to the mioco Event Loop.
+pub type MioSender = mio::Sender<<Server as mio::Handler>::Message>;
+
 /// `mioco` can work on any type implementing this trait
-pub trait Evented : mio::Evented + Any {
+pub trait Evented : Any {
     /// Convert to &Any
     fn as_any(&self) -> &Any;
     /// Convert to &mut Any
@@ -148,6 +154,46 @@ where T : mio::Evented+Reflect+'static {
 
     fn deregister(&self, event_loop : &mut EventLoop<Server>, _token : Token) {
         event_loop.deregister(self).expect("deregister failed");
+    }
+}
+
+impl<T> Evented for MailboxMiocoHandle<T>
+where T:Reflect+'static {
+    fn as_any(&self) -> &Any {
+        self as &Any
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
+        self as &mut Any
+    }
+
+    /// Register
+    fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        let mut lock = self.shared.lock().unwrap();
+
+        lock.token = Some(token);
+        lock.sender = Some(event_loop.channel());
+        lock.interest = interest;
+
+        if interest.is_readable() && !lock.inn.is_empty() {
+            lock.sender.as_ref().unwrap().send((token, Box::new(()))).unwrap()
+        }
+    }
+
+    /// Reregister
+    fn reregister(&self, _event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        let mut lock = self.shared.lock().unwrap();
+
+        lock.interest = interest;
+        if interest.is_readable() && !lock.inn.is_empty() {
+            lock.sender.as_ref().unwrap().send((token, Box::new(()))).unwrap()
+        }
+    }
+
+    /// Deregister
+    fn deregister(&self, _event_loop : &mut EventLoop<Server>, _token : Token) {
+        let mut lock = self.shared.lock().unwrap();
+        lock.interest = EventSet::none();
     }
 }
 
@@ -832,7 +878,7 @@ impl Server {
 
 impl mio::Handler for Server {
     type Timeout = usize;
-    type Message = ();
+    type Message = (Token, Message);
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Server>, token: mio::Token, events: mio::EventSet) {
         // It's possible we got an event for a Source that was deregistered
@@ -849,6 +895,18 @@ impl mio::Handler for Server {
         };
         source.ready(event_loop, token, events);
         trace!("Server::ready finished");
+    }
+
+    fn notify(&mut self, event_loop: &mut EventLoop<Server>, msg: (Token, Message)) {
+        let (token, msg) = msg;
+        let mut source = match self.shared.borrow().sources.get(token) {
+            Some(source) => source.clone(),
+            None => {
+                trace!("Server::ready() ignored");
+                return
+            },
+        };
+        source.ready(event_loop, token, EventSet::readable())
     }
 }
 
@@ -909,27 +967,27 @@ impl Mioco {
 
         let shared = MailboxShared {
             token: None,
-            inn: None,
-            out: None,
+            sender: None,
+            inn: Vec::new(),
+            interest: EventSet::none(),
         };
 
-        let shared = Arc::new(Mutex::new(RefCell::new(shared)));
+        let shared = Arc::new(Mutex::new(shared));
 
         (MailboxOutsideHandle::new(shared.clone()), MailboxMiocoHandle::new(shared))
     }
 }
 
-type RefMailboxShared<T> = Arc<Mutex<RefCell<MailboxShared<T>>>>;
+type RefMailboxShared<T> = Arc<Mutex<MailboxShared<T>>>;
 type MailboxQueue<T> = Option<T>;
 
 struct MailboxShared<T> {
     /// Token, put here when the MiocoHandle is consumed with `wrap()` and
     /// first registered,
     token : Option<Token>,
-    /// Queue from the world into Mioco
-    inn : MailboxQueue<T>,
-    /// Queue to the world from Mioco
-    out : MailboxQueue<T>,
+    sender : Option<MioSender>,
+    inn : Vec<T>, // TODO: Replace with a ringbuf or some FIFO
+    interest : EventSet,
 }
 
 pub struct MailboxOutsideHandle<T> {
@@ -956,6 +1014,49 @@ impl<T> MailboxMiocoHandle<T> {
     fn new(shared : RefMailboxShared<T>) -> Self {
         MailboxMiocoHandle {
             shared: shared
+        }
+    }
+}
+
+impl<T> MailboxOutsideHandle<T> {
+    pub fn send(&self, t : T) -> io::Result<()> {
+        let mut lock = self.shared.lock().unwrap();
+        let MailboxShared {
+            ref mut sender,
+            ref mut token,
+            ref mut inn,
+            ref mut interest,
+        } = *lock;
+
+        inn.push(t);
+
+        if interest.is_readable() {
+            if let &mut Some(token) = token {
+                let sender = sender.as_ref().unwrap();
+                sender.send((token, Box::new(()))).unwrap()
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<T> TypedEventSource<MailboxMiocoHandle<T>> 
+where T : Reflect+'static {
+    /// Block on read
+    pub fn recv(&mut self) -> T {
+        loop {
+            let res = {
+                let mut inn = self.inn.borrow_mut();
+                let handle = inn.io.as_any_mut().downcast_mut::<MailboxMiocoHandle<T>>().unwrap();
+                let mut lock = handle.shared.lock().unwrap();
+
+                if let Some(t) = lock.inn.pop() {
+                    return t;
+                }
+            };
+
+            self.block_on(RW::Read)
         }
     }
 }
