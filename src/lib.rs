@@ -25,6 +25,7 @@
 #![feature(rc_weak)]
 #![warn(missing_docs)]
 
+extern crate spin;
 extern crate mio;
 extern crate coroutine;
 extern crate nix;
@@ -41,7 +42,8 @@ use std::marker::{PhantomData, Reflect};
 use mio::util::Slab;
 
 use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
+use spin::Mutex;
+use std::sync::{Arc};
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -167,30 +169,33 @@ where T:Reflect+'static {
 
     /// Register
     fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
-        let mut lock = self.shared.lock().unwrap();
+        let mut lock = self.shared.lock();
 
         lock.token = Some(token);
         lock.sender = Some(event_loop.channel());
         lock.interest = interest;
 
         if interest.is_readable() && !lock.inn.is_empty() {
+            lock.interest = EventSet::none();
             lock.sender.as_ref().unwrap().send(token).unwrap()
         }
     }
 
     /// Reregister
     fn reregister(&self, _event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
-        let mut lock = self.shared.lock().unwrap();
+        let mut lock = self.shared.lock();
 
         lock.interest = interest;
+
         if interest.is_readable() && !lock.inn.is_empty() {
+            lock.interest = EventSet::none();
             lock.sender.as_ref().unwrap().send(token).unwrap()
         }
     }
 
     /// Deregister
     fn deregister(&self, _event_loop : &mut EventLoop<Server>, _token : Token) {
-        let mut lock = self.shared.lock().unwrap();
+        let mut lock = self.shared.lock();
         lock.interest = EventSet::none();
     }
 }
@@ -1028,7 +1033,7 @@ impl<T> MailboxOutsideHandle<T> {
     ///
     /// Will deliver `t` to corespondong `MailboxMiocoHandle`.
     pub fn send(&self, t : T) -> io::Result<()> {
-        let mut lock = self.shared.lock().unwrap();
+        let mut lock = self.shared.lock();
         let MailboxShared {
             ref mut sender,
             ref mut token,
@@ -1059,7 +1064,7 @@ where T : Reflect+'static {
             {
                 let mut inn = self.inn.borrow_mut();
                 let handle = inn.io.as_any_mut().downcast_mut::<MailboxMiocoHandle<T>>().unwrap();
-                let mut lock = handle.shared.lock().unwrap();
+                let mut lock = handle.shared.lock();
 
                 if let Some(t) = lock.inn.pop_front() {
                     return t;
