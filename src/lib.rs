@@ -286,7 +286,7 @@ impl Coroutine {
 
     fn reregister(&mut self, event_loop: &mut EventLoop<Server>) {
         if self.state == State::Finished {
-            debug!("Coroutine: deregistering");
+            trace!("Coroutine: deregistering");
             self.deregister_all(event_loop);
             let mut shared = self.server_shared.borrow_mut();
             shared.coroutines_no -= 1;
@@ -494,6 +494,34 @@ impl EventSource {
             let inn = self.inn.borrow();
             let index = inn.index;
             let mut co = inn.coroutine.borrow_mut();
+            if !co.blocked_on.get(index).unwrap() {
+                // spurious event, probably after select in which
+                // more than one event sources were reported ready
+                // in one group of events, and first event source
+                // deregistered the later ones
+                debug!("spurious event for event source couroutine is not blocked on");
+                return;
+            }
+
+            if let State::BlockedOn(rw) = co.state {
+                match rw {
+                    RW::Read => if !events.is_readable() && !events.is_hup() {
+                        debug!("spurious not read event for coroutine blocked on read");
+                        return;
+                    },
+                    RW::Write => if !events.is_writable() {
+                        debug!("spurious not write event for coroutine blocked on write");
+                        return;
+                    },
+                    RW::Both => if !events.is_readable() && !events.is_hup() && !events.is_writable() {
+                        debug!("spurious unknown type event for coroutine blocked on read/write");
+                        return;
+                    },
+                }
+            } else {
+                debug_assert!(co.state == State::Finished);
+                return;
+            }
             co.registered.set(index, false);
             index
         };
