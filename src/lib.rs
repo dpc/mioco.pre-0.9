@@ -208,11 +208,15 @@ impl Coroutine {
                 co.handle.as_ref().map(|c| c.clone()).unwrap()
             };
             trace!("Resume new child coroutine");
-            handle.resume().expect("resume() failed");
             {
-                let mut co = coroutine.borrow_mut();
-                trace!("Reregister new child coroutine");
-                co.reregister(event_loop);
+                if let Err(reason) = handle.resume() {
+                    error!("Co resume failed: {:?} in after_resume()", reason);
+                    let mut co = coroutine.borrow_mut();
+                    co.state = State::Finished;
+                    co.blocked_on_mask = 0;
+                } else {
+                    coroutine.borrow_mut().reregister(event_loop);
+                }
             }
         }
         self.children_to_start.clear();
@@ -439,7 +443,13 @@ impl EventSource {
             coroutine_handle
         };
 
-        handle.resume().expect("resume() failed");
+
+        if let Err(reason) = handle.resume() {
+            error!("Co resume failed in ready(): {:?}", reason);
+            let inn = self.inn.borrow();
+            inn.coroutine.borrow_mut().state = State::Finished;
+            inn.coroutine.borrow_mut().blocked_on_mask = 0;
+        }
 
         let coroutine = {
             let inn = &self.inn.borrow();
@@ -878,11 +888,13 @@ impl Mioco {
             let coroutine_handle = coroutine_ref.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
 
             trace!("Initial resume");
-            coroutine_handle.resume().expect("resume() failed");
-            {
+            if let Err(reason) = coroutine_handle.resume() {
+                error!("Co resume failed: {:?} in start()", reason);
                 let mut co = coroutine_ref.borrow_mut();
-                co.after_resume(event_loop);
+                co.state = State::Finished;
+                co.blocked_on_mask = 0;
             }
+            coroutine_ref.borrow_mut().after_resume(event_loop);
 
             trace!("Start event loop");
             event_loop.run(server).unwrap();
