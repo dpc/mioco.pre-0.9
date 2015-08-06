@@ -18,6 +18,33 @@ fn empty_handler() {
 }
 
 #[test]
+fn empty_subcoroutines() {
+    let counter = Arc::new(Mutex::new(0i32));
+
+    let counter_copy = counter.clone();
+
+    start(move |mioco| {
+
+        for _ in 0..512 {
+            let counter_subcopy = counter_copy.clone();
+            mioco.spawn(move |_| {
+                let mut lock = counter_subcopy.lock().unwrap();
+                *lock += 1;
+
+                Ok(())
+            });
+        }
+
+        let mut lock = counter_copy.lock().unwrap();
+        *lock += 1;
+
+        Ok(())
+    });
+
+    assert_eq!(*counter.lock().unwrap(), 512 + 1);
+}
+
+#[test]
 fn contain_panics() {
     let finished_ok = Arc::new(Mutex::new(false));
 
