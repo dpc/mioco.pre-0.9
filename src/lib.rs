@@ -25,6 +25,7 @@
 #![feature(rc_weak)]
 #![warn(missing_docs)]
 
+extern crate spin;
 extern crate mio;
 extern crate coroutine;
 extern crate nix;
@@ -39,6 +40,10 @@ use mio::{TryRead, TryWrite, Token, Handler, EventLoop, EventSet};
 use std::any::Any;
 use std::marker::{PhantomData, Reflect};
 use mio::util::Slab;
+
+use std::collections::VecDeque;
+use spin::Mutex;
+use std::sync::{Arc};
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -101,8 +106,11 @@ enum State {
     Finished,
 }
 
+/// Sends notify `Message` to the mioco Event Loop.
+pub type MioSender = mio::Sender<<Server as mio::Handler>::Message>;
+
 /// `mioco` can work on any type implementing this trait
-pub trait Evented : mio::Evented + Any {
+pub trait Evented : Any {
     /// Convert to &Any
     fn as_any(&self) -> &Any;
     /// Convert to &mut Any
@@ -146,6 +154,49 @@ where T : mio::Evented+Reflect+'static {
 
     fn deregister(&self, event_loop : &mut EventLoop<Server>, _token : Token) {
         event_loop.deregister(self).expect("deregister failed");
+    }
+}
+
+impl<T> Evented for MailboxMiocoHandle<T>
+where T:Reflect+'static {
+    fn as_any(&self) -> &Any {
+        self as &Any
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
+        self as &mut Any
+    }
+
+    /// Register
+    fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        let mut lock = self.shared.lock();
+
+        lock.token = Some(token);
+        lock.sender = Some(event_loop.channel());
+        lock.interest = interest;
+
+        if interest.is_readable() && !lock.inn.is_empty() {
+            lock.interest = EventSet::none();
+            lock.sender.as_ref().unwrap().send(token).unwrap()
+        }
+    }
+
+    /// Reregister
+    fn reregister(&self, _event_loop : &mut EventLoop<Server>, token : Token, interest : EventSet) {
+        let mut lock = self.shared.lock();
+
+        lock.interest = interest;
+
+        if interest.is_readable() && !lock.inn.is_empty() {
+            lock.interest = EventSet::none();
+            lock.sender.as_ref().unwrap().send(token).unwrap()
+        }
+    }
+
+    /// Deregister
+    fn deregister(&self, _event_loop : &mut EventLoop<Server>, _token : Token) {
+        let mut lock = self.shared.lock();
+        lock.interest = EventSet::none();
     }
 }
 
@@ -830,7 +881,7 @@ impl Server {
 
 impl mio::Handler for Server {
     type Timeout = usize;
-    type Message = ();
+    type Message = Token;
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Server>, token: mio::Token, events: mio::EventSet) {
         // It's possible we got an event for a Source that was deregistered
@@ -847,6 +898,18 @@ impl mio::Handler for Server {
         };
         source.ready(event_loop, token, events);
         trace!("Server::ready finished");
+    }
+
+    fn notify(&mut self, event_loop: &mut EventLoop<Server>, msg: Self::Message) {
+        let token = msg;
+        let mut source = match self.shared.borrow().sources.get(token) {
+            Some(source) => source.clone(),
+            None => {
+                trace!("Server::ready() ignored");
+                return
+            },
+        };
+        source.ready(event_loop, token, EventSet::readable())
     }
 }
 
@@ -899,7 +962,120 @@ impl Mioco {
             trace!("Start event loop");
             event_loop.run(server).unwrap();
         }
+
 }
+
+/// Create a Mailbox
+///
+/// Mailbox can be used to deliver notifications to handlers from different threads
+pub fn mailbox<T>() -> (MailboxOutsideHandle<T>, MailboxMiocoHandle<T>) {
+
+    let shared = MailboxShared {
+        token: None,
+        sender: None,
+        inn: VecDeque::new(),
+        interest: EventSet::none(),
+    };
+
+    let shared = Arc::new(Mutex::new(shared));
+
+    (MailboxOutsideHandle::new(shared.clone()), MailboxMiocoHandle::new(shared))
+}
+
+type RefMailboxShared<T> = Arc<Mutex<MailboxShared<T>>>;
+type MailboxQueue<T> = Option<T>;
+
+struct MailboxShared<T> {
+    /// Token, put here when the MiocoHandle is consumed with `wrap()` and
+    /// first registered,
+    token : Option<Token>,
+    sender : Option<MioSender>,
+    inn : VecDeque<T>,
+    interest : EventSet,
+}
+
+/// Outside Mailbox Handle
+///
+/// Use from outside the coroutine handler.
+///
+/// Create with `mailbox()`
+pub struct MailboxOutsideHandle<T> {
+    shared : RefMailboxShared<T>,
+}
+
+/// Inside Mailbox Handle
+///
+/// Use from within coroutine handler.
+///
+/// Create with `mailbox()`.
+pub struct MailboxMiocoHandle<T> {
+    shared : RefMailboxShared<T>,
+}
+
+impl<T> MailboxOutsideHandle<T> {
+    fn new(shared : RefMailboxShared<T>) -> Self {
+        MailboxOutsideHandle {
+            shared: shared
+        }
+    }
+}
+
+impl<T> MailboxMiocoHandle<T> {
+    fn new(shared : RefMailboxShared<T>) -> Self {
+        MailboxMiocoHandle {
+            shared: shared
+        }
+    }
+}
+
+impl<T> MailboxOutsideHandle<T> {
+    /// Non-blocking send
+    ///
+    /// Will deliver `t` to corespondong `MailboxMiocoHandle`.
+    pub fn send(&self, t : T) -> io::Result<()> {
+        let mut lock = self.shared.lock();
+        let MailboxShared {
+            ref mut sender,
+            ref mut token,
+            ref mut inn,
+            ref mut interest,
+        } = *lock;
+
+        inn.push_back(t);
+
+        if interest.is_readable() {
+            if let &mut Some(token) = token {
+                let sender = sender.as_ref().unwrap();
+                sender.send(token).unwrap()
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<T> TypedEventSource<MailboxMiocoHandle<T>>
+where T : Reflect+'static {
+    /// Receive `T` sent using corresponding `MailboxOutsideHandle::send()`.
+    ///
+    /// Will block coroutine if no elements are available.
+    pub fn recv(&mut self) -> T {
+        loop {
+            {
+                let mut inn = self.inn.borrow_mut();
+                let handle = inn.io.as_any_mut().downcast_mut::<MailboxMiocoHandle<T>>().unwrap();
+                let mut lock = handle.shared.lock();
+
+                if let Some(t) = lock.inn.pop_front() {
+                    return t;
+                }
+            }
+
+            self.block_on(RW::Read)
+        }
+    }
+}
+
 
 /// Shorthand for creating new `Mioco` instance and starting it right away.
 pub fn start<F>(f : F)

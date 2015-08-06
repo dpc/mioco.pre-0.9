@@ -25,6 +25,7 @@ nix = "*"
 coroutine = "*"
 log = "*"
 env_logger = "*"
+spin = "*"
 
 # TODO:
 # mio = "0.5.*"
