@@ -317,19 +317,22 @@ impl Coroutine {
 
         // TODO: count leading zeros + for i in 0..32 {
         for i in 0..self.io.len() {
-            if (self.blocked_on_mask & (1 << i)) != 0 {
-                let io = self.io[i].upgrade().unwrap();
-                let mut io = io.borrow_mut();
-                io.reregister(event_loop, rw);
-            } else if (self.registered_mask & (1 << i)) != 0 {
-                let io = self.io[i].upgrade().unwrap();
-                let io = io.borrow();
-                io.unreregister(event_loop);
+            match ((self.registered_mask & (1 << i)) != 0, (self.blocked_on_mask & (1 << i)) != 0)  {
+                (false, false) | (true, true) => {},
+                (false, true) => {
+                    let io = self.io[i].upgrade().unwrap();
+                    let mut io = io.borrow_mut();
+                    io.reregister(event_loop, rw);
+                },
+                (true, false) => {
+                    let io = self.io[i].upgrade().unwrap();
+                    let io = io.borrow();
+                    io.unreregister(event_loop);
+                }
             }
         }
 
         self.registered_mask = self.blocked_on_mask;
-        self.blocked_on_mask = 0;
     }
 }
 
@@ -484,7 +487,7 @@ impl EventSource {
             let inn = self.inn.borrow();
             let index = inn.index;
             let mut co = inn.coroutine.borrow_mut();
-            co.blocked_on_mask &= !(1 << index);
+            co.registered_mask &= !(1 << index);
             index
         };
 
