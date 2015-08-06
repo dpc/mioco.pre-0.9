@@ -20,6 +20,7 @@
 ```
 */
 
+#![feature(convert)]
 #![feature(result_expect)]
 #![feature(reflect_marker)]
 #![feature(rc_weak)]
