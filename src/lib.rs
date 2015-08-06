@@ -261,10 +261,14 @@ impl Coroutine {
             trace!("Resume new child coroutine");
             {
                 if let Err(reason) = handle.resume() {
-                    error!("Co resume failed: {:?} in after_resume()", reason);
+                    warn!("Co resume failed: {:?} in after_resume()", reason);
                     let mut co = coroutine.borrow_mut();
                     co.state = State::Finished;
                     co.blocked_on_mask = 0;
+                    co.server_shared.borrow_mut().coroutines_no -= 1;
+                    if co.server_shared.borrow().coroutines_no == 0 {
+                        event_loop.shutdown();
+                    }
                 } else {
                     coroutine.borrow_mut().reregister(event_loop);
                 }
@@ -496,7 +500,7 @@ impl EventSource {
 
 
         if let Err(reason) = handle.resume() {
-            error!("Co resume failed in ready(): {:?}", reason);
+            warn!("Co resume failed in ready(): {:?}", reason);
             let inn = self.inn.borrow();
             inn.coroutine.borrow_mut().state = State::Finished;
             inn.coroutine.borrow_mut().blocked_on_mask = 0;
@@ -952,15 +956,20 @@ impl Mioco {
 
             trace!("Initial resume");
             if let Err(reason) = coroutine_handle.resume() {
-                error!("Co resume failed: {:?} in start()", reason);
+                warn!("Co resume failed: {:?} in start()", reason);
                 let mut co = coroutine_ref.borrow_mut();
                 co.state = State::Finished;
                 co.blocked_on_mask = 0;
             }
             coroutine_ref.borrow_mut().after_resume(event_loop);
 
-            trace!("Start event loop");
-            event_loop.run(server).unwrap();
+            let coroutines_no = server.shared.borrow().coroutines_no;
+            if  coroutines_no > 0 {
+                trace!("Start event loop");
+                event_loop.run(server).unwrap();
+            } else {
+                trace!("No coroutines to start event loop with");
+            }
         }
 
 }
@@ -1084,3 +1093,6 @@ pub fn start<F>(f : F)
     let mut mioco = Mioco::new();
     mioco.start(f);
 }
+
+#[cfg(test)]
+mod tests;
