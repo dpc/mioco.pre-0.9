@@ -959,8 +959,13 @@ impl Mioco {
             }
             coroutine_ref.borrow_mut().after_resume(event_loop);
 
-            trace!("Start event loop");
-            event_loop.run(server).unwrap();
+            let coroutines_no = server.shared.borrow().coroutines_no;
+            if  coroutines_no > 0 {
+                trace!("Start event loop");
+                event_loop.run(server).unwrap();
+            } else {
+                trace!("No coroutines to start event loop with");
+            }
         }
 
 }
@@ -1084,3 +1089,6 @@ pub fn start<F>(f : F)
     let mut mioco = Mioco::new();
     mioco.start(f);
 }
+
+#[cfg(test)]
+mod tests;
