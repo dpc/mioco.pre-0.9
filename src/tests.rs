@@ -132,3 +132,64 @@ fn long_chain() {
 
     assert!(*finished_ok.lock().unwrap());
 }
+
+#[test]
+fn lots_of_event_sources() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        let (first_reader, first_writer) = try!(mio::unix::pipe());
+
+        let mut prev_reader = first_reader;
+
+        // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
+        for _ in 0..4 {
+            let (reader, writer) = try!(mio::unix::pipe());
+
+            mioco.spawn(move |mioco| {
+                // This fake readers are not really used, they are just registered for the sake of
+                // testing if event sources registered with high index number are handled correctly
+                let mut readers = Vec::new();
+                let mut writers = Vec::new();
+                for _ in 0..100 {
+                    let (r, w) = try!(mio::unix::pipe());
+                    readers.push(mioco.wrap(r));
+                    writers.push(mioco.wrap(w));
+                }
+
+                let mut reader = mioco.wrap(prev_reader);
+                let mut writer = mioco.wrap(writer);
+
+                let _ = std::io::copy(&mut reader, &mut writer);
+
+                Ok(())
+            });
+
+            prev_reader = reader;
+        }
+
+        let mut first_writer = mioco.wrap(first_writer);
+        let mut last_reader = mioco.wrap(prev_reader);
+
+        for i in 0..9 {
+            let test_str = format!("TeSt{}", i);
+            let _ = first_writer.write_all(test_str.as_str().as_bytes());
+            let mut buf = [0u8; 16];
+
+            let _ = last_reader.read(&mut buf);
+
+            if &buf[0..5] != test_str.as_str().as_bytes() {
+                panic!();
+            }
+        }
+
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
