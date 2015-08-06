@@ -16,3 +16,14 @@ fn empty_handler() {
 
     assert!(*finished_ok.lock().unwrap());
 }
+
+#[test]
+fn contain_panics() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    start(move |_| {
+        panic!()
+    });
+
+    assert!(!*finished_ok.lock().unwrap());
+}
