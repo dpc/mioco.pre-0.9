@@ -32,6 +32,7 @@ extern crate coroutine;
 extern crate nix;
 #[macro_use]
 extern crate log;
+extern crate bit_vec;
 
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -45,6 +46,8 @@ use mio::util::Slab;
 use std::collections::VecDeque;
 use spin::Mutex;
 use std::sync::{Arc};
+
+use bit_vec::BitVec;
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -222,10 +225,10 @@ struct Coroutine {
     io : Vec<Weak<RefCell<EventSourceShared>>>,
 
     /// Mask of handle indexes that we're blocked on
-    blocked_on_mask : u32,
+    blocked_on : BitVec<usize>,
 
     /// Mask of handle indexes that are registered in Server
-    registered_mask : u32,
+    registered : BitVec<usize>,
 
     /// `Server` shared data that this `Coroutine` is running in
     server_shared : RefServerShared,
@@ -242,8 +245,8 @@ impl Coroutine {
             handle: None,
             last_event: LastEvent{ rw: RW::Read, index: EventSourceIndex(0)},
             io: Vec::with_capacity(4),
-            blocked_on_mask: 0,
-            registered_mask: 0,
+            blocked_on: Default::default(),
+            registered: Default::default(),
             server_shared: server,
             children_to_start: Vec::new(),
         }
@@ -265,7 +268,7 @@ impl Coroutine {
                     warn!("Co resume failed: {:?} in after_resume()", reason);
                     let mut co = coroutine.borrow_mut();
                     co.state = State::Finished;
-                    co.blocked_on_mask = 0;
+                    co.blocked_on.clear_all();
                     co.server_shared.borrow_mut().coroutines_no -= 1;
                     if co.server_shared.borrow().coroutines_no == 0 {
                         event_loop.shutdown();
@@ -317,7 +320,7 @@ impl Coroutine {
 
         // TODO: count leading zeros + for i in 0..32 {
         for i in 0..self.io.len() {
-            match ((self.registered_mask & (1 << i)) != 0, (self.blocked_on_mask & (1 << i)) != 0)  {
+            match (self.registered[i], self.blocked_on[i])  {
                 (false, false) | (true, true) => {},
                 (false, true) => {
                     let io = self.io[i].upgrade().unwrap();
@@ -332,7 +335,10 @@ impl Coroutine {
             }
         }
 
-        self.registered_mask = self.blocked_on_mask;
+//        self.registered = self.blocked_on;
+        for (mut target, src) in unsafe { self.registered.storage_mut().iter_mut().zip(self.blocked_on.storage().iter()) } {
+            *target = *src
+        }
     }
 }
 
@@ -433,7 +439,8 @@ where T : Reflect+'static {
         {
             let inn = self.inn.borrow();
             inn.coroutine.borrow_mut().state = State::BlockedOn(rw);
-            inn.coroutine.borrow_mut().blocked_on_mask = 1 << inn.index;
+            inn.coroutine.borrow_mut().blocked_on.clear_all();
+            inn.coroutine.borrow_mut().blocked_on.set(inn.index, true);
         }
         trace!("coroutine blocked on {:?}", rw);
         coroutine::Coroutine::block();
@@ -487,7 +494,7 @@ impl EventSource {
             let inn = self.inn.borrow();
             let index = inn.index;
             let mut co = inn.coroutine.borrow_mut();
-            co.registered_mask &= !(1 << index);
+            co.registered.set(index, false);
             index
         };
 
@@ -507,7 +514,7 @@ impl EventSource {
             warn!("Co resume failed in ready(): {:?}", reason);
             let inn = self.inn.borrow();
             inn.coroutine.borrow_mut().state = State::Finished;
-            inn.coroutine.borrow_mut().blocked_on_mask = 0;
+            inn.coroutine.borrow_mut().blocked_on.clear_all();
         }
 
         let coroutine = {
@@ -610,21 +617,21 @@ pub struct MiocoHandle {
     coroutine : Rc<RefCell<Coroutine>>,
 }
 
-fn select_impl_set_mask_from_indices(indices : &[EventSourceIndex], blocked_on_mask : &mut u32) {
+fn select_impl_set_mask_from_indices(indices : &[EventSourceIndex], blocked_on : &mut BitVec<usize>) {
     {
-        *blocked_on_mask = 0;
+        blocked_on.clear_all();
         for &index in indices {
-            *blocked_on_mask |= 1u32 << index.as_usize();
+            blocked_on.set(index.as_usize(), true);
         }
     }
 }
 
-fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceShared>>], blocked_on_mask : &mut u32) {
+fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceShared>>], blocked_on: &mut BitVec<usize>) {
     {
-        *blocked_on_mask = 0;
+        blocked_on.clear_all();
         for handle in handles {
             let io = handle.upgrade().unwrap();
-            *blocked_on_mask |= 1u32 << io.borrow().index;
+            blocked_on.set(io.borrow().index, true);
         }
     }
 }
@@ -680,6 +687,10 @@ impl MiocoHandle {
         };
 
         self.coroutine.borrow_mut().io.push(io.clone().downgrade());
+        let len = self.coroutine.borrow().io.len();
+        trace!("setting lengths to {}", len);
+        self.coroutine.borrow_mut().blocked_on.grow(len, false);
+        self.coroutine.borrow_mut().registered.grow(len, false);
 
         handle
     }
@@ -701,11 +712,11 @@ impl MiocoHandle {
         {
             let Coroutine {
                 ref io,
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
+            select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
         self.select_impl(RW::Both)
     }
@@ -717,11 +728,11 @@ impl MiocoHandle {
         {
             let Coroutine {
                 ref io,
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
+            select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
         self.select_impl(RW::Read)
     }
@@ -733,11 +744,11 @@ impl MiocoHandle {
         {
             let Coroutine {
                 ref io,
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on_mask);
+            select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
         self.select_impl(RW::Write)
     }
@@ -749,11 +760,11 @@ impl MiocoHandle {
     pub fn select_from(&mut self, indices : &[EventSourceIndex]) -> LastEvent {
         {
             let Coroutine {
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on);
         }
 
         self.select_impl(RW::Both)
@@ -765,11 +776,11 @@ impl MiocoHandle {
     pub fn select_write_from(&mut self, indices : &[EventSourceIndex]) -> LastEvent {
         {
             let Coroutine {
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on);
         }
 
         self.select_impl(RW::Write)
@@ -781,11 +792,11 @@ impl MiocoHandle {
     pub fn select_read_from(&mut self, indices : &[EventSourceIndex]) -> LastEvent {
         {
             let Coroutine {
-                ref mut blocked_on_mask,
+                ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on_mask);
+            select_impl_set_mask_from_indices(indices, blocked_on);
         }
 
         self.select_impl(RW::Read)
@@ -865,7 +876,7 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
         let _res = f(&mut mioco_handle);
 
         mioco_handle.coroutine.borrow_mut().state = State::Finished;
-        mioco_handle.coroutine.borrow_mut().blocked_on_mask = 0;
+        mioco_handle.coroutine.borrow_mut().blocked_on.clear_all();
         trace!("Coroutine: finished");
     });
 
@@ -963,7 +974,7 @@ impl Mioco {
                 warn!("Co resume failed: {:?} in start()", reason);
                 let mut co = coroutine_ref.borrow_mut();
                 co.state = State::Finished;
-                co.blocked_on_mask = 0;
+                co.blocked_on.clear_all();
             }
             coroutine_ref.borrow_mut().after_resume(event_loop);
 
