@@ -221,6 +221,9 @@ struct Coroutine {
     /// Last event that resumed the coroutine
     last_event: LastEvent,
 
+    /// Last register tick
+    last_tick : u32,
+
     /// All handles, weak to avoid `Rc`-cycle
     io : Vec<Weak<RefCell<EventSourceShared>>>,
 
@@ -249,6 +252,7 @@ impl Coroutine {
             registered: Default::default(),
             server_shared: server,
             children_to_start: Vec::new(),
+            last_tick: !0,
         }
     }
 
@@ -476,7 +480,7 @@ impl EventSource {
     /// Readable event handler
     ///
     /// This corresponds to `mio::Handler::readable()`.
-    pub fn ready(&mut self, event_loop: &mut EventLoop<Server>, token: Token, events : EventSet) {
+    pub fn ready(&mut self, event_loop: &mut EventLoop<Server>, token: Token, events : EventSet, tick : u32) {
         if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
@@ -494,55 +498,61 @@ impl EventSource {
             let inn = self.inn.borrow();
             let index = inn.index;
             let mut co = inn.coroutine.borrow_mut();
-            if !co.blocked_on.get(index).unwrap() {
+            let prev_last_tick = co.last_tick;
+            co.last_tick = tick;
+            if prev_last_tick == tick {
+                None
+            } else if !co.blocked_on.get(index).unwrap() {
                 // spurious event, probably after select in which
                 // more than one event sources were reported ready
                 // in one group of events, and first event source
                 // deregistered the later ones
                 debug!("spurious event for event source couroutine is not blocked on");
-                return;
-            }
-
-            if let State::BlockedOn(rw) = co.state {
+                None
+            } else if let State::BlockedOn(rw) = co.state {
                 match rw {
-                    RW::Read => if !events.is_readable() && !events.is_hup() {
+                    RW::Read if !events.is_readable() && !events.is_hup() => {
                         debug!("spurious not read event for coroutine blocked on read");
-                        return;
+                        None
                     },
-                    RW::Write => if !events.is_writable() {
+                    RW::Write if !events.is_writable() => {
                         debug!("spurious not write event for coroutine blocked on write");
-                        return;
+                        None
                     },
-                    RW::Both => if !events.is_readable() && !events.is_hup() && !events.is_writable() {
+                    RW::Both if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
                         debug!("spurious unknown type event for coroutine blocked on read/write");
-                        return;
+                        None
                     },
+                    _ => {
+                        co.registered.set(index, false);
+                        Some(index)
+                    }
                 }
             } else {
                 debug_assert!(co.state == State::Finished);
                 return;
             }
-            co.registered.set(index, false);
-            index
         };
 
-        let handle = {
-            let inn = self.inn.borrow();
-            let coroutine_handle = inn.coroutine.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
-            inn.coroutine.borrow_mut().state = State::Running;
-            inn.coroutine.borrow_mut().last_event = LastEvent {
-                rw: event,
-                index: EventSourceIndex(my_index),
+        if let Some(my_index) = my_index {
+            let handle = {
+                let inn = self.inn.borrow();
+                let coroutine_handle = inn.coroutine.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
+                inn.coroutine.borrow_mut().state = State::Running;
+                inn.coroutine.borrow_mut().last_event = LastEvent {
+                    rw: event,
+                    index: EventSourceIndex(my_index),
+                };
+                coroutine_handle
             };
-            coroutine_handle
-        };
 
 
-        if let Err(reason) = handle.resume() {
-            warn!("Co resume failed in ready(): {:?}", reason);
-            let inn = self.inn.borrow();
-            inn.coroutine.borrow_mut().state = State::Finished;
-            inn.coroutine.borrow_mut().blocked_on.clear_all();
+            if let Err(reason) = handle.resume() {
+                warn!("Co resume failed in ready(): {:?}", reason);
+                let inn = self.inn.borrow();
+                inn.coroutine.borrow_mut().state = State::Finished;
+                inn.coroutine.borrow_mut().blocked_on.clear_all();
+            }
         }
 
         let coroutine = {
@@ -916,12 +926,14 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
 /// `Server` registered in `mio::EventLoop` and implementing `mio::Handler`.
 pub struct Server {
     shared : RefServerShared,
+    tick : u32,
 }
 
 impl Server {
     fn new(shared : RefServerShared) -> Self {
         Server {
             shared: shared,
+            tick : 0,
         }
     }
 }
@@ -943,8 +955,11 @@ impl mio::Handler for Server {
                 return
             },
         };
-        source.ready(event_loop, token, events);
+        source.ready(event_loop, token, events, self.tick);
         trace!("Server::ready finished");
+
+        // TODO: move to tick()
+        self.tick += 1;
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Server>, msg: Self::Message) {
@@ -956,7 +971,7 @@ impl mio::Handler for Server {
                 return
             },
         };
-        source.ready(event_loop, token, EventSet::readable())
+        source.ready(event_loop, token, EventSet::readable(), self.tick)
     }
 }
 
