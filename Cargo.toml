@@ -27,9 +27,14 @@ log = "*"
 env_logger = "*"
 spin = "*"
 
-# TODO:
+# Use this after neccessary PRs are merged and published on crates.io
+# bit-vec = "*"
+
+# TODO: Switch when 0.5.* is published on crates.io
 # mio = "0.5.*"
 
 [dependencies.mio]
 git = "https://github.com/carllerche/mio"
 
+[dependencies.bit-vec]
+git = "https://github.com/dpc/bit-vec"
