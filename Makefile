@@ -4,9 +4,24 @@ DEFAULT_TARGET=build
 
 default: $(DEFAULT_TARGET)
 
-.PHONY: run test build doc clean release rrun rtest
+ifneq ($(RELEASE),)
+CARGO_FLAGS += --release
+$(info RELEASE BUILD)
+else
+$(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
+endif
+
+EXAMPLES = echo echoplus mailbox
+
+all: build $(EXAMPLES) test
+
+.PHONY: run test build doc clean
 run test build clean:
-	cargo $@
+	cargo $@ $(CARGO_FLAGS)
+
+.PHONY: $(EXAMPLES)
+$(EXAMPLES):
+	cargo build --example $@ $(CARGO_FLAGS)
 
 doc: FORCE
 	cp src/lib.rs src/lib.rs.orig
@@ -14,31 +29,15 @@ doc: FORCE
 	-cargo doc
 	mv src/lib.rs.orig src/lib.rs
 
-release:
-	cargo build --release
-
-rrun:
-	cargo run --release
-
-rtest:
-	cargo test --release
-
 publishdoc: doc
 	echo '<meta http-equiv="refresh" content="0;url='${DOCS_DEFAULT_MODULE}'/index.html">' > target/doc/index.html
 	ghp-import -n target/doc
 	git push -f origin gh-pages
 
+
 .PHONY: docview
 docview: doc
 	xdg-open target/doc/$(PKG_NAME)/index.html
 
-.PHONY: echo
-echo:
-	cargo run --example echo --release
-
-decho:
-	cargo run --example echo
-
 .PHONY: FORCE
 FORCE:
-
