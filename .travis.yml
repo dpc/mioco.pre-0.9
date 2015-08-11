@@ -1,12 +1,8 @@
 language: rust
 rust:
   - nightly
-env:
-  - DOCS_DEFAULT_MODULE=mioco
 script:
-  - cargo build
-  - cargo build --example echo
-  - cargo test
+  - make all
 
 notifications:
   webhooks:
