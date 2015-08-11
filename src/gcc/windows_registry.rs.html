@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/gcc-0.3.11/src/windows_registry.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/gcc-0.3.12/src/windows_registry.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>windows_registry.rs.html -- source</title>
@@ -376,6 +376,10 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
@@ -691,9 +695,13 @@
         <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>is_vs_14</span> {
             <span class='kw'>return</span> <span class='prelude-val'>None</span>
         }
-        <span class='kw'>let</span> <span class='ident'>sdk_dir</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>get_windows_sdk_path</span>() {
-            <span class='prelude-val'>Some</span>((<span class='kw-2'>mut</span> <span class='ident'>root</span>, _)) <span class='op'>=&gt;</span> { <span class='ident'>root</span>.<span class='ident'>pop</span>(); <span class='ident'>root</span>.<span class='ident'>push</span>(<span class='string'>&quot;10&quot;</span>); <span class='ident'>root</span> }
-            <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>None</span>,
+        <span class='kw'>let</span> <span class='ident'>key</span> <span class='op'>=</span> <span class='string'>r&quot;SOFTWARE\Microsoft\Windows Kits\Installed Roots&quot;</span>;
+        <span class='kw'>let</span> <span class='ident'>sdk_dir</span> <span class='op'>=</span> <span class='ident'>LOCAL_MACHINE</span>.<span class='ident'>open</span>(<span class='ident'>key</span>.<span class='ident'>as_ref</span>()).<span class='ident'>and_then</span>(<span class='op'>|</span><span class='ident'>p</span><span class='op'>|</span> {
+            <span class='ident'>p</span>.<span class='ident'>query_str</span>(<span class='string'>&quot;KitsRoot10&quot;</span>)
+        }).<span class='ident'>map</span>(<span class='ident'>PathBuf</span>::<span class='ident'>from</span>);
+        <span class='kw'>let</span> <span class='ident'>sdk_dir</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>sdk_dir</span> {
+            <span class='prelude-val'>Ok</span>(<span class='ident'>p</span>) <span class='op'>=&gt;</span> <span class='ident'>p</span>,
+            <span class='prelude-val'>Err</span>(..) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>None</span>,
         };
         (<span class='kw'>move</span> <span class='op'>||</span> <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>_<span class='op'>&gt;</span> {
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>max</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
@@ -749,8 +757,8 @@
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

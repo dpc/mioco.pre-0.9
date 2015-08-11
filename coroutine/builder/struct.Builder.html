@@ -61,7 +61,7 @@
 <div class='docblock'><p>Name the Coroutine-to-be. Currently the name is used for identification only in panic messages.</p>
 </div><h4 id='method.stack_size' class='method'><code>fn <a href='#method.stack_size' class='fnname'>stack_size</a>(self, size: <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../coroutine/builder/struct.Builder.html' title='coroutine::builder::Builder'>Builder</a></code></h4>
 <div class='docblock'><p>Set the size of the stack for the new Coroutine.</p>
-</div><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(self, f: F) -&gt; <a class='struct' href='../../coroutine/coroutine_clonable/struct.Handle.html' title='coroutine::coroutine_clonable::Handle'>Handle</a> <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() + <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
+</div><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(self, f: F) -&gt; <a class='struct' href='../../coroutine/coroutine_clonable/struct.Handle.html' title='coroutine::coroutine_clonable::Handle'>Handle</a> <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/thunk/core/ops/trait.FnOnce.html' title='thunk::core::ops::FnOnce'>FnOnce</a>() + <a class='trait' href='http://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a> + 'static</span></code></h4>
 <div class='docblock'><p>Spawn a new Coroutine, and return a handle for it.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
@@ -98,8 +98,8 @@
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

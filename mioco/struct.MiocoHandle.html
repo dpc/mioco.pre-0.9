@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3042' class='srclink' href='../src/mioco/lib.rs.html#585-587' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-4825' class='srclink' href='../src/mioco/lib.rs.html#764-766' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco Handle</p>
@@ -62,6 +62,11 @@ cooperative scheduling can block on real blocking-IO which defeats using mioco.<
 
 <p>Consumes the <code>io</code>, returns a mioco wrapper over it. Use this wrapped IO
 to perform IO.</p>
+</div><h4 id='method.timeout' class='method'><code>fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self, delay: <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='struct' href='../mioco/struct.TypedEventSource.html' title='mioco::TypedEventSource'>TypedEventSource</a>&lt;<a class='struct' href='../mioco/struct.Timer.html' title='mioco::Timer'>Timer</a>&gt;</code></h4>
+<div class='docblock'><p>Create a new timer which will provide a timeout event after
+<code>delay</code> milliseconds.</p>
+</div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, delay: <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>)</code></h4>
+<div class='docblock'><p>Pause the current co-routine for <code>delay</code> milliseconds.</p>
 </div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
 <div class='docblock'><p>Wait till an event is ready</p>
 
@@ -123,8 +128,8 @@ See <code>MiocoHandle::select()</code>.</p>
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

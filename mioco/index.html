@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-915' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1391' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</p>
 
 <p>Using <code>mioco</code> you can handle scalable, asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using set of synchronous-IO
@@ -82,6 +82,7 @@
         <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>listen</span>(<span class='number'>1024</span>));
 
         <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Starting tcp echo server on {:?}&quot;</span>, <span class='ident'>sock</span>.<span class='ident'>local_addr</span>().<span class='ident'>unwrap</span>());
+
         <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>sock</span>);
 
         <span class='kw'>loop</span> {
@@ -126,10 +127,55 @@
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MailboxMiocoHandle.html'
+                               title='mioco::MailboxMiocoHandle'>MailboxMiocoHandle</a></td>
+                        <td class='docblock short'>
+                             <p>Inside Mailbox Handle</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MailboxOutsideHandle.html'
+                               title='mioco::MailboxOutsideHandle'>MailboxOutsideHandle</a></td>
+                        <td class='docblock short'>
+                             <p>Outside Mailbox Handle</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Mioco.html'
+                               title='mioco::Mioco'>Mioco</a></td>
+                        <td class='docblock short'>
+                             <p>Mioco struct</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.MiocoHandle.html'
                                title='mioco::MiocoHandle'>MiocoHandle</a></td>
                         <td class='docblock short'>
                              <p>Mioco Handle</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Server.html'
+                               title='mioco::Server'>Server</a></td>
+                        <td class='docblock short'>
+                             <p><code>Server</code> registered in <code>mio::EventLoop</code> and implementing <code>mio::Handler</code>.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Timer.html'
+                               title='mioco::Timer'>Timer</a></td>
+                        <td class='docblock short'>
+                             <p>A Timer is used in <code>select</code> functions to create a timeout event.</p>
 
                         </td>
                     </tr>
@@ -165,10 +211,29 @@
                 </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
                     <tr class=' module-item'>
+                        <td><a class='fn' href='fn.mailbox.html'
+                               title='mioco::mailbox'>mailbox</a></td>
+                        <td class='docblock short'>
+                             <p>Create a Mailbox</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='fn' href='fn.start.html'
                                title='mioco::start'>start</a></td>
                         <td class='docblock short'>
-                             <p>Start mioco handling</p>
+                             <p>Shorthand for creating new <code>Mioco</code> instance and starting it right away.</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='type' href='type.MioSender.html'
+                               title='mioco::MioSender'>MioSender</a></td>
+                        <td class='docblock short'>
+                             <p>Sends notify <code>Message</code> to the mioco Event Loop.</p>
 
                         </td>
                     </tr>
@@ -207,8 +272,8 @@
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

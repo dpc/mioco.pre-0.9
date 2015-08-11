@@ -160,7 +160,7 @@
         <span class='comment'>// If your protocol is msg based (instead of continuous stream) you should</span>
         <span class='comment'>// ensure that your buffer is large enough to hold an entire segment (1532 bytes if not jumbo</span>
         <span class='comment'>// frames)</span>
-        <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>(<span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>());
+        <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>(<span class='kw'>unsafe</span> { <span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>() });
 
         <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>cnt</span>)) <span class='op'>=</span> <span class='ident'>res</span> {
             <span class='ident'>buf</span>.<span class='ident'>advance</span>(<span class='ident'>cnt</span>);
@@ -261,8 +261,8 @@
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>
