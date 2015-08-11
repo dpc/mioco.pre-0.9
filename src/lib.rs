@@ -204,6 +204,64 @@ where T:Reflect+'static {
     }
 }
 
+impl Evented for Timer {
+    fn as_any(&self) -> &Any {
+        self as &Any
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
+        self as &mut Any
+    }
+
+    fn register(&self, event_loop : &mut EventLoop<Server>, token : Token, _interest : EventSet) {
+        let mut state = self.state.borrow_mut();
+        trace!("register timer: {:?}:{:?}", token, state.iteration);
+        debug_assert!(state.status == TimerStatus::Stopped
+                      , "register() called on timer that is already in use! ({:?})", state.status);
+        match event_loop.timeout_ms((token, state.iteration), self.delay) {
+            Ok(timeout) => {
+                state.handle = Some(timeout);
+                state.status = TimerStatus::Running;
+            },
+            Err(reason)=> {
+                error!("Could not create mio::Timeout: {:?}", reason);
+            }
+        }
+    }
+
+    fn reregister(&self, event_loop : &mut EventLoop<Server>, token : Token, _interest : EventSet) {
+        trace!("enter reregister timer: {:?}", token);
+        let mut state = self.state.borrow_mut();
+        if state.status == TimerStatus::Canceled {
+            event_loop.clear_timeout(state.handle.unwrap());
+            state.status = TimerStatus::Stopped;
+        }
+        debug_assert!(state.status == TimerStatus::Stopped
+                      , "reregister() called on timer that is already in use! ({:?})", state.status);
+        match event_loop.timeout_ms((token, state.iteration), self.delay) {
+            Ok(timeout) => {
+                trace!("reregistered timer: {:?}:{:?}", token, state.iteration);
+                state.handle = Some(timeout);
+                state.status = TimerStatus::Running;
+            },
+            Err(reason)=> {
+                error!("Could not create mio::Timeout: {:?}", reason);
+            }
+        }
+    }
+
+    fn deregister(&self, event_loop : &mut EventLoop<Server>, _token : Token) {
+        trace!("deregister timer: {:?}", _token);
+        {
+            let mut state = self.state.borrow_mut();
+            if let Some(timer) = state.handle {
+                event_loop.clear_timeout(timer);
+                state.handle = None
+            }
+        }
+    }
+}
+
 type RefCoroutine = Rc<RefCell<Coroutine>>;
 
 /// `mioco` coroutine
@@ -220,6 +278,9 @@ struct Coroutine {
 
     /// Last event that resumed the coroutine
     last_event: LastEvent,
+
+    /// Last register tick
+    last_tick : u32,
 
     /// All handles, weak to avoid `Rc`-cycle
     io : Vec<Weak<RefCell<EventSourceShared>>>,
@@ -249,6 +310,7 @@ impl Coroutine {
             registered: Default::default(),
             server_shared: server,
             children_to_start: Vec::new(),
+            last_tick: !0,
         }
     }
 
@@ -286,7 +348,7 @@ impl Coroutine {
 
     fn reregister(&mut self, event_loop: &mut EventLoop<Server>) {
         if self.state == State::Finished {
-            debug!("Coroutine: deregistering");
+            trace!("Coroutine: deregistering");
             self.deregister_all(event_loop);
             let mut shared = self.server_shared.borrow_mut();
             shared.coroutines_no -= 1;
@@ -453,15 +515,15 @@ where T : Reflect+'static {
     }
 
     /// Access raw mio type
-    pub fn with_raw<F>(&self, f : F)
-        where F : Fn(&T) {
+    pub fn with_raw<F, R>(&self, f : F) -> R
+        where F : Fn(&T) -> R {
         let io = &self.inn.borrow().io;
         f(io.as_any().downcast_ref::<T>().unwrap())
     }
 
     /// Access mutable raw mio type
-    pub fn with_raw_mut<F>(&mut self, f : F)
-        where F : Fn(&mut T) {
+    pub fn with_raw_mut<F, R>(&mut self, f : F) -> R
+        where F : Fn(&mut T) -> R {
         let mut io = &mut self.inn.borrow_mut().io;
         f(io.as_any_mut().downcast_mut::<T>().unwrap())
     }
@@ -476,45 +538,81 @@ impl EventSource {
     /// Readable event handler
     ///
     /// This corresponds to `mio::Handler::readable()`.
-    pub fn ready(&mut self, event_loop: &mut EventLoop<Server>, token: Token, events : EventSet) {
+    pub fn ready(&mut self
+                 , event_loop: &mut EventLoop<Server>
+                 , token: Token
+                 , events : EventSet
+                 , tick : u32) {
         if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
         }
 
-        // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
-        let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
-            (true, true) => RW::Both,
-            (true, false) => RW::Read,
-            (false, true) => RW::Write,
-            (false, false) => panic!(),
-        };
-
         let my_index = {
             let inn = self.inn.borrow();
             let index = inn.index;
             let mut co = inn.coroutine.borrow_mut();
-            co.registered.set(index, false);
-            index
+            let prev_last_tick = co.last_tick;
+            co.last_tick = tick;
+            if prev_last_tick == tick {
+                None
+            } else if !co.blocked_on.get(index).unwrap() {
+                // spurious event, probably after select in which
+                // more than one event sources were reported ready
+                // in one group of events, and first event source
+                // deregistered the later ones
+                debug!("spurious event for event source couroutine is not blocked on");
+                None
+            } else if let State::BlockedOn(rw) = co.state {
+                match rw {
+                    RW::Read if !events.is_readable() && !events.is_hup() => {
+                        debug!("spurious not read event for coroutine blocked on read");
+                        None
+                    },
+                    RW::Write if !events.is_writable() => {
+                        debug!("spurious not write event for coroutine blocked on write");
+                        None
+                    },
+                    RW::Both if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
+                        debug!("spurious unknown type event for coroutine blocked on read/write");
+                        None
+                    },
+                    _ => {
+                        co.registered.set(index, false);
+                        Some(index)
+                    }
+                }
+            } else {
+                debug_assert!(co.state == State::Finished);
+                return;
+            }
         };
 
-        let handle = {
-            let inn = self.inn.borrow();
-            let coroutine_handle = inn.coroutine.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
-            inn.coroutine.borrow_mut().state = State::Running;
-            inn.coroutine.borrow_mut().last_event = LastEvent {
-                rw: event,
-                index: EventSourceIndex(my_index),
+        if let Some(my_index) = my_index {
+            // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
+            let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
+                (true, true) => RW::Both,
+                (true, false) => RW::Read,
+                (false, true) => RW::Write,
+                (false, false) => panic!(),
             };
-            coroutine_handle
-        };
+            let handle = {
+                let inn = self.inn.borrow();
+                let coroutine_handle = inn.coroutine.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
+                inn.coroutine.borrow_mut().state = State::Running;
+                inn.coroutine.borrow_mut().last_event = LastEvent {
+                    rw: event,
+                    index: EventSourceIndex(my_index),
+                };
+                coroutine_handle
+            };
 
-
-        if let Err(reason) = handle.resume() {
-            warn!("Co resume failed in ready(): {:?}", reason);
-            let inn = self.inn.borrow();
-            inn.coroutine.borrow_mut().state = State::Finished;
-            inn.coroutine.borrow_mut().blocked_on.clear_all();
+            if let Err(reason) = handle.resume() {
+                warn!("Co resume failed in ready(): {:?}", reason);
+                let inn = self.inn.borrow();
+                inn.coroutine.borrow_mut().state = State::Finished;
+                inn.coroutine.borrow_mut().blocked_on.clear_all();
+            }
         }
 
         let coroutine = {
@@ -525,6 +623,7 @@ impl EventSource {
         let mut co = coroutine.borrow_mut();
 
         co.after_resume(event_loop);
+
     }
 }
 
@@ -693,6 +792,18 @@ impl MiocoHandle {
         self.coroutine.borrow_mut().registered.grow(len, false);
 
         handle
+    }
+
+    /// Create a new timer which will provide a timeout event after
+    /// `delay` milliseconds.
+    pub fn timeout(&mut self, delay: u64) -> TypedEventSource<Timer> {
+        self.wrap(Timer::new(delay))
+    }
+
+    /// Pause the current co-routine for `delay` milliseconds.
+    pub fn sleep(&mut self, delay: u64) {
+        let timeout = self.timeout(delay).index();
+        self.select_read_from(&[timeout]);
     }
 
     /// Wait till a read event is ready
@@ -888,21 +999,26 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
 /// `Server` registered in `mio::EventLoop` and implementing `mio::Handler`.
 pub struct Server {
     shared : RefServerShared,
+    tick : u32,
 }
 
 impl Server {
     fn new(shared : RefServerShared) -> Self {
         Server {
             shared: shared,
+            tick : 0,
         }
     }
 }
 
 impl mio::Handler for Server {
-    type Timeout = usize;
+    type Timeout = (Token, u32);
     type Message = Token;
 
+
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Server>, token: mio::Token, events: mio::EventSet) {
+        // TODO: move to tick()
+        self.tick += 1;
         // It's possible we got an event for a Source that was deregistered
         // by finished coroutine. In case the token is already occupied by
         // different source, we will wake it up needlessly. If it's empty, we just
@@ -915,20 +1031,61 @@ impl mio::Handler for Server {
                 return
             },
         };
-        source.ready(event_loop, token, events);
+        source.ready(event_loop, token, events, self.tick);
         trace!("Server::ready finished");
+
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Server>, msg: Self::Message) {
+        // TODO: move to tick()
+        self.tick += 1;
+
         let token = msg;
+        trace!("Server::notify(token={:?})", token);
         let mut source = match self.shared.borrow().sources.get(token) {
             Some(source) => source.clone(),
             None => {
-                trace!("Server::ready() ignored");
+                trace!("Server::notify() ignored");
                 return
             },
         };
-        source.ready(event_loop, token, EventSet::readable())
+        source.ready(event_loop, token, EventSet::readable(), self.tick);
+        trace!("Server::notify() finished");
+    }
+
+    fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
+        // TODO: move to tick()
+        self.tick += 1;
+        let (token, msg_iteration) = msg;
+        trace!("Server::timeout(token={:?}, iteration={:?})", token, msg_iteration);
+        let mut source = match self.shared.borrow().sources.get(token) {
+            Some(source) => source.clone(),
+            None => {
+                trace!("Server::timeout() ignored");
+                return
+            },
+        };
+        let (status, current_iteration) = {
+            let mut inn = source.inn.borrow_mut();
+            let timer = inn.io.as_any_mut().downcast_mut::<Timer>().unwrap();
+            let status = timer.state.borrow().status;
+            let iteration = timer.state.borrow().iteration;
+            (status, iteration)
+        };
+        let ev = if status == TimerStatus::Running && msg_iteration == current_iteration {
+                     EventSet::readable()
+                 } else {
+                     trace!("Server::timeout() not delivered for state: {:?}, iteration: {:?}"
+                           , status, current_iteration);
+                     EventSet::none()
+                 };
+        {
+            let mut inn = source.inn.borrow_mut();
+            let timer = inn.io.as_any_mut().downcast_mut::<Timer>().unwrap();
+            timer.fired();
+        }
+        source.ready(event_loop, token, ev, self.tick);
+        trace!("Server::timeout() finished");
     }
 }
 
@@ -1097,6 +1254,78 @@ where T : Reflect+'static {
 
             self.block_on(RW::Read)
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum TimerStatus  {
+    Running,
+    Stopped,
+    Done,
+    Canceled,
+}
+
+struct TimerState {
+    handle: Option<mio::Timeout>,
+    status: TimerStatus,
+    iteration: u32
+}
+
+/// A Timer is used in `select` functions to create a timeout event.
+pub struct Timer {
+    // Delay in ms
+    delay: u64,
+    // Ref to created mio Timeout after registration
+    state: RefCell<TimerState>
+}
+
+impl Timer {
+    fn new (delay: u64) -> Timer {
+        let state = TimerState { handle: None,
+                                 status: TimerStatus::Stopped,
+                                 iteration: 0};
+        Timer { delay: delay, state: RefCell::new(state) }
+    }
+
+    fn fired (&self) {
+        let mut state = self.state.borrow_mut();
+        state.status = TimerStatus::Done;
+    }
+
+    fn reset (&self) {
+        trace!("resetting timer");
+        let mut state = self.state.borrow_mut();
+        match state.status {
+            TimerStatus::Done => state.status = TimerStatus::Stopped,
+            TimerStatus::Running => state.status = TimerStatus::Canceled,
+            TimerStatus::Canceled => {},
+            TimerStatus::Stopped => {},
+        }
+        state.iteration += 1;
+    }
+}
+
+impl TypedEventSource<Timer> {
+    /// Read a timer to block on it until it is done.
+    pub fn read (&self) -> io::Result<()> {
+        let status = self.with_raw(|timer| { timer.state.borrow().status });
+        match status {
+            TimerStatus::Stopped|TimerStatus::Canceled => {
+                Err(io::Error::new(io::ErrorKind::Other, "Timer has not been registered"))
+            },
+            TimerStatus::Running => {
+                self.block_on(RW::Read);
+                self.read()
+            },
+            TimerStatus::Done => Ok(()),
+        }
+    }
+
+    /// Reset a previously used timer so that it can be used again.
+    /// Any pending notification will be ignored and a new timeout
+    /// will be created when the timer is re-registered.
+    pub fn reset (&self) {
+        self.with_raw(|timer| { timer.reset() });
     }
 }
 

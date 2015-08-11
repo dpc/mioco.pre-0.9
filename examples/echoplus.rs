@@ -20,8 +20,8 @@ fn main() {
         let addr = listend_addr();
 
         let sock = try!(TcpSocket::v4());
-        try!(sock.bind(&addr));
-        let sock = try!(sock.listen(1024));
+        sock.bind(&addr).unwrap();
+        let sock = sock.listen(1024).unwrap();
 
         println!("Starting tcp echo server on {:?}", sock.local_addr().unwrap());
 
@@ -34,13 +34,22 @@ fn main() {
                 let mut conn = mioco.wrap(conn);
 
                 let mut buf = [0u8; 1024 * 16];
+                let five = mioco.timeout(5000);
                 loop {
-                    let size = try!(conn.read(&mut buf));
-                    if size == 0 {
-                        /* eof */
-                        break;
+                    let ev = mioco.select_read_from(&[conn.index(), five.index()]);
+                    five.reset();
+                    if ev.index() == conn.index() {
+                        let size = try!(conn.read(&mut buf));
+                        if size == 0 {
+                            /* eof */
+                            break;
+                        }
+                        try!(conn.write_all(&mut buf[0..size]));
+                    } else {
+                        conn.with_raw_mut(|conn| {
+                            conn.shutdown(mio::tcp::Shutdown::Both).unwrap();
+                        });
                     }
-                    try!(conn.write_all(&mut buf[0..size]))
                 }
 
                 Ok(())
