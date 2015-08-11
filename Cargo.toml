@@ -22,7 +22,8 @@ path = "src/lib.rs"
 
 [dependencies]
 nix = "*"
-coroutine = "*"
+# TODO: switch when https://github.com/rustcc/coroutine-rs/pull/51 becomes public
+# coroutine = "*"
 log = "*"
 env_logger = "*"
 spin = "*"
@@ -38,3 +39,6 @@ git = "https://github.com/carllerche/mio"
 
 [dependencies.bit-vec]
 git = "https://github.com/dpc/bit-vec"
+
+[dependencies.coroutine]
+git = "https://github.com/rustcc/coroutine-rs.git"
