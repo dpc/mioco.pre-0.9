@@ -51,7 +51,7 @@ use bit_vec::BitVec;
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum RW {
+enum RW {
     /// Read
     Read,
     /// Write
