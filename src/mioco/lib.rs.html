@@ -1456,6 +1456,7 @@
 <span id="1414">1414</span>
 <span id="1415">1415</span>
 <span id="1416">1416</span>
+<span id="1417">1417</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -1559,7 +1560,7 @@ fn main() {
 
 <span class='doccomment'>/// Read/Write/Both</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Copy</span>, <span class='ident'>Clone</span>, <span class='ident'>Debug</span>, <span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>RW</span> {
+<span class='kw'>enum</span> <span class='ident'>RW</span> {
     <span class='doccomment'>/// Read</span>
     <span class='ident'>Read</span>,
     <span class='doccomment'>/// Write</span>
@@ -2667,6 +2668,7 @@ fn main() {
 <span class='doccomment'>/// Create a Mailbox</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Mailbox can be used to deliver notifications to handlers from anywhere:</span>
+<span class='doccomment'>///</span>
 <span class='doccomment'>/// * other coroutines,</span>
 <span class='doccomment'>/// * outside of Mioco, even a different thread.</span>
 <span class='doccomment'>///</span>
