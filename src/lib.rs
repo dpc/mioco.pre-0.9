@@ -1159,6 +1159,7 @@ impl Mioco {
 /// Create a Mailbox
 ///
 /// Mailbox can be used to deliver notifications to handlers from anywhere:
+///
 /// * other coroutines,
 /// * outside of Mioco, even a different thread.
 ///
