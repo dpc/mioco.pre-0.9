@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/bytes-b21aba8e191ae1b0/master/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `bytes/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -93,6 +93,7 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
 </pre><pre class='rust '>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>crate_name</span> <span class='op'>=</span> <span class='string'>&quot;bytes&quot;</span>]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>deny</span>(<span class='ident'>warnings</span>)]</span>
@@ -113,7 +114,8 @@
     <span class='ident'>SliceBuf</span>,
     <span class='ident'>MutSliceBuf</span>,
     <span class='ident'>Source</span>,
-    <span class='ident'>Sink</span>
+    <span class='ident'>Sink</span>,
+    <span class='ident'>Take</span>,
 };
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>str</span>::{
     <span class='ident'>ByteStr</span>,

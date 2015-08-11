@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1391' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1416' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</p>
 
 <p>Using <code>mioco</code> you can handle scalable, asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using set of synchronous-IO
@@ -109,37 +109,55 @@
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.EventSourceIndex.html'
-                               title='mioco::EventSourceIndex'>EventSourceIndex</a></td>
+                        <td><a class='struct' href='struct.Event.html'
+                               title='mioco::Event'>Event</a></td>
                         <td class='docblock short'>
-                             <p>Index identification of a <code>TypedEventSource</code> used in <code>select</code>-like operations.</p>
+                             <p>Event delivered to the coroutine</p>
 
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.LastEvent.html'
-                               title='mioco::LastEvent'>LastEvent</a></td>
+                        <td><a class='struct' href='struct.EventSource.html'
+                               title='mioco::EventSource'>EventSource</a></td>
                         <td class='docblock short'>
-                             <p>Last Event</p>
+                             <p>Event source inside a coroutine</p>
 
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.MailboxMiocoHandle.html'
-                               title='mioco::MailboxMiocoHandle'>MailboxMiocoHandle</a></td>
+                        <td><a class='struct' href='struct.EventSourceId.html'
+                               title='mioco::EventSourceId'>EventSourceId</a></td>
                         <td class='docblock short'>
-                             <p>Inside Mailbox Handle</p>
+                             <p>Id of an event source used to enumerate them</p>
 
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.MailboxOutsideHandle.html'
-                               title='mioco::MailboxOutsideHandle'>MailboxOutsideHandle</a></td>
+                        <td><a class='struct' href='struct.Handler.html'
+                               title='mioco::Handler'>Handler</a></td>
                         <td class='docblock short'>
-                             <p>Outside Mailbox Handle</p>
+                             <p>Mioco event loop <code>Handler</code></p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MailboxInnerEnd.html'
+                               title='mioco::MailboxInnerEnd'>MailboxInnerEnd</a></td>
+                        <td class='docblock short'>
+                             <p>Inner Mailbox End</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MailboxOuterEnd.html'
+                               title='mioco::MailboxOuterEnd'>MailboxOuterEnd</a></td>
+                        <td class='docblock short'>
+                             <p>Outside Mailbox End</p>
 
                         </td>
                     </tr>
@@ -148,7 +166,7 @@
                         <td><a class='struct' href='struct.Mioco.html'
                                title='mioco::Mioco'>Mioco</a></td>
                         <td class='docblock short'>
-                             <p>Mioco struct</p>
+                             <p>Mioco instance</p>
 
                         </td>
                     </tr>
@@ -157,16 +175,7 @@
                         <td><a class='struct' href='struct.MiocoHandle.html'
                                title='mioco::MiocoHandle'>MiocoHandle</a></td>
                         <td class='docblock short'>
-                             <p>Mioco Handle</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Server.html'
-                               title='mioco::Server'>Server</a></td>
-                        <td class='docblock short'>
-                             <p><code>Server</code> registered in <code>mio::EventLoop</code> and implementing <code>mio::Handler</code>.</p>
+                             <p>Mioco instance handle</p>
 
                         </td>
                     </tr>
@@ -175,16 +184,7 @@
                         <td><a class='struct' href='struct.Timer.html'
                                title='mioco::Timer'>Timer</a></td>
                         <td class='docblock short'>
-                             <p>A Timer is used in <code>select</code> functions to create a timeout event.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.TypedEventSource.html'
-                               title='mioco::TypedEventSource'>TypedEventSource</a></td>
-                        <td class='docblock short'>
-                             <p><code>mioco</code> wrapper over raw mio IO structure</p>
+                             <p>A Timer generating event after a given time</p>
 
                         </td>
                     </tr>

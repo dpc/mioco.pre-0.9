@@ -45,51 +45,51 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-4825' class='srclink' href='../src/mioco/lib.rs.html#764-766' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-4824' class='srclink' href='../src/mioco/lib.rs.html#769-771' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle {
     // some fields omitted
-}</pre><div class='docblock'><p>Mioco Handle</p>
+}</pre><div class='docblock'><p>Mioco instance handle</p>
 
-<p>Use this from withing coroutines to perform <code>mioco</code>-provided functionality</p>
+<p>Use this from withing coroutines to use Mioco-provided functionality.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a></code></h3><div class='impl-items'><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(&amp;self, f: F) <span class='where'>where F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + 'static</span></code></h4>
 <div class='docblock'><p>Create a <code>mioco</code> coroutine handler</p>
 
 <p><code>f</code> is routine handling connection. It must not use any real blocking-IO operations, only
-<code>mioco</code> provided types (<code>TypedEventSource</code>) and <code>MiocoHandle</code> functions. Otherwise <code>mioco</code>
+<code>mioco</code> provided types (<code>EventSource</code>) and <code>MiocoHandle</code> functions. Otherwise <code>mioco</code>
 cooperative scheduling can block on real blocking-IO which defeats using mioco.</p>
-</div><h4 id='method.wrap' class='method'><code>fn <a href='#method.wrap' class='fnname'>wrap</a>&lt;T: 'static&gt;(&amp;mut self, io: T) -&gt; <a class='struct' href='../mioco/struct.TypedEventSource.html' title='mioco::TypedEventSource'>TypedEventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
+</div><h4 id='method.wrap' class='method'><code>fn <a href='#method.wrap' class='fnname'>wrap</a>&lt;T: 'static&gt;(&amp;mut self, io: T) -&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Register <code>mio</code>&#39;s native io type to be used within <code>mioco</code> coroutine</p>
 
 <p>Consumes the <code>io</code>, returns a mioco wrapper over it. Use this wrapped IO
 to perform IO.</p>
-</div><h4 id='method.timeout' class='method'><code>fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self, delay: <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='struct' href='../mioco/struct.TypedEventSource.html' title='mioco::TypedEventSource'>TypedEventSource</a>&lt;<a class='struct' href='../mioco/struct.Timer.html' title='mioco::Timer'>Timer</a>&gt;</code></h4>
+</div><h4 id='method.timeout' class='method'><code>fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self, delay: <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;<a class='struct' href='../mioco/struct.Timer.html' title='mioco::Timer'>Timer</a>&gt;</code></h4>
 <div class='docblock'><p>Create a new timer which will provide a timeout event after
 <code>delay</code> milliseconds.</p>
 </div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, delay: <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>)</code></h4>
 <div class='docblock'><p>Pause the current co-routine for <code>delay</code> milliseconds.</p>
-</div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till an event is ready</p>
 
-<p>The returned value contains event type and the index id of the <code>TypedEventSource</code>.
-See <code>TypedEventSource::index()</code>.</p>
-</div><h4 id='method.select_read' class='method'><code>fn <a href='#method.select_read' class='fnname'>select_read</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+<p>The returned value contains event type and the index id of the <code>EventSource</code>.
+See <code>EventSource::index()</code>.</p>
+</div><h4 id='method.select_read' class='method'><code>fn <a href='#method.select_read' class='fnname'>select_read</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till a read event is ready</p>
 
 <p>See <code>MiocoHandle::select</code>.</p>
-</div><h4 id='method.select_write' class='method'><code>fn <a href='#method.select_write' class='fnname'>select_write</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_write' class='method'><code>fn <a href='#method.select_write' class='fnname'>select_write</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till a read event is ready.</p>
 
 <p>See <code>MiocoHandle::select</code>.</p>
-</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceIndex.html' title='mioco::EventSourceIndex'>EventSourceIndex</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till any event is ready on a set of Handles.</p>
 
-<p>See <code>TypedEventSource::index()</code>.
+<p>See <code>EventSource::index()</code>.
 See <code>MiocoHandle::select()</code>.</p>
-</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceIndex.html' title='mioco::EventSourceIndex'>EventSourceIndex</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till write event is ready on a set of Handles.</p>
 
 <p>See <code>MiocoHandle::select_from</code>.</p>
-</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceIndex.html' title='mioco::EventSourceIndex'>EventSourceIndex</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.LastEvent.html' title='mioco::LastEvent'>LastEvent</a></code></h4>
+</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, indices: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till read event is ready on a set of Handles.</p>
 
 <p>See <code>MiocoHandle::select_from</code>.</p>

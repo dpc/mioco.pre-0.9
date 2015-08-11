@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `MailboxOutsideHandle` struct in crate `mioco`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, MailboxOutsideHandle">
+    <meta name="description" content="API documentation for the Rust `MailboxOuterEnd` struct in crate `mioco`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, MailboxOuterEnd">
 
-    <title>mioco::MailboxOutsideHandle - Rust</title>
+    <title>mioco::MailboxOuterEnd - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'><a href='index.html'>mioco</a></p><script>window.sidebarCurrent = {name: 'MailboxOutsideHandle', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='index.html'>mioco</a></p><script>window.sidebarCurrent = {name: 'MailboxOuterEnd', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </section>
 
     <nav class="sub">
@@ -41,22 +41,26 @@
     </nav>
 
     <section id='main' class="content struct">
-<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>mioco</a>::<wbr><a class='struct' href=''>MailboxOutsideHandle</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>mioco</a>::<wbr><a class='struct' href=''>MailboxOuterEnd</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-7608' class='srclink' href='../src/mioco/lib.rs.html#1232-1234' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct MailboxOutsideHandle&lt;T&gt; {
+        </span><a id='src-7607' class='srclink' href='../src/mioco/lib.rs.html#1243-1245' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct MailboxOuterEnd&lt;T&gt; {
     // some fields omitted
-}</pre><div class='docblock'><p>Outside Mailbox Handle</p>
+}</pre><div class='docblock'><p>Outside Mailbox End</p>
 
 <p>Use from outside the coroutine handler.</p>
 
 <p>Create with <code>mailbox()</code></p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../mioco/struct.MailboxOutsideHandle.html' title='mioco::MailboxOutsideHandle'>MailboxOutsideHandle</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.send' class='method'><code>fn <a href='#method.send' class='fnname'>send</a>(&amp;self, t: T) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
-<div class='docblock'><p>Non-blocking send</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../mioco/struct.MailboxOuterEnd.html' title='mioco::MailboxOuterEnd'>MailboxOuterEnd</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.send' class='method'><code>fn <a href='#method.send' class='fnname'>send</a>(&amp;self, t: T) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Deliver <code>T</code> to the other end of the mailbox.</p>
 
-<p>Will deliver <code>t</code> to corespondong <code>MailboxMiocoHandle</code>.</p>
+<p>Mailbox behaves like a queue.</p>
+
+<p>This is non-blocking operation.</p>
+
+<p>See <code>EventSource&lt;MailboxInnerEnd&lt;T&gt;&gt;::recv()</code>.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
 
