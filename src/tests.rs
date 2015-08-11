@@ -59,7 +59,6 @@ fn contain_panics() {
     assert!(!*finished_ok.lock().unwrap());
 }
 
-
 #[test]
 fn contain_panics_in_subcoroutines() {
     let finished_ok = Arc::new(Mutex::new(false));
@@ -187,6 +186,73 @@ fn lots_of_event_sources() {
 
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn timer_times_out() {
+    let finished_ok_1 = Arc::new(Mutex::new(false));
+    let finished_ok_2 = Arc::new(Mutex::new(false));
+
+    let finished_ok_1_copy = finished_ok_1.clone();
+    let finished_ok_2_copy = finished_ok_2.clone();
+    start(move |mioco| {
+
+        let (reader, writer) = try!(mio::unix::pipe());
+
+        mioco.spawn(move |mioco| {
+            let reader = mioco.wrap(reader);
+            let timer = mioco.timeout(50);
+            let ev = mioco.select_read_from(&[reader.index(), timer.index()]);
+            assert_eq!(ev.index(), timer.index());
+
+            let mut lock = finished_ok_1_copy.lock().unwrap();
+            *lock = true;
+            Ok(())
+        });
+
+        mioco.spawn(move |mioco| {
+            let mut writer = mioco.wrap(writer);
+            mioco.sleep(100);
+            let _ = writer.write_all("test".as_bytes());
+
+            let mut lock = finished_ok_2_copy.lock().unwrap();
+            *lock = true;
+            Ok(())
+        });
+
+
+        Ok(())
+    });
+
+    assert!(*finished_ok_1.lock().unwrap());
+    assert!(*finished_ok_2.lock().unwrap());
+}
+
+#[test]
+fn timer_can_be_reused() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        mioco.spawn(move |mioco| {
+            let timer = mioco.timeout(50);
+
+            mioco.select_read_from(&[timer.index()]);
+            timer.reset();
+
+            mioco.select_read_from(&[timer.index()]);
+
+            let mut lock = finished_copy.lock().unwrap();
+            *lock = true;
+
+            Ok(())
+        });
 
         Ok(())
     });
