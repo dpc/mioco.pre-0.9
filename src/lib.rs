@@ -51,7 +51,7 @@ use bit_vec::BitVec;
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum RW {
+enum RW {
     /// Read
     Read,
     /// Write
@@ -1159,6 +1159,7 @@ impl Mioco {
 /// Create a Mailbox
 ///
 /// Mailbox can be used to deliver notifications to handlers from anywhere:
+///
 /// * other coroutines,
 /// * outside of Mioco, even a different thread.
 ///
