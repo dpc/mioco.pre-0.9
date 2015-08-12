@@ -102,12 +102,49 @@ impl Event {
     }
 }
 
+/// Value returned by coroutine or panic
+#[derive(Clone, Debug)]
+pub enum ExitStatus {
+    /// Coroutine panicked
+    Panic,
+    /// Coroutine returned some value
+    Exit(Arc<io::Result<()>>)
+}
+
+impl ExitStatus {
+    /// Is the `ExitStatus` a `Panic`?
+    pub fn is_panic(&self) -> bool {
+        match self {
+            &ExitStatus::Panic => true,
+            _ => false,
+        }
+    }
+}
+
 /// State of `mioco` coroutine
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 enum State {
     BlockedOn(RW),
     Running,
-    Finished,
+    Finished(ExitStatus),
+}
+
+impl State {
+    /// Is the `State` a `Finished(_)`?
+    fn is_finished(&self) -> bool {
+        match self {
+            &State::Finished(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Is the `State` `Finished(_)`?
+    fn is_running(&self) -> bool {
+        match self {
+            &State::Running => true,
+            _ => false,
+        }
+    }
 }
 
 /// Sends notify `Message` to the mioco Event Loop.
@@ -298,8 +335,10 @@ struct Coroutine {
 
     /// Newly spawned `Coroutine`-es
     children_to_start : Vec<RefCoroutine>,
-}
 
+    /// `Coroutine` will send exit status on it's finish
+    exit_notificators : Vec<MailboxOuterEnd<ExitStatus>>,
+}
 
 impl Coroutine {
     fn new(server : RefHandlerShared) -> Self {
@@ -313,6 +352,7 @@ impl Coroutine {
             server_shared: server,
             children_to_start: Vec::new(),
             last_tick: !0,
+            exit_notificators: Vec::new(),
         }
     }
 
@@ -328,15 +368,8 @@ impl Coroutine {
             };
             trace!("Resume new child coroutine");
             {
-                if let Err(reason) = handle.resume() {
-                    warn!("Co resume failed: {:?} in after_resume()", reason);
-                    let mut co = coroutine.borrow_mut();
-                    co.state = State::Finished;
-                    co.blocked_on.clear_all();
-                    co.server_shared.borrow_mut().coroutines_no -= 1;
-                    if co.server_shared.borrow().coroutines_no == 0 {
-                        event_loop.shutdown();
-                    }
+                if let Err(_) = handle.resume() {
+                    debug_assert!(coroutine.borrow().state.is_finished());
                 } else {
                     coroutine.borrow_mut().reregister(event_loop);
                 }
@@ -349,15 +382,9 @@ impl Coroutine {
     }
 
     fn reregister(&mut self, event_loop: &mut EventLoop<Handler>) {
-        if self.state == State::Finished {
+        if self.state.is_finished() {
             trace!("Coroutine: deregistering");
             self.deregister_all(event_loop);
-            let mut shared = self.server_shared.borrow_mut();
-            shared.coroutines_no -= 1;
-            if shared.coroutines_no == 0 {
-                debug!("Shutdown event loop - 0 coroutines left");
-                event_loop.shutdown();
-            }
         } else {
             self.reregister_blocked_on(event_loop)
         }
@@ -399,12 +426,50 @@ impl Coroutine {
             }
         }
 
-//        self.registered = self.blocked_on;
+        // effectively: self.registered = self.blocked_on;
         for (mut target, src) in unsafe { self.registered.storage_mut().iter_mut().zip(self.blocked_on.storage().iter()) } {
             *target = *src
         }
     }
 }
+
+struct CoroutineGuard {
+    finished : bool,
+    coroutine_ref : RefCoroutine,
+}
+
+impl CoroutineGuard {
+    fn new(coroutine : RefCoroutine) -> CoroutineGuard {
+        CoroutineGuard {
+            finished: false,
+            coroutine_ref: coroutine,
+        }
+    }
+
+    fn finish(&mut self, res : io::Result<()>) {
+        self.finished = true;
+
+        let arc_res = Arc::new(res);
+        let mut co = self.coroutine_ref.borrow_mut();
+        co.exit_notificators.iter().map(|end| end.send(ExitStatus::Exit(arc_res.clone()))).count();
+        co.state = State::Finished(ExitStatus::Exit(arc_res));
+    }
+}
+
+impl Drop for CoroutineGuard {
+    fn drop(&mut self) {
+        let mut co = self.coroutine_ref.borrow_mut();
+
+        co.server_shared.borrow_mut().coroutines_no -= 1;
+        co.blocked_on.clear_all();
+
+        if !self.finished {
+            co.state = State::Finished(ExitStatus::Panic);
+            co.exit_notificators.iter().map(|end| end.send(ExitStatus::Panic)).count();
+        }
+    }
+}
+
 
 type RefEventSourceRefShared = Rc<RefCell<EventSourceRefShared>>;
 
@@ -543,11 +608,11 @@ impl EventSourceRef {
     /// Readable event handler
     ///
     /// This corresponds to `mio::Handler::readable()`.
-    pub fn ready(&mut self
-                 , event_loop: &mut EventLoop<Handler>
-                 , token: Token
-                 , events : EventSet
-                 , tick : u32) {
+    pub fn ready(&mut self,
+                 event_loop : &mut EventLoop<Handler>,
+                 token : Token,
+                 events : EventSet,
+                 tick : u32) {
         if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
@@ -588,7 +653,7 @@ impl EventSourceRef {
                     }
                 }
             } else {
-                debug_assert!(co.state == State::Finished);
+                debug_assert!(co.state.is_finished());
                 return;
             }
         };
@@ -612,11 +677,9 @@ impl EventSourceRef {
                 coroutine_handle
             };
 
-            if let Err(reason) = handle.resume() {
-                warn!("Co resume failed in ready(): {:?}", reason);
+            if let Err(_) = handle.resume() {
                 let inn = self.inn.borrow();
-                inn.coroutine.borrow_mut().state = State::Finished;
-                inn.coroutine.borrow_mut().blocked_on.clear_all();
+                debug_assert!(inn.coroutine.borrow().state.is_finished());
             }
         }
 
@@ -740,6 +803,32 @@ fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceRefShared
     }
 }
 
+
+/// Handle to spawned coroutine
+pub struct CoroutineHandle {
+    coroutine_ref: RefCoroutine,
+}
+
+impl CoroutineHandle {
+    /// Create an exit notificator
+    pub fn exit_notificator(&self) -> MailboxInnerEnd<ExitStatus> {
+        let (outer, inner) = mailbox();
+        let mut co = self.coroutine_ref.borrow_mut();
+        let Coroutine {
+            ref state,
+            ref mut exit_notificators,
+            ..
+        } = *co;
+
+        if let &State::Finished(ref exit) = state {
+            outer.send(exit.clone()).unwrap();
+        } else {
+            exit_notificators.push(outer);
+        }
+        inner
+    }
+}
+
 impl MiocoHandle {
 
     /// Create a `mioco` coroutine handler
@@ -747,11 +836,17 @@ impl MiocoHandle {
     /// `f` is routine handling connection. It must not use any real blocking-IO operations, only
     /// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
     /// cooperative scheduling can block on real blocking-IO which defeats using mioco.
-    pub fn spawn<F>(&self, f : F)
+    pub fn spawn<F>(&self, f : F) -> CoroutineHandle
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
             let coroutine_ref = spawn_impl(f, self.coroutine.borrow().server_shared.clone());
+            let ret = CoroutineHandle {
+                coroutine_ref: coroutine_ref.clone(),
+            };
             self.coroutine.borrow_mut().children_to_start.push(coroutine_ref);
+
+            ret
         }
+
 
     /// Register `mio`'s native io type to be used within `mioco` coroutine
     ///
@@ -815,7 +910,7 @@ impl MiocoHandle {
     fn select_impl(&mut self, rw : RW) -> Event {
         self.coroutine.borrow_mut().state = State::BlockedOn(rw);
         coroutine::Coroutine::block();
-        debug_assert!(self.coroutine.borrow().state == State::Running);
+        debug_assert!(self.coroutine.borrow().state.is_running());
 
         self.coroutine.borrow().last_event
     }
@@ -987,12 +1082,14 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
             coroutine: sendref.coroutine,
         };
 
+        // Guard to perform cleanup in case of panic
+        let mut guard = CoroutineGuard::new(mioco_handle.coroutine.clone());
+
         let SendFnOnce { f } = send_f;
 
-        let _res = f(&mut mioco_handle);
+        let res = f(&mut mioco_handle);
 
-        mioco_handle.coroutine.borrow_mut().state = State::Finished;
-        mioco_handle.coroutine.borrow_mut().blocked_on.clear_all();
+        guard.finish(res);
         trace!("Coroutine: finished");
     });
 
@@ -1017,6 +1114,15 @@ impl Handler {
             tick : 0,
         }
     }
+
+    // TODO: Wait till `mio::Handler::tick()` is implemented
+    fn tick(&mut self, event_loop: &mut mio::EventLoop<Handler>) {
+        self.tick += 1;
+
+        if self.shared.borrow().coroutines_no == 0 {
+            event_loop.shutdown();
+        }
+    }
 }
 
 impl mio::Handler for Handler {
@@ -1025,8 +1131,6 @@ impl mio::Handler for Handler {
 
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
-        // TODO: move to tick()
-        self.tick += 1;
         // It's possible we got an event for a Source that was deregistered
         // by finished coroutine. In case the token is already occupied by
         // different source, we will wake it up needlessly. If it's empty, we just
@@ -1042,12 +1146,10 @@ impl mio::Handler for Handler {
         source.ready(event_loop, token, events, self.tick);
         trace!("Handler::ready finished");
 
+        self.tick(event_loop);
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
-        // TODO: move to tick()
-        self.tick += 1;
-
         let token = msg;
         trace!("Handler::notify(token={:?})", token);
         let mut source = match self.shared.borrow().sources.get(token) {
@@ -1059,11 +1161,11 @@ impl mio::Handler for Handler {
         };
         source.ready(event_loop, token, EventSet::readable(), self.tick);
         trace!("Handler::notify() finished");
+
+        self.tick(event_loop);
     }
 
     fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
-        // TODO: move to tick()
-        self.tick += 1;
         let (token, msg_iteration) = msg;
         trace!("Handler::timeout(token={:?}, iteration={:?})", token, msg_iteration);
         let mut source = match self.shared.borrow().sources.get(token) {
@@ -1094,6 +1196,8 @@ impl mio::Handler for Handler {
         }
         source.ready(event_loop, token, ev, self.tick);
         trace!("Handler::timeout() finished");
+
+        self.tick(event_loop);
     }
 }
 
@@ -1137,11 +1241,8 @@ impl Mioco {
             let coroutine_handle = coroutine_ref.borrow().handle.as_ref().map(|c| c.clone()).unwrap();
 
             trace!("Initial resume");
-            if let Err(reason) = coroutine_handle.resume() {
-                warn!("Co resume failed: {:?} in start()", reason);
-                let mut co = coroutine_ref.borrow_mut();
-                co.state = State::Finished;
-                co.blocked_on.clear_all();
+            if let Err(_) = coroutine_handle.resume() {
+                debug_assert!(coroutine_ref.borrow_mut().state.is_finished());
             }
             coroutine_ref.borrow_mut().after_resume(event_loop);
 

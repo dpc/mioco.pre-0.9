@@ -1,4 +1,4 @@
-use super::start;
+use super::{start};
 
 use std;
 use std::io::{Read, Write};
@@ -254,6 +254,90 @@ fn timer_can_be_reused() {
             Ok(())
         });
 
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn exit_notifier_simple() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        let notify = mioco.spawn(move |_| {
+            Ok(())
+        }).exit_notificator();
+
+        let mut notify = mioco.wrap(notify);
+
+        assert!(!notify.recv().unwrap().is_panic());
+
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn exit_notifier_simple_panic() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        let notify = mioco.spawn(move |_| {
+            panic!()
+        }).exit_notificator();
+
+        let mut notify = mioco.wrap(notify);
+
+        assert!(notify.recv().unwrap().is_panic());
+
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
+
+#[test]
+fn exit_notifier_wrap_after_finish() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        let handle1 = mioco.spawn(move |_| {
+            panic!()
+        });
+
+        let notify1 = handle1.exit_notificator();
+
+        let handle2 = mioco.spawn(move |mioco| {
+            let mut notify1 = mioco.wrap(notify1);
+            assert!(notify1.recv().unwrap().is_panic());
+            Ok(())
+        });
+
+        let notify2 = handle2.exit_notificator();
+        let mut notify2 = mioco.wrap(notify2);
+        assert!(!notify2.recv().unwrap().is_panic());
+
+
+        let notify1 = handle1.exit_notificator();
+        let mut notify1 = mioco.wrap(notify1);
+        assert!(notify1.recv().unwrap().is_panic());
+
+
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
         Ok(())
     });
 
