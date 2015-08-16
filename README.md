@@ -67,17 +67,17 @@ In thousands requests per second:
 |:--------|---------:|---------:|
 | `libev` | 183      | 225      |
 | `node`  | 37       | 42       |
-| `mio`   | TBD      | TBD      |
+| `mio`   | 156      | 190      |
 | `mioco` | 157      | 177      |
 
 
 Server implementation tested:
 
-* `libev` - https://github.com/dpc/benchmark-echo/blob/master/server_libev.c ;
+* `libev` - https://github.com/dpc/benchmark-echo/blob/master/server_libev.c;
    Note: this implementation "cheats", by waiting only for read events, which works
    in this particular scenario.
-* `node` - https://github.com/dpc/node-tcp-echo-server ;
-* `mio` - TBD. See: https://github.com/hjr3/mob/issues/1 ;
+* `node` - https://github.com/dpc/node-tcp-echo-server;
+* `mio` - https://github.com/dpc/mioecho; TODO: this implementation could use some help.
 * `mioco` - https://github.com/dpc/mioco/blob/master/examples/echo.rs;
 
 Benchmarks used:
