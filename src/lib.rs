@@ -252,10 +252,10 @@ impl Evented for Timer {
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, _interest : EventSet) {
         let mut state = self.state.borrow_mut();
-        trace!("register timer: {:?}:{:?}", token, state.iteration);
-        debug_assert!(state.status == TimerStatus::Stopped
+        trace!("register timer: {:?}", token);
+        debug_assert!(state.status == TimerStatus::New
                       , "register() called on timer that is already in use! ({:?})", state.status);
-        match event_loop.timeout_ms((token, state.iteration), self.delay) {
+        match event_loop.timeout_ms(token, self.delay) {
             Ok(timeout) => {
                 state.handle = Some(timeout);
                 state.status = TimerStatus::Running;
@@ -266,29 +266,10 @@ impl Evented for Timer {
         }
     }
 
-    fn reregister(&self, event_loop : &mut EventLoop<Handler>, token : Token, _interest : EventSet) {
-        trace!("enter reregister timer: {:?}", token);
-        let mut state = self.state.borrow_mut();
-        if state.status == TimerStatus::Canceled {
-            event_loop.clear_timeout(state.handle.unwrap());
-            state.status = TimerStatus::Stopped;
-        }
-        debug_assert!(state.status == TimerStatus::Stopped
-                      , "reregister() called on timer that is already in use! ({:?})", state.status);
-        match event_loop.timeout_ms((token, state.iteration), self.delay) {
-            Ok(timeout) => {
-                trace!("reregistered timer: {:?}:{:?}", token, state.iteration);
-                state.handle = Some(timeout);
-                state.status = TimerStatus::Running;
-            },
-            Err(reason)=> {
-                error!("Could not create mio::Timeout: {:?}", reason);
-            }
-        }
-    }
+    fn reregister(&self, _event_loop : &mut EventLoop<Handler>, _token : Token, _interest : EventSet) {}
 
-    fn deregister(&self, event_loop : &mut EventLoop<Handler>, _token : Token) {
-        trace!("deregister timer: {:?}", _token);
+    fn deregister(&self, event_loop : &mut EventLoop<Handler>, token : Token) {
+        trace!("deregister timer: {:?}", token);
         {
             let mut state = self.state.borrow_mut();
             if let Some(timer) = state.handle {
@@ -1126,7 +1107,7 @@ impl Handler {
 }
 
 impl mio::Handler for Handler {
-    type Timeout = (Token, u32);
+    type Timeout = Token;
     type Message = Token;
 
 
@@ -1166,8 +1147,8 @@ impl mio::Handler for Handler {
     }
 
     fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
-        let (token, msg_iteration) = msg;
-        trace!("Handler::timeout(token={:?}, iteration={:?})", token, msg_iteration);
+        let token= msg;
+        trace!("Server::timeout(token={:?}", token);
         let mut source = match self.shared.borrow().sources.get(token) {
             Some(source) => source.clone(),
             None => {
@@ -1175,18 +1156,17 @@ impl mio::Handler for Handler {
                 return
             },
         };
-        let (status, current_iteration) = {
+        let status = {
             let mut inn = source.inn.borrow_mut();
             let timer = inn.io.as_any_mut().downcast_mut::<Timer>().unwrap();
             let status = timer.state.borrow().status;
-            let iteration = timer.state.borrow().iteration;
-            (status, iteration)
+            status
         };
-        let ev = if status == TimerStatus::Running && msg_iteration == current_iteration {
+        let ev = if status == TimerStatus::Running {
                      EventSet::readable()
                  } else {
-                     trace!("Handler::timeout() not delivered for state: {:?}, iteration: {:?}"
-                           , status, current_iteration);
+                     trace!("Server::timeout() not delivered for state: {:?}"
+                           , status);
                      EventSet::none()
                  };
         {
@@ -1376,16 +1356,15 @@ where T : Reflect+'static {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum TimerStatus  {
+    New,
     Running,
-    Stopped,
     Done,
     Canceled,
 }
 
 struct TimerState {
     handle: Option<mio::Timeout>,
-    status: TimerStatus,
-    iteration: u32
+    status: TimerStatus
 }
 
 /// A Timer generating event after a given time
@@ -1404,12 +1383,10 @@ pub struct Timer {
 }
 
 impl Timer {
-    fn new(delay: u64) -> Timer {
-        let state = TimerState {
-            handle: None,
-            status: TimerStatus::Stopped,
-            iteration: 0
-        };
+    fn new (delay: u64) -> Timer {
+        let state = TimerState { handle: None,
+                                 status: TimerStatus::New,
+                               };
         Timer { delay: delay, state: RefCell::new(state) }
     }
 
@@ -1418,16 +1395,12 @@ impl Timer {
         state.status = TimerStatus::Done;
     }
 
-    fn reset (&self) {
+    fn cancel (&self) {
         trace!("resetting timer");
         let mut state = self.state.borrow_mut();
-        match state.status {
-            TimerStatus::Done => state.status = TimerStatus::Stopped,
-            TimerStatus::Running => state.status = TimerStatus::Canceled,
-            TimerStatus::Canceled => {},
-            TimerStatus::Stopped => {},
+        if state.status == TimerStatus::Running {
+            state.status = TimerStatus::Canceled;
         }
-        state.iteration += 1;
     }
 }
 
@@ -1436,7 +1409,7 @@ impl EventSource<Timer> {
     pub fn read (&self) -> io::Result<()> {
         let status = self.with_raw(|timer| { timer.state.borrow().status });
         match status {
-            TimerStatus::Stopped|TimerStatus::Canceled => {
+            TimerStatus::New|TimerStatus::Canceled => {
                 Err(io::Error::new(io::ErrorKind::Other, "Timer has not been registered"))
             },
             TimerStatus::Running => {
@@ -1451,8 +1424,8 @@ impl EventSource<Timer> {
     ///
     /// Any pending notification will be ignored and a new timeout
     /// will be created when the timer is re-registered.
-    pub fn reset (&self) {
-        self.with_raw(|timer| { timer.reset() });
+    pub fn cancel (&self) {
+        self.with_raw(|timer| { timer.cancel() });
     }
 }
 

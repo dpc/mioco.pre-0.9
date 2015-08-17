@@ -34,10 +34,9 @@ fn main() {
                 let mut conn = mioco.wrap(conn);
 
                 let mut buf = [0u8; 1024 * 16];
-                let five = mioco.timeout(5000);
                 loop {
+                    let five = mioco.timeout(5000);
                     let ev = mioco.select_read_from(&[conn.index(), five.index()]);
-                    five.reset();
                     if ev.index() == conn.index() {
                         let size = try!(conn.read(&mut buf));
                         if size == 0 {
