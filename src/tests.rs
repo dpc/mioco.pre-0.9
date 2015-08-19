@@ -234,33 +234,6 @@ fn timer_times_out() {
 }
 
 #[test]
-fn timer_can_be_reused() {
-    let finished_ok = Arc::new(Mutex::new(false));
-
-    let finished_copy = finished_ok.clone();
-    start(move |mioco| {
-
-        mioco.spawn(move |mioco| {
-            let timer = mioco.timeout(50);
-
-            mioco.select_read_from(&[timer.index()]);
-            timer.reset();
-
-            mioco.select_read_from(&[timer.index()]);
-
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-
-            Ok(())
-        });
-
-        Ok(())
-    });
-
-    assert!(*finished_ok.lock().unwrap());
-}
-
-#[test]
 fn exit_notifier_simple() {
     let finished_ok = Arc::new(Mutex::new(false));
 
