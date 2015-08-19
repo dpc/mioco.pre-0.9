@@ -26,8 +26,8 @@ log = "*"
 env_logger = "*"
 spin = "*"
 mio = "0.4.*"
+time = "*"
 
-# Use this after neccessary PRs are merged and published on crates.io
 #bit-vec = "*"
 [dependencies.bit-vec]
 git = "https://github.com/dpc/bit-vec"

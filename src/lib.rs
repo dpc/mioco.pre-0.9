@@ -33,6 +33,7 @@ extern crate nix;
 #[macro_use]
 extern crate log;
 extern crate bit_vec;
+extern crate time;
 
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -48,6 +49,8 @@ use spin::Mutex;
 use std::sync::{Arc};
 
 use bit_vec::BitVec;
+
+use time::{SteadyTime, Duration};
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -165,6 +168,11 @@ pub trait Evented : Any {
 
     /// Deregister
     fn deregister(&self, event_loop : &mut EventLoop<Handler>, token : Token);
+
+    /// Should the coroutine be resumed on event for this `EventSource<Self>`
+    fn should_resume(&self) -> bool {
+        true
+    }
 }
 
 impl<T> Evented for T
@@ -251,32 +259,33 @@ impl Evented for Timer {
     }
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, _interest : EventSet) {
-        let mut state = self.state.borrow_mut();
         trace!("register timer: {:?}", token);
-        debug_assert!(state.status == TimerStatus::New
-                      , "register() called on timer that is already in use! ({:?})", state.status);
-        match event_loop.timeout_ms(token, self.delay) {
-            Ok(timeout) => {
-                state.handle = Some(timeout);
-                state.status = TimerStatus::Running;
-            },
+        let timeout = self.timeout;
+        let now = SteadyTime::now();
+        let delay = if timeout <= now {
+            0
+        } else {
+            (timeout - now).num_milliseconds()
+        };
+
+        match event_loop.timeout_ms(token, delay as u64) {
+            Ok(_) => {},
             Err(reason)=> {
                 error!("Could not create mio::Timeout: {:?}", reason);
             }
         }
     }
 
-    fn reregister(&self, _event_loop : &mut EventLoop<Handler>, _token : Token, _interest : EventSet) {}
+    fn reregister(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+        self.register(event_loop, token, interest)
+    }
 
-    fn deregister(&self, event_loop : &mut EventLoop<Handler>, token : Token) {
+    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token) {
         trace!("deregister timer: {:?}", token);
-        {
-            let mut state = self.state.borrow_mut();
-            if let Some(timer) = state.handle {
-                event_loop.clear_timeout(timer);
-                state.handle = None
-            }
-        }
+    }
+
+    fn should_resume(&self) -> bool {
+        self.timeout <= SteadyTime::now()
     }
 }
 
@@ -630,12 +639,16 @@ impl EventSourceRef {
                     },
                     _ => {
                         co.registered.set(index, false);
-                        Some(index)
+                        if inn.io.should_resume() {
+                            Some(index)
+                        } else {
+                            None
+                        }
                     }
                 }
             } else {
                 debug_assert!(co.state.is_finished());
-                return;
+                None
             }
         };
 
@@ -763,6 +776,7 @@ where T : TryWrite+Reflect+'static {
 /// Use this from withing coroutines to use Mioco-provided functionality.
 pub struct MiocoHandle {
     coroutine : Rc<RefCell<Coroutine>>,
+    timer : Option<EventSource<Timer>>,
 }
 
 fn select_impl_set_mask_from_indices(indices : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
@@ -875,16 +889,26 @@ impl MiocoHandle {
         handle
     }
 
-    /// Create a new timer which will provide a timeout event after
-    /// `delay` milliseconds.
-    pub fn timeout(&mut self, delay: u64) -> EventSource<Timer> {
-        self.wrap(Timer::new(delay))
+    /// Get mutable reference to a timer source io for this coroutine
+    ///
+    /// Each coroutine has one internal Timer source, that will become readable
+    /// when it's timeout (see `set_timer()` ) expire.
+    pub fn timer(&mut self) -> &mut EventSource<Timer> {
+        match self.timer {
+            Some(ref mut timer) => timer,
+            None => {
+                self.timer = Some(self.wrap(Timer::new()));
+                self.timer.as_mut().unwrap()
+            }
+        }
     }
 
-    /// Pause the current co-routine for `delay` milliseconds.
-    pub fn sleep(&mut self, delay: u64) {
-        let timeout = self.timeout(delay).index();
-        self.select_read_from(&[timeout]);
+    /// Block coroutine for a given time
+    pub fn sleep(&mut self, time_ms : i64) {
+        let prev_timeout = self.timer().get_timeout_absolute();
+        self.timer().set_timeout(time_ms);
+        let _ = self.timer().read();
+        self.timer().set_timeout_absolute(prev_timeout);
     }
 
     /// Wait till a read event is ready
@@ -1061,6 +1085,7 @@ where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
         trace!("Coroutine: started");
         let mut mioco_handle = MiocoHandle {
             coroutine: sendref.coroutine,
+            timer: None,
         };
 
         // Guard to perform cleanup in case of panic
@@ -1110,7 +1135,6 @@ impl mio::Handler for Handler {
     type Timeout = Token;
     type Message = Token;
 
-
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
         // It's possible we got an event for a Source that was deregistered
         // by finished coroutine. In case the token is already occupied by
@@ -1131,53 +1155,11 @@ impl mio::Handler for Handler {
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
-        let token = msg;
-        trace!("Handler::notify(token={:?})", token);
-        let mut source = match self.shared.borrow().sources.get(token) {
-            Some(source) => source.clone(),
-            None => {
-                trace!("Handler::notify() ignored");
-                return
-            },
-        };
-        source.ready(event_loop, token, EventSet::readable(), self.tick);
-        trace!("Handler::notify() finished");
-
-        self.tick(event_loop);
+        self.ready(event_loop, msg, EventSet::readable());
     }
 
     fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
-        let token= msg;
-        trace!("Server::timeout(token={:?}", token);
-        let mut source = match self.shared.borrow().sources.get(token) {
-            Some(source) => source.clone(),
-            None => {
-                trace!("Handler::timeout() ignored");
-                return
-            },
-        };
-        let status = {
-            let mut inn = source.inn.borrow_mut();
-            let timer = inn.io.as_any_mut().downcast_mut::<Timer>().unwrap();
-            let status = timer.state.borrow().status;
-            status
-        };
-        let ev = if status == TimerStatus::Running {
-                     EventSet::readable()
-                 } else {
-                     trace!("Server::timeout() not delivered for state: {:?}"
-                           , status);
-                     EventSet::none()
-                 };
-        {
-            let mut inn = source.inn.borrow_mut();
-            let timer = inn.io.as_any_mut().downcast_mut::<Timer>().unwrap();
-            timer.is_done();
-        }
-        source.ready(event_loop, token, ev, self.tick);
-        trace!("Handler::timeout() finished");
-
-        self.tick(event_loop);
+        self.ready(event_loop, msg, EventSet::readable());
     }
 }
 
@@ -1245,7 +1227,6 @@ impl Mioco {
 /// * outside of Mioco, even a different thread.
 ///
 pub fn mailbox<T>() -> (MailboxOuterEnd<T>, MailboxInnerEnd<T>) {
-
     let shared = MailboxShared {
         token: None,
         sender: None,
@@ -1354,19 +1335,6 @@ where T : Reflect+'static {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-enum TimerStatus  {
-    New,
-    Running,
-    Done,
-    Canceled,
-}
-
-struct TimerState {
-    handle: Option<mio::Timeout>,
-    status: TimerStatus
-}
-
 /// A Timer generating event after a given time
 ///
 /// Can be used to block coroutine or to implement timeout for other `EventSource`.
@@ -1376,56 +1344,55 @@ struct TimerState {
 /// Use `MiocoHandle::select()` to wait for an event, or `read()` to block until
 /// done.
 pub struct Timer {
-    // Delay in ms
-    delay: u64,
-    // Ref to created mio Timeout after registration
-    state: RefCell<TimerState>
+    timeout: SteadyTime,
 }
 
 impl Timer {
-    fn new (delay: u64) -> Timer {
-        let state = TimerState { handle: None,
-                                 status: TimerStatus::New,
-                               };
-        Timer { delay: delay, state: RefCell::new(state) }
+    fn new() -> Timer {
+        Timer { timeout: SteadyTime::now() }
     }
 
-    fn is_done(&self) {
-        let mut state = self.state.borrow_mut();
-        state.status = TimerStatus::Done;
-    }
-
-    fn cancel (&self) {
-        trace!("resetting timer");
-        let mut state = self.state.borrow_mut();
-        if state.status == TimerStatus::Running {
-            state.status = TimerStatus::Canceled;
-        }
+    fn is_done(&self) -> bool {
+        self.timeout <= SteadyTime::now()
     }
 }
 
 impl EventSource<Timer> {
     /// Read a timer to block on it until it is done.
-    pub fn read (&self) -> io::Result<()> {
-        let status = self.with_raw(|timer| { timer.state.borrow().status });
-        match status {
-            TimerStatus::New|TimerStatus::Canceled => {
-                Err(io::Error::new(io::ErrorKind::Other, "Timer has not been registered"))
-            },
-            TimerStatus::Running => {
-                self.block_on(RW::Read);
-                self.read()
-            },
-            TimerStatus::Done => Ok(()),
+    pub fn read(&self) -> io::Result<()> {
+        loop {
+            let done = self.with_raw(|timer| { timer.is_done() });
+
+            if done {
+                break;
+            }
+
+            self.block_on(RW::Read);
         }
+        Ok(())
     }
 
-    /// Reset a previously used timer so that it can be used again.
+    /// Set timeout for the timer
     ///
-    /// Any pending notification will be ignored and a new timeout
-    /// will be created when the timer is re-registered.
-    pub fn cancel (&self) {
-        self.with_raw(|timer| { timer.cancel() });
+    /// The timeout counts from the time `set_timer` is called.
+    pub fn set_timeout(&mut self, delay_ms : i64) {
+        self.with_raw_mut(
+            |timer|
+            timer.timeout = SteadyTime::now() + Duration::milliseconds(delay_ms)
+            );
+    }
+
+    fn set_timeout_absolute(&mut self, timeout : SteadyTime) {
+        self.with_raw_mut(
+            |timer| timer.timeout = timeout
+            );
+    }
+
+
+    fn get_timeout_absolute(&mut self) -> SteadyTime {
+        self.with_raw_mut(
+            |timer| timer.timeout
+            )
     }
 }
 
