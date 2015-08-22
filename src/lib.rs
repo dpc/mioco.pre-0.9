@@ -866,7 +866,7 @@ impl MiocoHandle {
             _t: PhantomData,
         };
 
-        self.coroutine.borrow_mut().io.push(io.clone().downgrade());
+        self.coroutine.borrow_mut().io.push(Rc::downgrade(&io.clone()));
         let len = self.coroutine.borrow().io.len();
         trace!("setting lengths to {}", len);
         self.coroutine.borrow_mut().blocked_on.grow(len, false);
