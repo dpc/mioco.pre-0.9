@@ -46,7 +46,7 @@
                 [<span class='inner'>&#x2212;</span>]
             </a>
         </span><a id='src-197' class='srclink' href='../../../src/rand/distributions/range.rs.html#78-88' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait SampleRange {
+<pre class='rust trait'>pub trait SampleRange: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> {
     fn <a href='#tymethod.construct_range' class='fnname'>construct_range</a>(low: Self, high: Self) -&gt; <a class='struct' href='../../../rand/distributions/range/struct.Range.html' title='rand::distributions::range::Range'>Range</a>&lt;Self&gt;;
     fn <a href='#tymethod.sample_range' class='fnname'>sample_range</a>&lt;R: <a class='trait' href='../../../rand/trait.Rng.html' title='rand::Rng'>Rng</a>&gt;(r: &amp;<a class='struct' href='../../../rand/distributions/range/struct.Range.html' title='rand::distributions::range::Range'>Range</a>&lt;Self&gt;, rng: &amp;mut R) -&gt; Self;
 }</pre><div class='docblock'><p>The helper trait for types that have a sensible way to sample
@@ -64,18 +64,18 @@ a source of randomness.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.i8.html'>i8</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.i16.html'>i16</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.isize.html'>isize</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.f32.html'>f32</a></code></li>
-<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='http://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></li>
+    <li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.i8.html'>i8</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.i16.html'>i16</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.isize.html'>isize</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.f32.html'>f32</a></code></li>
+<li><code>impl <a class='trait' href='../../../rand/distributions/range/trait.SampleRange.html' title='rand::distributions::range::SampleRange'>SampleRange</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a></code></li>
 </ul><script type="text/javascript" async
                               src="../../../implementors/rand/distributions/range/trait.SampleRange.js">
                       </script></section>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-75006fe295376f74/master/src/io.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/mio-0.4.2/src/io.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>io.rs.html -- source</title>
@@ -134,7 +134,7 @@
 <span id="92">92</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>EventSet</span>, <span class='ident'>Selector</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Token</span>};
-<span class='kw'>use</span> <span class='ident'>bytes</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
+<span class='kw'>use</span> <span class='ident'>buf</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
 
 <span class='comment'>// Re-export the io::Result / Error types for convenience</span>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='ident'>Read</span>, <span class='ident'>Write</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>Error</span>};
@@ -160,7 +160,7 @@
         <span class='comment'>// If your protocol is msg based (instead of continuous stream) you should</span>
         <span class='comment'>// ensure that your buffer is large enough to hold an entire segment (1532 bytes if not jumbo</span>
         <span class='comment'>// frames)</span>
-        <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>(<span class='kw'>unsafe</span> { <span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>() });
+        <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>(<span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>());
 
         <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>cnt</span>)) <span class='op'>=</span> <span class='ident'>res</span> {
             <span class='ident'>buf</span>.<span class='ident'>advance</span>(<span class='ident'>cnt</span>);

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `spinlock-rs/src/mutex.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/spin-0.3.2/src/mutex.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mutex.rs.html -- source</title>
@@ -267,6 +267,13 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicBool</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_BOOL_INIT</span>};
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>cell</span>::<span class='ident'>UnsafeCell</span>;
@@ -274,6 +281,7 @@
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>ops</span>::{<span class='ident'>Drop</span>, <span class='ident'>Deref</span>, <span class='ident'>DerefMut</span>};
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>fmt</span>;
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>option</span>::<span class='prelude-ty'>Option</span>::{<span class='self'>self</span>, <span class='prelude-val'>None</span>, <span class='prelude-val'>Some</span>};
+<span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>default</span>::<span class='ident'>Default</span>;
 
 <span class='doccomment'>/// This type provides MUTual EXclusion based on spinning.</span>
 <span class='doccomment'>///</span>
@@ -450,6 +458,12 @@
             <span class='prelude-val'>Some</span>(<span class='ident'>guard</span>) <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Mutex {{ data: {:?} }}&quot;</span>, <span class='kw-2'>&amp;</span><span class='op'>*</span><span class='ident'>guard</span>),
             <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Mutex {{ &lt;locked&gt; }}&quot;</span>),
         }
+    }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>Default</span><span class='op'>&gt;</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+        <span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='ident'>Default</span>::<span class='ident'>default</span>())
     }
 }
 

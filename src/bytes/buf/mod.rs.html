@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `bytes/src/buf/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/bytes-0.2.11/src/buf/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -578,9 +578,7 @@
 
     <span class='doccomment'>/// Returns a mutable slice starting at the current MutBuf position and of</span>
     <span class='doccomment'>/// length between 0 and `MutBuf::remaining()`.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The returned byte slice may represent uninitialized memory.</span>
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>mut_bytes</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>u8</span>];
+    <span class='kw'>fn</span> <span class='ident'>mut_bytes</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>u8</span>];
 
     <span class='doccomment'>/// Write bytes from the given slice into the `MutBuf` and advance the</span>
     <span class='doccomment'>/// cursor by the number of bytes written.</span>
@@ -746,7 +744,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>cnt</span> <span class='op'>=</span> <span class='number'>0</span>;
 
         <span class='kw'>while</span> <span class='ident'>buf</span>.<span class='ident'>has_remaining</span>() {
-            <span class='kw'>let</span> <span class='ident'>i</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>read</span>(<span class='kw'>unsafe</span> { <span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>() }));
+            <span class='kw'>let</span> <span class='ident'>i</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>read</span>(<span class='ident'>buf</span>.<span class='ident'>mut_bytes</span>()));
 
             <span class='kw'>if</span> <span class='ident'>i</span> <span class='op'>==</span> <span class='number'>0</span> {
                 <span class='kw'>break</span>;
@@ -827,7 +825,7 @@
         }
     }
 
-    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>mut_bytes</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>] {
+    <span class='kw'>fn</span> <span class='ident'>mut_bytes</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>] {
         <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>slice</span>;
 
         <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>capacity</span>() <span class='op'>==</span> <span class='self'>self</span>.<span class='ident'>len</span>() {
@@ -837,8 +835,10 @@
         <span class='kw'>let</span> <span class='ident'>cap</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>capacity</span>();
         <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span>();
 
-        <span class='kw'>let</span> <span class='ident'>ptr</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>as_mut_ptr</span>();
-        <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>slice</span>::<span class='ident'>from_raw_parts_mut</span>(<span class='ident'>ptr</span>, <span class='ident'>cap</span>)[<span class='ident'>len</span>..]
+        <span class='kw'>unsafe</span> {
+            <span class='kw'>let</span> <span class='ident'>ptr</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>as_mut_ptr</span>();
+            <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>slice</span>::<span class='ident'>from_raw_parts_mut</span>(<span class='ident'>ptr</span>, <span class='ident'>cap</span>)[<span class='ident'>len</span>..]
+        }
     }
 }
 

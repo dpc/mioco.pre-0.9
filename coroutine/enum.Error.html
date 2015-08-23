@@ -45,19 +45,19 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3640' class='srclink' href='../src/coroutine/lib.rs.html#122-134' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-3650' class='srclink' href='../src/coroutine/lib.rs.html#122-134' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum Error {
     Finished,
     Waiting,
     Panicked,
-    Panicking(<a class='struct' href='http://doc.rust-lang.org/nightly/thunk/alloc/boxed/struct.Box.html' title='thunk::alloc::boxed::Box'>Box</a>&lt;<a class='trait' href='http://doc.rust-lang.org/nightly/thunk/core/any/trait.Any.html' title='thunk::core::any::Any'>Any</a> + <a class='trait' href='http://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a>&gt;),
+    Panicking(<a class='struct' href='https://doc.rust-lang.org/nightly/thunk/alloc/boxed/struct.Box.html' title='thunk::alloc::boxed::Box'>Box</a>&lt;<a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/any/trait.Any.html' title='thunk::core::any::Any'>Any</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a>&gt;),
 }</pre><div class='docblock'><p>Resume Error</p>
 </div><h2 class='variants'>Variants</h2>
 <table><tr><td id='variant.Finished'><code>Finished</code></td><td><div class='docblock'><p>Coroutine is already finished</p>
 </div></td></tr><tr><td id='variant.Waiting'><code>Waiting</code></td><td><div class='docblock'><p>Coroutine is waiting for its child to yield (state is Normal)</p>
 </div></td></tr><tr><td id='variant.Panicked'><code>Panicked</code></td><td><div class='docblock'><p>Coroutine is panicked</p>
 </div></td></tr><tr><td id='variant.Panicking'><code>Panicking</code></td><td><div class='docblock'><p>Coroutine is panicking, carry with the parameter of <code>panic!()</code></p>
-</div></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html' title='thunk::core::fmt::Debug'>Debug</a> for <a class='enum' href='../coroutine/enum.Error.html' title='coroutine::Error'>Error</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='http://doc.rust-lang.org/nightly/thunk/core/fmt/struct.Formatter.html' title='thunk::core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/thunk/core/fmt/type.Result.html' title='thunk::core::fmt::Result'>Result</a></code></h4>
+</div></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html' title='thunk::core::fmt::Debug'>Debug</a> for <a class='enum' href='../coroutine/enum.Error.html' title='coroutine::Error'>Error</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/struct.Formatter.html' title='thunk::core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/type.Result.html' title='thunk::core::fmt::Result'>Result</a></code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

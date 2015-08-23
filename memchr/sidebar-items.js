@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["memchr","A safe interface to `memchr`."]]});
+initSidebarItems({"fn":[["memchr","A safe interface to `memchr`."],["memrchr","A safe interface to `memrchr`."]]});
