@@ -49,8 +49,13 @@ Note: You must be using [nightly Rust][nightly rust] release. If you're using
 [multirust][multirust], which is highly recommended, switch with `multirust default
 nightly` command.
 
-    cargo build --release
-    make echo
+To start test echo server:
+
+    cargo run --release --example echo
+
+For daily work:
+
+    make all
 
 [nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
 [multirust]: https://github.com/brson/multirust
