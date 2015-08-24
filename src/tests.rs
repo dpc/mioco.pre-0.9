@@ -4,6 +4,8 @@ use std;
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
+use time::{SteadyTime, Duration};
+
 use mio;
 
 #[test]
@@ -206,9 +208,10 @@ fn timer_times_out() {
 
         mioco.spawn(move |mioco| {
             let reader = mioco.wrap(reader);
-            let timer = mioco.timeout(50);
-            let ev = mioco.select_read_from(&[reader.index(), timer.index()]);
-            assert_eq!(ev.index(), timer.index());
+            let timer_id = mioco.timer().index();
+            mioco.timer().set_timeout(50);
+            let ev = mioco.select_read_from(&[reader.index(), timer_id]);
+            assert_eq!(ev.index(), timer_id);
 
             let mut lock = finished_ok_1_copy.lock().unwrap();
             *lock = true;
@@ -217,7 +220,9 @@ fn timer_times_out() {
 
         mioco.spawn(move |mioco| {
             let mut writer = mioco.wrap(writer);
+            let timer_id = mioco.timer().index();
             mioco.sleep(100);
+            let _ = mioco.select_read_from(&[timer_id]);
             let _ = writer.write_all("test".as_bytes());
 
             let mut lock = finished_ok_2_copy.lock().unwrap();
@@ -232,6 +237,57 @@ fn timer_times_out() {
     assert!(*finished_ok_1.lock().unwrap());
     assert!(*finished_ok_2.lock().unwrap());
 }
+
+#[test]
+fn timer_default_timeout() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_ok_copy = finished_ok.clone();
+    start(move |mioco| {
+
+        mioco.spawn(move |mioco| {
+            let timer_id = mioco.timer().index();
+            let ev = mioco.select_read_from(&[timer_id]);
+            assert_eq!(ev.index(), timer_id);
+
+            let mut lock = finished_ok_copy.lock().unwrap();
+            *lock = true;
+            Ok(())
+        });
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn sleep_takes_time() {
+    let starting_time = SteadyTime::now();
+
+    start(move |mioco| {
+        mioco.sleep(500); Ok(())
+    });
+
+    assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+}
+
+#[test]
+fn timer_select_takes_time() {
+    let starting_time = SteadyTime::now();
+
+    start(move |mioco| {
+        let timer_id = mioco.timer().index();
+        mioco.timer().set_timeout(500);
+        let ev = mioco.select_read_from(&[timer_id]);
+        assert_eq!(mioco.timer().index(), ev.index());
+        Ok(())
+    });
+
+    assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+}
+
+
 
 #[test]
 fn exit_notifier_simple() {
