@@ -12,8 +12,14 @@
 //! [green threads]: https://en.wikipedia.org/wiki/Green_threads
 //! [mio]: https://github.com/carllerche/mio
 //!
-//! See `examples/echo.rs` for an example TCP echo server.
+//! Features:
 //!
+//! * generally all types that `mio` supports can be used directly (see `MiocoHandle::wrap()`);
+//! * timers (see `MiocoHandle::timer()`;
+//! * mailboxes (see `mailbox()`
+//! * coroutine exit notification (see `CoroutineHandle`)
+//!
+//! See `examples/echo.rs` for an example TCP echo server.
 /*!
 ```
 // MAKE_DOC_REPLACEME
