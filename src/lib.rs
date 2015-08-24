@@ -1126,20 +1126,19 @@ impl Handler {
             tick : 0,
         }
     }
+}
 
-    // TODO: Wait till `mio::Handler::tick()` is implemented
-    fn tick(&mut self, event_loop: &mut mio::EventLoop<Handler>) {
+impl mio::Handler for Handler {
+    type Timeout = Token;
+    type Message = Token;
+
+    fn tick(&mut self, event_loop: &mut mio::EventLoop<Self>) {
         self.tick += 1;
 
         if self.shared.borrow().coroutines_no == 0 {
             event_loop.shutdown();
         }
     }
-}
-
-impl mio::Handler for Handler {
-    type Timeout = Token;
-    type Message = Token;
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
         // It's possible we got an event for a Source that was deregistered
@@ -1156,8 +1155,6 @@ impl mio::Handler for Handler {
         };
         source.ready(event_loop, token, events, self.tick);
         trace!("Handler::ready finished");
-
-        self.tick(event_loop);
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {

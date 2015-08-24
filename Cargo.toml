@@ -25,8 +25,11 @@ nix = "*"
 log = "*"
 env_logger = "*"
 spin = "*"
-mio = "0.4.*"
 time = "*"
+
+# mio = "0.4.*"
+[dependencies.mio]
+git = "https://github.com/carllerche/mio/"
 
 #bit-vec = "*"
 [dependencies.bit-vec]
