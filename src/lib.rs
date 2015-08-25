@@ -90,14 +90,14 @@ impl RW {
 /// Read and/or Write + event source ID
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Event {
-    index : EventSourceId,
+    id : EventSourceId,
     rw : RW,
 }
 
 impl Event {
     /// Index of the EventSourceRefShared handle
-    pub fn index(&self) -> EventSourceId {
-        self.index
+    pub fn id(&self) -> EventSourceId {
+        self.id
     }
 
     /// Was the event a read
@@ -341,7 +341,7 @@ impl Coroutine {
         Coroutine {
             state: State::Running,
             handle: None,
-            last_event: Event{ rw: RW::Read, index: EventSourceId(0)},
+            last_event: Event{ rw: RW::Read, id: EventSourceId(0)},
             io: Vec::with_capacity(4),
             blocked_on: Default::default(),
             registered: Default::default(),
@@ -475,7 +475,7 @@ type RefEventSourceRefShared = Rc<RefCell<EventSourceRefShared>>;
 struct EventSourceRefShared {
     coroutine: RefCoroutine,
     token: Token,
-    index: usize, /// Index in MiocoHandle::handles
+    id : usize, /// Index in MiocoHandle::handles
     io : Box<Evented+'static>,
     peer_hup: bool,
     registered: bool,
@@ -568,7 +568,7 @@ where T : Reflect+'static {
             let inn = self.inn.borrow();
             inn.coroutine.borrow_mut().state = State::BlockedOn(rw);
             inn.coroutine.borrow_mut().blocked_on.clear_all();
-            inn.coroutine.borrow_mut().blocked_on.set(inn.index, true);
+            inn.coroutine.borrow_mut().blocked_on.set(inn.id, true);
         }
         trace!("coroutine blocked on {:?}", rw);
         coroutine::Coroutine::block();
@@ -576,7 +576,7 @@ where T : Reflect+'static {
             let inn = self.inn.borrow_mut();
             debug_assert!(rw.has_read() || inn.coroutine.borrow().last_event.has_write());
             debug_assert!(rw.has_write() || inn.coroutine.borrow().last_event.has_read());
-            debug_assert!(inn.coroutine.borrow().last_event.index().as_usize() == inn.index);
+            debug_assert!(inn.coroutine.borrow().last_event.id().as_usize() == inn.id);
         }
     }
 
@@ -595,8 +595,8 @@ where T : Reflect+'static {
     }
 
     /// Index identificator of a `EventSource`
-    pub fn index(&self) -> EventSourceId {
-        EventSourceId(self.inn.borrow().index)
+    pub fn id(&self) -> EventSourceId {
+        EventSourceId(self.inn.borrow().id)
     }
 }
 
@@ -614,9 +614,9 @@ impl EventSourceRef {
             inn.hup(event_loop, token);
         }
 
-        let my_index = {
+        let my_id = {
             let inn = self.inn.borrow();
-            let index = inn.index;
+            let index = inn.id;
             let mut co = inn.coroutine.borrow_mut();
             let prev_last_tick = co.last_tick;
             co.last_tick = tick;
@@ -658,7 +658,7 @@ impl EventSourceRef {
             }
         };
 
-        if let Some(my_index) = my_index {
+        if let Some(my_id) = my_id {
             // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
             let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
                 (true, true) => RW::Both,
@@ -672,7 +672,7 @@ impl EventSourceRef {
                 inn.coroutine.borrow_mut().state = State::Running;
                 inn.coroutine.borrow_mut().last_event = Event {
                     rw: event,
-                    index: EventSourceId(my_index),
+                    id: EventSourceId(my_id),
                 };
                 coroutine_handle
             };
@@ -799,7 +799,7 @@ fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceRefShared
         blocked_on.clear_all();
         for handle in handles {
             let io = handle.upgrade().unwrap();
-            blocked_on.set(io.borrow().index, true);
+            blocked_on.set(io.borrow().id, true);
         }
     }
 }
@@ -866,7 +866,7 @@ impl MiocoHandle {
                                      io: Box::new(io),
                                      token: token,
                                      peer_hup: false,
-                                     index: self.coroutine.borrow().io.len(),
+                                     id: self.coroutine.borrow().io.len(),
                                      registered: false,
                                  }
                                  )),

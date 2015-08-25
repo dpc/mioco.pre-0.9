@@ -151,7 +151,7 @@ fn lots_of_event_sources() {
 
             mioco.spawn(move |mioco| {
                 // This fake readers are not really used, they are just registered for the sake of
-                // testing if event sources registered with high index number are handled correctly
+                // testing if event sources registered with high id number are handled correctly
                 let mut readers = Vec::new();
                 let mut writers = Vec::new();
                 for _ in 0..100 {
@@ -208,10 +208,10 @@ fn timer_times_out() {
 
         mioco.spawn(move |mioco| {
             let reader = mioco.wrap(reader);
-            let timer_id = mioco.timer().index();
+            let timer_id = mioco.timer().id();
             mioco.timer().set_timeout(50);
-            let ev = mioco.select_read_from(&[reader.index(), timer_id]);
-            assert_eq!(ev.index(), timer_id);
+            let ev = mioco.select_read_from(&[reader.id(), timer_id]);
+            assert_eq!(ev.id(), timer_id);
 
             let mut lock = finished_ok_1_copy.lock().unwrap();
             *lock = true;
@@ -220,7 +220,7 @@ fn timer_times_out() {
 
         mioco.spawn(move |mioco| {
             let mut writer = mioco.wrap(writer);
-            let timer_id = mioco.timer().index();
+            let timer_id = mioco.timer().id();
             mioco.sleep(100);
             let _ = mioco.select_read_from(&[timer_id]);
             let _ = writer.write_all("test".as_bytes());
@@ -246,9 +246,9 @@ fn timer_default_timeout() {
     start(move |mioco| {
 
         mioco.spawn(move |mioco| {
-            let timer_id = mioco.timer().index();
+            let timer_id = mioco.timer().id();
             let ev = mioco.select_read_from(&[timer_id]);
-            assert_eq!(ev.index(), timer_id);
+            assert_eq!(ev.id(), timer_id);
 
             let mut lock = finished_ok_copy.lock().unwrap();
             *lock = true;
@@ -277,10 +277,10 @@ fn timer_select_takes_time() {
     let starting_time = SteadyTime::now();
 
     start(move |mioco| {
-        let timer_id = mioco.timer().index();
+        let timer_id = mioco.timer().id();
         mioco.timer().set_timeout(500);
         let ev = mioco.select_read_from(&[timer_id]);
-        assert_eq!(mioco.timer().index(), ev.index());
+        assert_eq!(mioco.timer().id(), ev.id());
         Ok(())
     });
 

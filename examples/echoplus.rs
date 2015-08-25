@@ -34,12 +34,12 @@ fn main() {
                 let mut conn = mioco.wrap(conn);
 
                 let mut buf = [0u8; 1024 * 16];
-                let timer_id = mioco.timer().index();
+                let timer_id = mioco.timer().id();
                 loop {
                     mioco.timer().set_timeout(5000);
 
-                    let ev = mioco.select_read_from(&[conn.index(), timer_id]);
-                    if ev.index() == conn.index() {
+                    let ev = mioco.select_read_from(&[conn.id(), timer_id]);
+                    if ev.id() == conn.id() {
                         let size = try!(conn.read(&mut buf));
                         if size == 0 {
                             /* eof */
