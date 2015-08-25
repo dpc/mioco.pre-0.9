@@ -45,14 +45,15 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3427' class='srclink' href='../src/mio/handler.rs.html#4-32' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait Handler {
+        </span><a id='src-3431' class='srclink' href='../src/mio/handler.rs.html#4-36' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Handler: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> {
     type Timeout;
     type Message: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>;
     fn <a href='#method.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;, token: <a class='struct' href='../mio/struct.Token.html' title='mio::Token'>Token</a>, events: <a class='struct' href='../mio/struct.EventSet.html' title='mio::EventSet'>EventSet</a>) { ... }
     fn <a href='#method.notify' class='fnname'>notify</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;, msg: Self::<a class='trait' href='../mio/trait.Handler.html' title='mio::Handler'>Message</a>) { ... }
     fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;, timeout: Self::<a class='trait' href='../mio/trait.Handler.html' title='mio::Handler'>Timeout</a>) { ... }
     fn <a href='#method.interrupted' class='fnname'>interrupted</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;) { ... }
+    fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;) { ... }
 }</pre>
             <h2 id='associated-types'>Associated Types</h2>
             <div class='methods'>
@@ -72,6 +73,7 @@ loop tick.</p>
 </div><h3 id='method.notify' class='method stab '><code>fn <a href='#method.notify' class='fnname'>notify</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;, msg: Self::<a class='trait' href='../mio/trait.Handler.html' title='mio::Handler'>Message</a>)</code></h3><div class='docblock'><p>Invoked when a message has been received via the event loop&#39;s channel.</p>
 </div><h3 id='method.timeout' class='method stab '><code>fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;, timeout: Self::<a class='trait' href='../mio/trait.Handler.html' title='mio::Handler'>Timeout</a>)</code></h3><div class='docblock'><p>Invoked when a timeout has completed.</p>
 </div><h3 id='method.interrupted' class='method stab '><code>fn <a href='#method.interrupted' class='fnname'>interrupted</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h3><div class='docblock'><p>Invoked when <code>EventLoop</code> has been interrupted by a signal interrupt.</p>
+</div><h3 id='method.tick' class='method stab '><code>fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/struct.EventLoop.html' title='mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h3><div class='docblock'><p>Invoked at the end of an event loop tick.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>

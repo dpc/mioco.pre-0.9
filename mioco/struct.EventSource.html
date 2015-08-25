@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2726' class='srclink' href='../src/mioco/lib.rs.html#588-591' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2726' class='srclink' href='../src/mioco/lib.rs.html#594-597' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct EventSource&lt;T&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Event source inside a coroutine</p>
@@ -60,7 +60,7 @@ a coroutine with <code>MiocoHandle::wrap()</code> or type-specific constructors 
 <div class='docblock'><p>Access raw mio type</p>
 </div><h4 id='method.with_raw_mut' class='method'><code>fn <a href='#method.with_raw_mut' class='fnname'>with_raw_mut</a>&lt;F, R&gt;(&amp;mut self, f: F) -&gt; R <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(&amp;mut T) -&gt; R</span></code></h4>
 <div class='docblock'><p>Access mutable raw mio type</p>
-</div><h4 id='method.index' class='method'><code>fn <a href='#method.index' class='fnname'>index</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h4>
+</div><h4 id='method.id' class='method'><code>fn <a href='#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h4>
 <div class='docblock'><p>Index identificator of a <code>EventSource</code></p>
 </div></div><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mio/io/trait.TryAccept.html' title='mio::io::TryAccept'>TryAccept</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Reflect.html' title='core::marker::Reflect'>Reflect</a> + 'static</span></code></h3><div class='impl-items'><h4 id='method.accept' class='method'><code>fn <a href='#method.accept' class='fnname'>accept</a>(&amp;self) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;T::Output&gt;</code></h4>
 <div class='docblock'><p>Block on accept</p>
