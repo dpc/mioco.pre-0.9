@@ -15,8 +15,8 @@
 //! Features:
 //!
 //! * generally all types that `mio` supports can be used directly (see `MiocoHandle::wrap()`);
-//! * timers (see `MiocoHandle::timer()`;
-//! * mailboxes (see `mailbox()`
+//! * timers (see `MiocoHandle::timer()`);
+//! * mailboxes (see `mailbox()`)
 //! * coroutine exit notification (see `CoroutineHandle`)
 //!
 //! See `examples/echo.rs` for an example TCP echo server.
