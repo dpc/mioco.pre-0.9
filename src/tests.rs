@@ -287,7 +287,23 @@ fn timer_select_takes_time() {
     assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
 }
 
+#[test]
+fn basic_timer_stress_test() {
+    start(move |mioco| {
+        for _ in 0..10 {
+            for t in 0..100 {
+                mioco.spawn(move |mioco| {
+                    mioco.sleep(t);
+                    Ok(())
+                });
 
+            }
+
+            mioco.sleep(1);
+        }
+        Ok(())
+    });
+}
 
 #[test]
 fn exit_notifier_simple() {
