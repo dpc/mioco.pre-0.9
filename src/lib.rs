@@ -451,11 +451,9 @@ impl Coroutine {
         // If there were any newly spawned child-coroutines: start them now
         for coroutine in &self.children_to_start {
             trace!("Resume new child coroutine");
-            {
-                resume(coroutine);
-                if !coroutine.borrow().state.is_finished() {
-                    coroutine.borrow_mut().reregister(event_loop);
-                }
+            resume(coroutine);
+            if !coroutine.borrow().state.is_finished() {
+                coroutine.borrow_mut().reregister(event_loop);
             }
         }
         self.children_to_start.clear();
@@ -704,7 +702,7 @@ where T : Reflect+'static {
             inn.coroutine.borrow_mut().blocked_on.set(inn.id, true);
         };
         trace!("coroutine blocked on {:?}", rw);
-        let coroutine_ref = {self.inn.borrow().coroutine.clone() };
+        let coroutine_ref = self.inn.borrow().coroutine.clone();
         block(&coroutine_ref);
         {
             let inn = self.inn.borrow_mut();
