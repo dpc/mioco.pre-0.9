@@ -620,6 +620,9 @@ impl EventSourceRef {
             let mut co = inn.coroutine.borrow_mut();
             let prev_last_tick = co.last_tick;
             co.last_tick = tick;
+
+            co.registered.set(index, false);
+
             if prev_last_tick == tick {
                 None
             } else if !co.blocked_on.get(index).unwrap() {
@@ -644,7 +647,6 @@ impl EventSourceRef {
                         None
                     },
                     _ => {
-                        co.registered.set(index, false);
                         if inn.io.should_resume() {
                             Some(index)
                         } else {
