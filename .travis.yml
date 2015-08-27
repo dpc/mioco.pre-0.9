@@ -3,6 +3,12 @@ rust:
   - nightly
 script:
   - make all
+  - make longtest
+
+env:
+  matrix:
+    -
+    - RELEASE=true
 
 notifications:
   webhooks:

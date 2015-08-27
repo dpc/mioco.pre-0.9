@@ -19,6 +19,10 @@ all: build $(EXAMPLES) test
 run test build clean:
 	cargo $@ $(CARGO_FLAGS)
 
+.PHONY: longtest
+longtest:
+	for i in `seq 100`; do cargo test $(CARGO_FLAGS) ; done
+
 .PHONY: $(EXAMPLES)
 $(EXAMPLES):
 	cargo build --example $@ $(CARGO_FLAGS)
