@@ -26,6 +26,7 @@ log = "*"
 env_logger = "*"
 spin = "*"
 time = "*"
+context = "*"
 
 # mio = "0.4.*"
 [dependencies.mio]
@@ -34,7 +35,3 @@ git = "https://github.com/carllerche/mio/"
 #bit-vec = "*"
 [dependencies.bit-vec]
 git = "https://github.com/dpc/bit-vec"
-
-#coroutine = "*"
-[dependencies.coroutine]
-git = "https://github.com/rustcc/coroutine-rs.git"
