@@ -220,9 +220,7 @@ fn timer_times_out() {
 
         mioco.spawn(move |mioco| {
             let mut writer = mioco.wrap(writer);
-            let timer_id = mioco.timer().id();
             mioco.sleep(100);
-            let _ = mioco.select_read_from(&[timer_id]);
             let _ = writer.write_all("test".as_bytes());
 
             let mut lock = finished_ok_2_copy.lock().unwrap();

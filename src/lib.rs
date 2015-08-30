@@ -1327,6 +1327,7 @@ struct MailboxShared<T> {
 /// Use from outside the coroutine handler.
 ///
 /// Create with `mailbox()`
+#[derive(Clone)]
 pub struct MailboxOuterEnd<T> {
     shared : RefMailboxShared<T>,
 }

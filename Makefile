@@ -21,7 +21,7 @@ run test build clean:
 
 .PHONY: longtest
 longtest:
-	for i in `seq 100`; do cargo test $(CARGO_FLAGS) ; done
+	for i in `seq 100`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
 
 .PHONY: $(EXAMPLES)
 $(EXAMPLES):
