@@ -4,20 +4,28 @@ DEFAULT_TARGET=build
 
 default: $(DEFAULT_TARGET)
 
+# Mostly generic part goes below
+
 ifneq ($(RELEASE),)
-CARGO_FLAGS += --release
 $(info RELEASE BUILD)
+CARGO_FLAGS += --release
+ALL_TARGETS += build test bench $(EXAMPLES)
 else
 $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
+ALL_TARGETS += build test $(EXAMPLES)
 endif
 
 EXAMPLES = echo echoplus mailbox
 
-all: build $(EXAMPLES) test
+all: $(ALL_TARGETS)
 
 .PHONY: run test build doc clean
 run test build clean:
 	cargo $@ $(CARGO_FLAGS)
+
+.PHONY: bench
+bench:
+	cargo $@ $(filter-out --release,$(CARGO_FLAGS))
 
 .PHONY: longtest
 longtest:
@@ -37,7 +45,6 @@ publishdoc: doc
 	echo '<meta http-equiv="refresh" content="0;url='${DOCS_DEFAULT_MODULE}'/index.html">' > target/doc/index.html
 	ghp-import -n target/doc
 	git push -f origin gh-pages
-
 
 .PHONY: docview
 docview: doc
