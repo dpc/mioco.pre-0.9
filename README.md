@@ -17,16 +17,17 @@
 
 ## Introduction
 
-Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).
+Scalable, asynchronous IO handling using coroutines (aka MIO COroutines).
 
-Using `mioco` you can handle scalable, asynchronous [`mio`][mio]-based IO, using set of synchronous-IO
-handling functions. Based on asynchronous [`mio`][mio] events `mioco` will cooperatively schedule your
-handlers.
+Using `mioco` you can handle [`mio`][mio]-based IO, using set of synchronous-IO
+handling functions. Based on asynchronous [`mio`][mio] events `mioco` will
+cooperatively schedule your handlers.
 
 You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.
 
-`mioco` is still very experimental, but already usable. For real-life project using
-`mioco` see [colerr][colerr].
+`mioco` is a young project, but we think it's already very useful. See
+[projects using mioco](https://github.com/dpc/mioco/wiki/Resources#projects-using-mioco). If
+you're considering or already using mioco, please drop us a line on [#mioco gitter.im][mioco gitter].
 
 Read [Documentation](//dpc.github.io/mioco/) for details.
 
@@ -60,6 +61,11 @@ For daily work:
 [nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
 [multirust]: https://github.com/brson/multirust
 
+# Projects using mioco:
+
+* [colerr][colerr] - colorize stderr;
+
+Send PR
 # Benchmarks
 
 Beware: This is very naive comparison! I tried to run it fairly,
