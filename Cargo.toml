@@ -1,9 +1,9 @@
 [package]
 name = "mioco"
-version = "0.1.0-rc1pre"
+version = "0.1.0"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
 description = "Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines)."
-keywords = ["mio", "aio", "io", "coroutine"]
+keywords = ["mio", "aio", "io", "coroutine", "async"]
 license = "MPL-2.0"
 documentation = "https://dpc.github.io/mioco/"
 homepage = "https://github.com/dpc/mioco"
@@ -27,11 +27,5 @@ env_logger = "*"
 spin = "*"
 time = "*"
 context = "*"
-
-# mio = "0.4.*"
-[dependencies.mio]
-git = "https://github.com/carllerche/mio/"
-
-#bit-vec = "*"
-[dependencies.bit-vec]
-git = "https://github.com/dpc/bit-vec"
+mio = "0.4.*"
+bit-vec = "0.4.*"

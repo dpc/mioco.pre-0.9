@@ -1,6 +1,8 @@
 // Copyright 2015 Dawid Ciężarkiewicz <dpc@dpc.pw>
 // See LICENSE-MPL2 file for more information.
 
+//! # Mioco
+//!
 //! Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).
 //!
 //! Using `mioco` you can handle scalable, asynchronous [`mio`][mio]-based IO, using set of synchronous-IO
@@ -9,22 +11,26 @@
 //!
 //! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.
 //!
-//! [green threads]: https://en.wikipedia.org/wiki/Green_threads
-//! [mio]: https://github.com/carllerche/mio
+//! # <a name="features"></a> Features:
 //!
-//! Features:
-//!
-//! * generally all types that `mio` supports can be used directly (see `MiocoHandle::wrap()`);
+//! ```norust
+//! * all `mio` types can be used (see `MiocoHandle::wrap()`);
 //! * timers (see `MiocoHandle::timer()`);
-//! * mailboxes (see `mailbox()`)
-//! * coroutine exit notification (see `CoroutineHandle`)
+//! * mailboxes (see `mailbox()`);
+//! * coroutine exit notification (see `CoroutineHandle`).
+//! ```
 //!
-//! See `examples/echo.rs` for an example TCP echo server.
+//! # <a name="example"/></a> Example:
+//!
+//! See `examples/echo.rs` for an example TCP echo server:
+//!
 /*!
 ```
 // MAKE_DOC_REPLACEME
 ```
 */
+//! [green threads]: https://en.wikipedia.org/wiki/Green_threads
+//! [mio]: https://github.com/carllerche/mio
 
 #![cfg_attr(test, feature(convert))]
 #![feature(result_expect)]
@@ -588,7 +594,8 @@ impl Drop for CoroutineGuard {
         let mut co = self.coroutine_ref.borrow_mut();
 
         co.server_shared.borrow_mut().coroutines_no -= 1;
-        co.blocked_on.clear_all();
+        // TODO: https://github.com/contain-rs/bit-vec/pulls
+        co.blocked_on.clear();
 
         if !self.finished {
             co.state = State::Finished(ExitStatus::Panic);
@@ -698,7 +705,8 @@ where T : Reflect+'static {
         {
             let inn = self.inn.borrow();
             inn.coroutine.borrow_mut().state = State::BlockedOn(rw);
-            inn.coroutine.borrow_mut().blocked_on.clear_all();
+            // TODO: https://github.com/contain-rs/bit-vec/pulls
+            inn.coroutine.borrow_mut().blocked_on.clear();
             inn.coroutine.borrow_mut().blocked_on.set(inn.id, true);
         };
         trace!("coroutine blocked on {:?}", rw);
@@ -917,7 +925,8 @@ pub struct MiocoHandle {
 
 fn select_impl_set_mask_from_indices(indices : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
     {
-        blocked_on.clear_all();
+        // TODO: https://github.com/contain-rs/bit-vec/pulls
+        blocked_on.clear();
         for &index in indices {
             blocked_on.set(index.as_usize(), true);
         }
@@ -926,7 +935,8 @@ fn select_impl_set_mask_from_indices(indices : &[EventSourceId], blocked_on : &m
 
 fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceRefShared>>], blocked_on: &mut BitVec<usize>) {
     {
-        blocked_on.clear_all();
+        // TODO: https://github.com/contain-rs/bit-vec/pulls
+        blocked_on.clear();
         for handle in handles {
             let io = handle.upgrade().unwrap();
             blocked_on.set(io.borrow().id, true);
