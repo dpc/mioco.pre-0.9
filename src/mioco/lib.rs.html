@@ -1580,13 +1580,11 @@
 <span id="1538">1538</span>
 <span id="1539">1539</span>
 <span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
 
-<span class='doccomment'>//! ## Mioco</span>
+<span class='doccomment'>//! # Mioco</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</span>
 <span class='doccomment'>//!</span>
@@ -1596,18 +1594,14 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! [green threads]: https://en.wikipedia.org/wiki/Green_threads</span>
-<span class='doccomment'>//! [mio]: https://github.com/carllerche/mio</span>
-
-<span class='doccomment'>//! ### Features: &lt;a name=&quot;features&quot;&gt;&lt;/a&gt;</span>
+<span class='doccomment'>//! # &lt;a name=&quot;features&quot;&gt;&lt;/a&gt;Features:</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! * all `mio` types can be used (see `MiocoHandle::wrap()`);</span>
 <span class='doccomment'>//! * timers (see `MiocoHandle::timer()`);</span>
 <span class='doccomment'>//! * mailboxes (see `mailbox()`);</span>
 <span class='doccomment'>//! * coroutine exit notification (see `CoroutineHandle`).</span>
 <span class='doccomment'>//!</span>
-
-<span class='doccomment'>//! ### Example:</span>
+<span class='doccomment'>//! # &lt;a name=&quot;example&quot;&gt;&lt;/a&gt;Example:</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! See `examples/echo.rs` for an example TCP echo server:</span>
 <span class='doccomment'>//!</span>
@@ -1665,6 +1659,8 @@ fn main() {
 }
 ```
 */</span>
+<span class='doccomment'>//! [green threads]: https://en.wikipedia.org/wiki/Green_threads</span>
+<span class='doccomment'>//! [mio]: https://github.com/carllerche/mio</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>test</span>, <span class='ident'>feature</span>(<span class='ident'>convert</span>))]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>result_expect</span>)]</span>
