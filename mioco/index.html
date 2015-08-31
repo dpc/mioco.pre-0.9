@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1540' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1542' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id="mioco" class='section-header'><a
                            href="#mioco">Mioco</a></h1>
@@ -57,18 +57,17 @@
 
 <p>You can think of <code>mioco</code> as of <em>Node.js for Rust</em> or <em><a href="https://en.wikipedia.org/wiki/Green_threads">green threads</a> on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a></em>.</p>
 
-<p><a name="features"/> Features:</p>
+<p># <a name="features"></a> Features:</p>
 
-<ul>
-<li>all <code>mio</code> types can be used (see <code>MiocoHandle::wrap()</code>);</li>
-<li>timers (see <code>MiocoHandle::timer()</code>);</li>
-<li>mailboxes (see <code>mailbox()</code>);</li>
-<li><p>coroutine exit notification (see <code>CoroutineHandle</code>).</p>
+<pre><code class="language-norust"> * all `mio` types can be used (see `MiocoHandle::wrap()`);
+ * timers (see `MiocoHandle::timer()`);
+ * mailboxes (see `mailbox()`);
+ * coroutine exit notification (see `CoroutineHandle`).
+</code></pre>
 
-<p><a name="example"/> Example:</p>
+<p># <a name="example"/></a> Example:</p>
 
-<p>See <code>examples/echo.rs</code> for an example TCP echo server:</p></li>
-</ul>
+<p>See <code>examples/echo.rs</code> for an example TCP echo server:</p>
 <pre class='rust rust-example-rendered'>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mio</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mioco</span>;
