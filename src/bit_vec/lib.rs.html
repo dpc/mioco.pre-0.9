@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/bit-vec-a050e593b22dde23/master/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/bit-vec-0.4.1/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -2224,12 +2224,6 @@
 <span id="2182">2182</span>
 <span id="2183">2183</span>
 <span id="2184">2184</span>
-<span id="2185">2185</span>
-<span id="2186">2186</span>
-<span id="2187">2187</span>
-<span id="2188">2188</span>
-<span id="2189">2189</span>
-<span id="2190">2190</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
@@ -2419,7 +2413,7 @@
 <span class='doccomment'>/// println!(&quot;total bits set to true: {}&quot;, bv.iter().filter(|x| *x).count());</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// // reset bitvector to empty</span>
-<span class='doccomment'>/// bv.clear_all();</span>
+<span class='doccomment'>/// bv.clear();</span>
 <span class='doccomment'>/// println!(&quot;{:?}&quot;, bv);</span>
 <span class='doccomment'>/// println!(&quot;total bits set to true: {}&quot;, bv.iter().filter(|x| *x).count());</span>
 <span class='doccomment'>/// ```</span>
@@ -3298,14 +3292,8 @@
 
     <span class='doccomment'>/// Clears all bits in this vector.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>clear_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
-        <span class='kw'>for</span> <span class='ident'>w</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>storage</span> { <span class='op'>*</span><span class='ident'>w</span> <span class='op'>=</span> <span class='ident'>B</span>::<span class='ident'>zero</span>(); }
-    }
-
-    <span class='doccomment'>/// Set the size to zero</span>
-    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>clear</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
-        <span class='self'>self</span>.<span class='ident'>storage</span>.<span class='ident'>clear</span>()
+        <span class='kw'>for</span> <span class='ident'>w</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>storage</span> { <span class='op'>*</span><span class='ident'>w</span> <span class='op'>=</span> <span class='ident'>B</span>::<span class='ident'>zero</span>(); }
     }
 }
 
@@ -3961,7 +3949,7 @@
     <span class='kw'>fn</span> <span class='ident'>test_small_clear</span>() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>14</span>, <span class='boolval'>true</span>);
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>b</span>.<span class='ident'>none</span>() <span class='op'>&amp;&amp;</span> <span class='ident'>b</span>.<span class='ident'>all</span>());
-        <span class='ident'>b</span>.<span class='ident'>clear_all</span>();
+        <span class='ident'>b</span>.<span class='ident'>clear</span>();
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>b</span>.<span class='ident'>none</span>() <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ident'>b</span>.<span class='ident'>all</span>());
     }
 
@@ -3969,7 +3957,7 @@
     <span class='kw'>fn</span> <span class='ident'>test_big_clear</span>() {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>140</span>, <span class='boolval'>true</span>);
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>b</span>.<span class='ident'>none</span>() <span class='op'>&amp;&amp;</span> <span class='ident'>b</span>.<span class='ident'>all</span>());
-        <span class='ident'>b</span>.<span class='ident'>clear_all</span>();
+        <span class='ident'>b</span>.<span class='ident'>clear</span>();
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>b</span>.<span class='ident'>none</span>() <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ident'>b</span>.<span class='ident'>all</span>());
     }
 

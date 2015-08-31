@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.3.9/src/unistd.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.0/src/unistd.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>unistd.rs.html -- source</title>
@@ -413,6 +413,36 @@
 <span id="371">371</span>
 <span id="372">372</span>
 <span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Standard symbolic constants and types</span>
 <span class='doccomment'>//!</span>
@@ -421,7 +451,7 @@
 <span class='kw'>use</span> <span class='ident'>fcntl</span>::{<span class='ident'>fcntl</span>, <span class='ident'>OFlag</span>, <span class='ident'>O_NONBLOCK</span>, <span class='ident'>O_CLOEXEC</span>, <span class='ident'>FD_CLOEXEC</span>};
 <span class='kw'>use</span> <span class='ident'>fcntl</span>::<span class='ident'>FcntlArg</span>::{<span class='ident'>F_SETFD</span>, <span class='ident'>F_SETFL</span>};
 <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_char</span>, <span class='ident'>c_void</span>, <span class='ident'>c_int</span>, <span class='ident'>size_t</span>, <span class='ident'>pid_t</span>, <span class='ident'>off_t</span>};
-<span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>mem</span>, <span class='ident'>ptr</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ffi</span>::<span class='ident'>CString</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::<span class='ident'>RawFd</span>;
 
@@ -443,9 +473,19 @@
         <span class='comment'>// doc: http://man7.org/linux/man-pages/man2/chdir.2.html</span>
         <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>chdir</span>(<span class='ident'>path</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>) <span class='op'>-&gt;</span> <span class='ident'>c_int</span>;
 
+        <span class='comment'>// Execute PATH with arguments ARGV and environment from `environ&#39;.</span>
+        <span class='comment'>// doc: http://man7.org/linux/man-pages/man3/execv.3.html</span>
+        <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execv</span> (<span class='ident'>path</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>argv</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>) <span class='op'>-&gt;</span> <span class='ident'>c_int</span>;
+
         <span class='comment'>// execute program</span>
         <span class='comment'>// doc: http://man7.org/linux/man-pages/man2/execve.2.html</span>
-        <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execve</span>(<span class='ident'>filename</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>argv</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>envp</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>) <span class='op'>-&gt;</span> <span class='ident'>c_int</span>;
+        <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execve</span>(<span class='ident'>path</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>argv</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>envp</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>) <span class='op'>-&gt;</span> <span class='ident'>c_int</span>;
+
+        <span class='comment'>// Execute FILE, searching in the `PATH&#39; environment variable if it contains</span>
+        <span class='comment'>// no slashes, with arguments ARGV and environment from `environ&#39;.</span>
+        <span class='comment'>// doc: http://man7.org/linux/man-pages/man3/execvp.3.html</span>
+        <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execvp</span>(<span class='ident'>filename</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>argv</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>) <span class='op'>-&gt;</span> <span class='ident'>c_int</span>;
+
         <span class='comment'>// doc: http://man7.org/linux/man-pages/man3/exec.3.html</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;execvpe&quot;</span>)]</span>
@@ -573,23 +613,47 @@
     <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(())
 }
 
-<span class='attribute'>#[<span class='ident'>inline</span>]</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execve</span>(<span class='ident'>filename</span>: <span class='kw-2'>&amp;</span><span class='ident'>CString</span>, <span class='ident'>args</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>], <span class='ident'>env</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+<span class='kw'>fn</span> <span class='ident'>to_exec_array</span>(<span class='ident'>args</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>]) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span> {
+    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ptr</span>;
+    <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_char</span>;
+
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>args_p</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>args</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>s</span><span class='op'>|</span> <span class='ident'>s</span>.<span class='ident'>as_ptr</span>()).<span class='ident'>collect</span>();
     <span class='ident'>args_p</span>.<span class='ident'>push</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>());
+    <span class='ident'>args_p</span>.<span class='ident'>as_ptr</span>()
+}
 
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>env_p</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>env</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>s</span><span class='op'>|</span> <span class='ident'>s</span>.<span class='ident'>as_ptr</span>()).<span class='ident'>collect</span>();
-    <span class='ident'>env_p</span>.<span class='ident'>push</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>());
+<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execv</span>(<span class='ident'>path</span>: <span class='kw-2'>&amp;</span><span class='ident'>CString</span>, <span class='ident'>argv</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>args_p</span> <span class='op'>=</span> <span class='ident'>to_exec_array</span>(<span class='ident'>argv</span>);
 
-    <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
-        <span class='ident'>ffi</span>::<span class='ident'>execve</span>(<span class='ident'>filename</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>env_p</span>.<span class='ident'>as_ptr</span>())
+    <span class='kw'>unsafe</span> {
+        <span class='ident'>ffi</span>::<span class='ident'>execv</span>(<span class='ident'>path</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>)
     };
 
-    <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>!=</span> <span class='number'>0</span> {
-        <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()));
-    }
+    <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()))
+}
 
-    <span class='macro'>unreachable</span><span class='macro'>!</span>()
+<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execve</span>(<span class='ident'>path</span>: <span class='kw-2'>&amp;</span><span class='ident'>CString</span>, <span class='ident'>args</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>], <span class='ident'>env</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>args_p</span> <span class='op'>=</span> <span class='ident'>to_exec_array</span>(<span class='ident'>args</span>);
+    <span class='kw'>let</span> <span class='ident'>env_p</span> <span class='op'>=</span> <span class='ident'>to_exec_array</span>(<span class='ident'>env</span>);
+
+    <span class='kw'>unsafe</span> {
+        <span class='ident'>ffi</span>::<span class='ident'>execve</span>(<span class='ident'>path</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>, <span class='ident'>env_p</span>)
+    };
+
+    <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()))
+}
+
+<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>execvp</span>(<span class='ident'>filename</span>: <span class='kw-2'>&amp;</span><span class='ident'>CString</span>, <span class='ident'>args</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>CString</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>let</span> <span class='ident'>args_p</span> <span class='op'>=</span> <span class='ident'>to_exec_array</span>(<span class='ident'>args</span>);
+
+    <span class='kw'>unsafe</span> {
+        <span class='ident'>ffi</span>::<span class='ident'>execvp</span>(<span class='ident'>filename</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>)
+    };
+
+    <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()))
 }
 
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>daemon</span>(<span class='ident'>nochdir</span>: <span class='ident'>bool</span>, <span class='ident'>noclose</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
@@ -776,15 +840,11 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>env_p</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>env</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>s</span><span class='op'>|</span> <span class='ident'>s</span>.<span class='ident'>as_ptr</span>()).<span class='ident'>collect</span>();
         <span class='ident'>env_p</span>.<span class='ident'>push</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>());
 
-        <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
+        <span class='kw'>unsafe</span> {
             <span class='ident'>super</span>::<span class='ident'>ffi</span>::<span class='ident'>execvpe</span>(<span class='ident'>filename</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>env_p</span>.<span class='ident'>as_ptr</span>())
         };
 
-        <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>!=</span> <span class='number'>0</span> {
-            <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()));
-        }
-
-        <span class='macro'>unreachable</span><span class='macro'>!</span>()
+        <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()))
     }
 }
 </pre>

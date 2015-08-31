@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.3.9/src/sys/socket/consts.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.0/src/sys/socket/consts.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>consts.rs.html -- source</title>
@@ -330,6 +330,11 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='self'>self</span>, <span class='ident'>c_int</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>os</span>::<span class='op'>*</span>;
@@ -432,7 +437,12 @@
 <span class='comment'>// Not all of these constants exist on freebsd</span>
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
 <span class='kw'>mod</span> <span class='ident'>os</span> {
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>,
+              <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>,
+              <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span>
     <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='self'>self</span>, <span class='ident'>c_int</span>, <span class='ident'>uint8_t</span>};
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
+    <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>uint8_t</span>};
 
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>AF_UNIX</span>: <span class='ident'>c_int</span>  <span class='op'>=</span> <span class='number'>1</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>AF_LOCAL</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='ident'>AF_UNIX</span>;

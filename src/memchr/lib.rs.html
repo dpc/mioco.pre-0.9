@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/memchr-0.1.5/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/memchr-0.1.6/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -229,6 +229,214 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
 </pre><pre class='rust '>
 <span class='doccomment'>/*!
 This crate defines two functions, `memchr` and `memrchr`, which expose a safe interface
@@ -236,12 +444,12 @@ to the corresponding functions in `libc`.
 */</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>deny</span>(<span class='ident'>missing_docs</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>unused_imports</span>)]</span>
 
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
 
-<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>funcs</span>::<span class='ident'>c95</span>::<span class='ident'>string</span>;
-<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>types</span>::<span class='ident'>common</span>::<span class='ident'>c95</span>::<span class='ident'>c_void</span>;
-<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>types</span>::<span class='ident'>os</span>::<span class='ident'>arch</span>::<span class='ident'>c95</span>::{<span class='ident'>c_int</span>, <span class='ident'>size_t</span>};
+<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
+<span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>size_t</span>};
 
 <span class='doccomment'>/// A safe interface to `memchr`.</span>
 <span class='doccomment'>///</span>
@@ -263,17 +471,35 @@ to the corresponding functions in `libc`.
 <span class='doccomment'>/// assert_eq!(memchr(b&#39;k&#39;, haystack), Some(8));</span>
 <span class='doccomment'>/// ```</span>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>memchr</span>(<span class='ident'>needle</span>: <span class='ident'>u8</span>, <span class='ident'>haystack</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
-    <span class='kw'>let</span> <span class='ident'>p</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
-        <span class='ident'>string</span>::<span class='ident'>memchr</span>(
-            <span class='ident'>haystack</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>,
-            <span class='ident'>needle</span> <span class='kw'>as</span> <span class='ident'>c_int</span>,
-            <span class='ident'>haystack</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>size_t</span>)
-    };
-    <span class='kw'>if</span> <span class='ident'>p</span>.<span class='ident'>is_null</span>() {
-        <span class='prelude-val'>None</span>
-    } <span class='kw'>else</span> {
-        <span class='prelude-val'>Some</span>(<span class='ident'>p</span> <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>-</span> (<span class='ident'>haystack</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='ident'>usize</span>))
+    <span class='comment'>// libc memchr</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>),
+              <span class='ident'>not</span>(<span class='ident'>any</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>,
+                      <span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>))))]</span>
+    <span class='kw'>fn</span> <span class='ident'>memchr_specific</span>(<span class='ident'>needle</span>: <span class='ident'>u8</span>, <span class='ident'>haystack</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+        <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>memchr</span> <span class='kw'>as</span> <span class='ident'>libc_memchr</span>;
+
+        <span class='kw'>let</span> <span class='ident'>p</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
+            <span class='ident'>libc_memchr</span>(
+                <span class='ident'>haystack</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>,
+                <span class='ident'>needle</span> <span class='kw'>as</span> <span class='ident'>c_int</span>,
+                <span class='ident'>haystack</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>size_t</span>)
+        };
+        <span class='kw'>if</span> <span class='ident'>p</span>.<span class='ident'>is_null</span>() {
+            <span class='prelude-val'>None</span>
+        } <span class='kw'>else</span> {
+            <span class='prelude-val'>Some</span>(<span class='ident'>p</span> <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>-</span> (<span class='ident'>haystack</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='ident'>usize</span>))
+        }
     }
+
+    <span class='comment'>// use fallback on windows, since it&#39;s faster</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>,
+              <span class='ident'>any</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>,
+                  <span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)))]</span>
+    <span class='kw'>fn</span> <span class='ident'>memchr_specific</span>(<span class='ident'>needle</span>: <span class='ident'>u8</span>, <span class='ident'>haystack</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+        <span class='ident'>fallback</span>::<span class='ident'>memchr</span>(<span class='ident'>needle</span>, <span class='ident'>haystack</span>)
+    }
+
+    <span class='ident'>memchr_specific</span>(<span class='ident'>needle</span>, <span class='ident'>haystack</span>)
 }
 
 <span class='doccomment'>/// A safe interface to `memrchr`.</span>
@@ -310,7 +536,16 @@ to the corresponding functions in `libc`.
         }
     }
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>),
+              <span class='ident'>any</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>, <span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)))]</span>
+    <span class='kw'>fn</span> <span class='ident'>memrchr_specific</span>(<span class='ident'>needle</span>: <span class='ident'>u8</span>, <span class='ident'>haystack</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+        <span class='ident'>fallback</span>::<span class='ident'>memrchr</span>(<span class='ident'>needle</span>, <span class='ident'>haystack</span>)
+    }
+
+    <span class='comment'>// For the rare case of neither 32 bit nor 64-bit platform.</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>),
+              <span class='ident'>not</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>),
+              <span class='ident'>not</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)))]</span>
     <span class='kw'>fn</span> <span class='ident'>memrchr_specific</span>(<span class='ident'>needle</span>: <span class='ident'>u8</span>, <span class='ident'>haystack</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
         <span class='ident'>haystack</span>.<span class='ident'>iter</span>().<span class='ident'>rposition</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>b</span><span class='op'>|</span> <span class='ident'>b</span> <span class='op'>==</span> <span class='ident'>needle</span>)
     }
@@ -318,10 +553,149 @@ to the corresponding functions in `libc`.
     <span class='ident'>memrchr_specific</span>(<span class='ident'>needle</span>, <span class='ident'>haystack</span>)
 }
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>),
+          <span class='ident'>any</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>, <span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)))]</span>
+<span class='kw'>mod</span> <span class='ident'>fallback</span> {
+    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cmp</span>;
+
+    <span class='kw'>const</span> <span class='ident'>LO_U64</span>: <span class='ident'>u64</span> <span class='op'>=</span> <span class='number'>0x0101010101010101</span>;
+    <span class='kw'>const</span> <span class='ident'>HI_U64</span>: <span class='ident'>u64</span> <span class='op'>=</span> <span class='number'>0x8080808080808080</span>;
+
+    <span class='comment'>// use truncation</span>
+    <span class='kw'>const</span> <span class='ident'>LO_USIZE</span>: <span class='ident'>usize</span> <span class='op'>=</span> <span class='ident'>LO_U64</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
+    <span class='kw'>const</span> <span class='ident'>HI_USIZE</span>: <span class='ident'>usize</span> <span class='op'>=</span> <span class='ident'>HI_U64</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
+
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>)]</span>
+    <span class='kw'>const</span> <span class='ident'>USIZE_BYTES</span>: <span class='ident'>usize</span> <span class='op'>=</span> <span class='number'>4</span>;
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)]</span>
+    <span class='kw'>const</span> <span class='ident'>USIZE_BYTES</span>: <span class='ident'>usize</span> <span class='op'>=</span> <span class='number'>8</span>;
+
+    <span class='doccomment'>/// Return `true` if `x` contains any zero byte.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// From *Matters Computational*, J. Arndt</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// &quot;The idea is to subtract one from each of the bytes and then look for</span>
+    <span class='doccomment'>/// bytes where the borrow propagated all the way to the most significant</span>
+    <span class='doccomment'>/// bit.&quot;</span>
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>contains_zero_byte</span>(<span class='ident'>x</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+        <span class='ident'>x</span>.<span class='ident'>wrapping_sub</span>(<span class='ident'>LO_USIZE</span>) <span class='kw-2'>&amp;</span> <span class='op'>!</span><span class='ident'>x</span> <span class='kw-2'>&amp;</span> <span class='ident'>HI_USIZE</span> <span class='op'>!=</span> <span class='number'>0</span>
+    }
+
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>)]</span>
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>repeat_byte</span>(<span class='ident'>b</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rep</span> <span class='op'>=</span> (<span class='ident'>b</span> <span class='kw'>as</span> <span class='ident'>usize</span>) <span class='op'>&lt;&lt;</span> <span class='number'>8</span> <span class='op'>|</span> <span class='ident'>b</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
+        <span class='ident'>rep</span> <span class='op'>=</span> <span class='ident'>rep</span> <span class='op'>&lt;&lt;</span> <span class='number'>16</span> <span class='op'>|</span> <span class='ident'>rep</span>;
+        <span class='ident'>rep</span>
+    }
+
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;64&quot;</span>)]</span>
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>repeat_byte</span>(<span class='ident'>b</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rep</span> <span class='op'>=</span> (<span class='ident'>b</span> <span class='kw'>as</span> <span class='ident'>usize</span>) <span class='op'>&lt;&lt;</span> <span class='number'>8</span> <span class='op'>|</span> <span class='ident'>b</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
+        <span class='ident'>rep</span> <span class='op'>=</span> <span class='ident'>rep</span> <span class='op'>&lt;&lt;</span> <span class='number'>16</span> <span class='op'>|</span> <span class='ident'>rep</span>;
+        <span class='ident'>rep</span> <span class='op'>=</span> <span class='ident'>rep</span> <span class='op'>&lt;&lt;</span> <span class='number'>32</span> <span class='op'>|</span> <span class='ident'>rep</span>;
+        <span class='ident'>rep</span>
+    }
+
+    <span class='doccomment'>/// Return the first index matching the byte `a` in `text`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>memchr</span>(<span class='ident'>x</span>: <span class='ident'>u8</span>, <span class='ident'>text</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+        <span class='comment'>// Scan for a single byte value by reading two `usize` words at a time.</span>
+        <span class='comment'>//</span>
+        <span class='comment'>// Split `text` in three parts</span>
+        <span class='comment'>// - unaligned inital part, before the first word aligned address in text</span>
+        <span class='comment'>// - body, scan by 2 words at a time</span>
+        <span class='comment'>// - the last remaining part, &lt; 2 word size</span>
+        <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>text</span>.<span class='ident'>len</span>();
+        <span class='kw'>let</span> <span class='ident'>ptr</span> <span class='op'>=</span> <span class='ident'>text</span>.<span class='ident'>as_ptr</span>();
+
+        <span class='comment'>// search up to an aligned boundary</span>
+        <span class='kw'>let</span> <span class='ident'>align</span> <span class='op'>=</span> (<span class='ident'>ptr</span> <span class='kw'>as</span> <span class='ident'>usize</span>) <span class='kw-2'>&amp;</span> (<span class='ident'>USIZE_BYTES</span> <span class='op'>-</span> <span class='number'>1</span>);
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>offset</span>;
+        <span class='kw'>if</span> <span class='ident'>align</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
+            <span class='ident'>offset</span> <span class='op'>=</span> <span class='ident'>cmp</span>::<span class='ident'>min</span>(<span class='ident'>USIZE_BYTES</span> <span class='op'>-</span> <span class='ident'>align</span>, <span class='ident'>len</span>);
+            <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>index</span>) <span class='op'>=</span> <span class='ident'>text</span>[..<span class='ident'>offset</span>].<span class='ident'>iter</span>().<span class='ident'>position</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>x</span>) {
+                <span class='kw'>return</span> <span class='prelude-val'>Some</span>(<span class='ident'>index</span>);
+            }
+        } <span class='kw'>else</span> {
+            <span class='ident'>offset</span> <span class='op'>=</span> <span class='number'>0</span>;
+        }
+
+        <span class='comment'>// search the body of the text</span>
+        <span class='kw'>let</span> <span class='ident'>repeated_x</span> <span class='op'>=</span> <span class='ident'>repeat_byte</span>(<span class='ident'>x</span>);
+
+        <span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&gt;=</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>USIZE_BYTES</span> {
+            <span class='kw'>while</span> <span class='ident'>offset</span> <span class='op'>&lt;=</span> <span class='ident'>len</span> <span class='op'>-</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>USIZE_BYTES</span> {
+                <span class='kw'>unsafe</span> {
+                    <span class='kw'>let</span> <span class='ident'>u</span> <span class='op'>=</span> <span class='op'>*</span>(<span class='ident'>ptr</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>);
+                    <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='op'>*</span>(<span class='ident'>ptr</span>.<span class='ident'>offset</span>((<span class='ident'>offset</span> <span class='op'>+</span> <span class='ident'>USIZE_BYTES</span>) <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>);
+
+                    <span class='comment'>// break if there is a matching byte</span>
+                    <span class='kw'>let</span> <span class='ident'>zu</span> <span class='op'>=</span> <span class='ident'>contains_zero_byte</span>(<span class='ident'>u</span> <span class='op'>^</span> <span class='ident'>repeated_x</span>);
+                    <span class='kw'>let</span> <span class='ident'>zv</span> <span class='op'>=</span> <span class='ident'>contains_zero_byte</span>(<span class='ident'>v</span> <span class='op'>^</span> <span class='ident'>repeated_x</span>);
+                    <span class='kw'>if</span> <span class='ident'>zu</span> <span class='op'>||</span> <span class='ident'>zv</span> {
+                        <span class='kw'>break</span>;
+                    }
+                }
+                <span class='ident'>offset</span> <span class='op'>+=</span> <span class='ident'>USIZE_BYTES</span> <span class='op'>*</span> <span class='number'>2</span>;
+            }
+        }
+
+        <span class='comment'>// find the byte after the point the body loop stopped</span>
+        <span class='ident'>text</span>[<span class='ident'>offset</span>..].<span class='ident'>iter</span>().<span class='ident'>position</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>x</span>).<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>i</span><span class='op'>|</span> <span class='ident'>offset</span> <span class='op'>+</span> <span class='ident'>i</span>)
+    }
+
+    <span class='doccomment'>/// Return the last index matching the byte `a` in `text`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>memrchr</span>(<span class='ident'>x</span>: <span class='ident'>u8</span>, <span class='ident'>text</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+        <span class='comment'>// Scan for a single byte value by reading two `usize` words at a time.</span>
+        <span class='comment'>//</span>
+        <span class='comment'>// Split `text` in three parts</span>
+        <span class='comment'>// - unaligned tail, after the last word aligned address in text</span>
+        <span class='comment'>// - body, scan by 2 words at a time</span>
+        <span class='comment'>// - the first remaining bytes, &lt; 2 word size</span>
+        <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>text</span>.<span class='ident'>len</span>();
+        <span class='kw'>let</span> <span class='ident'>ptr</span> <span class='op'>=</span> <span class='ident'>text</span>.<span class='ident'>as_ptr</span>();
+
+        <span class='comment'>// search to an aligned boundary</span>
+        <span class='kw'>let</span> <span class='ident'>end_align</span> <span class='op'>=</span> (<span class='ident'>ptr</span> <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>+</span> <span class='ident'>len</span>) <span class='kw-2'>&amp;</span> (<span class='ident'>USIZE_BYTES</span> <span class='op'>-</span> <span class='number'>1</span>);
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>offset</span>;
+        <span class='kw'>if</span> <span class='ident'>end_align</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
+            <span class='ident'>offset</span> <span class='op'>=</span> <span class='ident'>len</span> <span class='op'>-</span> <span class='ident'>cmp</span>::<span class='ident'>min</span>(<span class='ident'>USIZE_BYTES</span> <span class='op'>-</span> <span class='ident'>end_align</span>, <span class='ident'>len</span>);
+            <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>index</span>) <span class='op'>=</span> <span class='ident'>text</span>[<span class='ident'>offset</span>..].<span class='ident'>iter</span>().<span class='ident'>rposition</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>x</span>) {
+                <span class='kw'>return</span> <span class='prelude-val'>Some</span>(<span class='ident'>offset</span> <span class='op'>+</span> <span class='ident'>index</span>);
+            }
+        } <span class='kw'>else</span> {
+            <span class='ident'>offset</span> <span class='op'>=</span> <span class='ident'>len</span>;
+        }
+
+        <span class='comment'>// search the body of the text</span>
+        <span class='kw'>let</span> <span class='ident'>repeated_x</span> <span class='op'>=</span> <span class='ident'>repeat_byte</span>(<span class='ident'>x</span>);
+
+        <span class='kw'>while</span> <span class='ident'>offset</span> <span class='op'>&gt;=</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>USIZE_BYTES</span> {
+            <span class='kw'>unsafe</span> {
+                <span class='kw'>let</span> <span class='ident'>u</span> <span class='op'>=</span> <span class='op'>*</span>(<span class='ident'>ptr</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span> <span class='op'>-</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>USIZE_BYTES</span> <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>);
+                <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='op'>*</span>(<span class='ident'>ptr</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span> <span class='op'>-</span> <span class='ident'>USIZE_BYTES</span> <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>);
+
+                <span class='comment'>// break if there is a matching byte</span>
+                <span class='kw'>let</span> <span class='ident'>zu</span> <span class='op'>=</span> <span class='ident'>contains_zero_byte</span>(<span class='ident'>u</span> <span class='op'>^</span> <span class='ident'>repeated_x</span>);
+                <span class='kw'>let</span> <span class='ident'>zv</span> <span class='op'>=</span> <span class='ident'>contains_zero_byte</span>(<span class='ident'>v</span> <span class='op'>^</span> <span class='ident'>repeated_x</span>);
+                <span class='kw'>if</span> <span class='ident'>zu</span> <span class='op'>||</span> <span class='ident'>zv</span> {
+                    <span class='kw'>break</span>;
+                }
+            }
+            <span class='ident'>offset</span> <span class='op'>-=</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>USIZE_BYTES</span>;
+        }
+
+        <span class='comment'>// find the byte before the point the body loop stopped</span>
+        <span class='ident'>text</span>[..<span class='ident'>offset</span>].<span class='ident'>iter</span>().<span class='ident'>rposition</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>x</span>)
+    }
+}
+
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>ffi</span> {
-    <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>types</span>::<span class='ident'>common</span>::<span class='ident'>c95</span>::<span class='ident'>c_void</span>;
-    <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>types</span>::<span class='ident'>os</span>::<span class='ident'>arch</span>::<span class='ident'>c95</span>::{<span class='ident'>c_int</span>, <span class='ident'>size_t</span>};
+    <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
+    <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>size_t</span>};
     <span class='kw'>extern</span> {
         <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>memrchr</span>(<span class='ident'>cx</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>, <span class='ident'>c</span>: <span class='ident'>c_int</span>, <span class='ident'>n</span>: <span class='ident'>size_t</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>;
     }
@@ -417,6 +791,48 @@ to the corresponding functions in `libc`.
             <span class='ident'>memrchr</span>(<span class='ident'>needle</span>, <span class='kw-2'>&amp;</span><span class='ident'>haystack</span>); <span class='boolval'>true</span>
         }
         <span class='ident'>quickcheck</span>::<span class='ident'>quickcheck</span>(<span class='ident'>prop</span> <span class='kw'>as</span> <span class='kw'>fn</span>(<span class='ident'>u8</span>, <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span>);
+    }
+
+    <span class='attribute'>#[<span class='ident'>test</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>qc_correct_memchr</span>() {
+        <span class='kw'>fn</span> <span class='ident'>prop</span>(<span class='ident'>v</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>, <span class='ident'>offset</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+            <span class='comment'>// test all pointer alignments</span>
+            <span class='kw'>let</span> <span class='ident'>uoffset</span> <span class='op'>=</span> (<span class='ident'>offset</span> <span class='kw-2'>&amp;</span> <span class='number'>0xF</span>) <span class='kw'>as</span> <span class='ident'>usize</span>;
+            <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>uoffset</span> <span class='op'>&lt;=</span> <span class='ident'>v</span>.<span class='ident'>len</span>() {
+                <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>uoffset</span>..]
+            } <span class='kw'>else</span> {
+                <span class='kw-2'>&amp;</span><span class='ident'>v</span>[..]
+            };
+            <span class='kw'>for</span> <span class='ident'>byte</span> <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>256u32</span> {
+                <span class='kw'>let</span> <span class='ident'>byte</span> <span class='op'>=</span> <span class='ident'>byte</span> <span class='kw'>as</span> <span class='ident'>u8</span>;
+                <span class='kw'>if</span> <span class='ident'>memchr</span>(<span class='ident'>byte</span>, <span class='kw-2'>&amp;</span><span class='ident'>data</span>) <span class='op'>!=</span> <span class='ident'>data</span>.<span class='ident'>iter</span>().<span class='ident'>position</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>byte</span>) {
+                    <span class='kw'>return</span> <span class='boolval'>false</span>;
+                }
+            }
+            <span class='boolval'>true</span>
+        }
+        <span class='ident'>quickcheck</span>::<span class='ident'>quickcheck</span>(<span class='ident'>prop</span> <span class='kw'>as</span> <span class='kw'>fn</span>(<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>, <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span>);
+    }
+
+    <span class='attribute'>#[<span class='ident'>test</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>qc_correct_memrchr</span>() {
+        <span class='kw'>fn</span> <span class='ident'>prop</span>(<span class='ident'>v</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>, <span class='ident'>offset</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+            <span class='comment'>// test all pointer alignments</span>
+            <span class='kw'>let</span> <span class='ident'>uoffset</span> <span class='op'>=</span> (<span class='ident'>offset</span> <span class='kw-2'>&amp;</span> <span class='number'>0xF</span>) <span class='kw'>as</span> <span class='ident'>usize</span>;
+            <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>uoffset</span> <span class='op'>&lt;=</span> <span class='ident'>v</span>.<span class='ident'>len</span>() {
+                <span class='kw-2'>&amp;</span><span class='ident'>v</span>[<span class='ident'>uoffset</span>..]
+            } <span class='kw'>else</span> {
+                <span class='kw-2'>&amp;</span><span class='ident'>v</span>[..]
+            };
+            <span class='kw'>for</span> <span class='ident'>byte</span> <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>256u32</span> {
+                <span class='kw'>let</span> <span class='ident'>byte</span> <span class='op'>=</span> <span class='ident'>byte</span> <span class='kw'>as</span> <span class='ident'>u8</span>;
+                <span class='kw'>if</span> <span class='ident'>memrchr</span>(<span class='ident'>byte</span>, <span class='kw-2'>&amp;</span><span class='ident'>data</span>) <span class='op'>!=</span> <span class='ident'>data</span>.<span class='ident'>iter</span>().<span class='ident'>rposition</span>(<span class='op'>|</span><span class='ident'>elt</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>elt</span> <span class='op'>==</span> <span class='ident'>byte</span>) {
+                    <span class='kw'>return</span> <span class='boolval'>false</span>;
+                }
+            }
+            <span class='boolval'>true</span>
+        }
+        <span class='ident'>quickcheck</span>::<span class='ident'>quickcheck</span>(<span class='ident'>prop</span> <span class='kw'>as</span> <span class='kw'>fn</span>(<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>, <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span>);
     }
 }
 </pre>

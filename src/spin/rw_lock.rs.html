@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/spin-0.3.2/src/rw_lock.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/spin-0.3.3/src/rw_lock.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>rw_lock.rs.html -- source</title>
@@ -339,7 +339,7 @@
 <span id="297">297</span>
 <span id="298">298</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_USIZE_INIT</span>};
+<span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_USIZE_INIT</span>};
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>cell</span>::<span class='ident'>UnsafeCell</span>;
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>ops</span>::{<span class='ident'>Deref</span>, <span class='ident'>DerefMut</span>};
 <span class='kw'>use</span> <span class='ident'>core</span>::<span class='ident'>fmt</span>;

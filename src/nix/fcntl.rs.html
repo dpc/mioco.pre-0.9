@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.3.9/src/fcntl.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.0/src/fcntl.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>fcntl.rs.html -- source</title>
@@ -276,6 +276,64 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Error</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>NixPath</span>};
 <span class='kw'>use</span> <span class='ident'>errno</span>::<span class='ident'>Errno</span>;
@@ -290,6 +348,8 @@
 <span class='kw'>mod</span> <span class='ident'>ffi</span> {
     <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>open</span>, <span class='ident'>fcntl</span>};
     <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>os</span>::<span class='op'>*</span>;
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>funcs</span>::<span class='ident'>bsd44</span>::<span class='ident'>flock</span> <span class='kw'>as</span> <span class='ident'>libc_flock</span>;
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>consts</span>::<span class='ident'>os</span>::<span class='ident'>bsd44</span>::{<span class='ident'>LOCK_SH</span>, <span class='ident'>LOCK_EX</span>, <span class='ident'>LOCK_NB</span>, <span class='ident'>LOCK_UN</span>};
 
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
     <span class='kw'>mod</span> <span class='ident'>os</span> {
@@ -317,6 +377,14 @@
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SETLK</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>6</span>;
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SETLKW</span>:        <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>7</span>;
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_GETLK</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>5</span>;
+
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_ADD_SEALS</span>:     <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>1033</span>;
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_GET_SEALS</span>:     <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>1034</span>;
+
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SEAL_SEAL</span>:     <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>1</span>;
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SEAL_SHRINK</span>:   <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>2</span>;
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SEAL_GROW</span>:     <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>4</span>;
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SEAL_WRITE</span>:    <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>8</span>;
     }
 
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
@@ -375,7 +443,11 @@
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
     <span class='ident'>F_OFD_SETLKW</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>flock</span>),
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
-    <span class='ident'>F_OFD_GETLK</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>flock</span>)
+    <span class='ident'>F_OFD_GETLK</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>flock</span>),
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
+    <span class='ident'>F_ADD_SEALS</span>(<span class='ident'>SealFlag</span>),
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
+    <span class='ident'>F_GET_SEALS</span>,
 
     <span class='comment'>// TODO: Rest of flags</span>
 }
@@ -395,6 +467,10 @@
             <span class='ident'>F_SETLK</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETLK</span>, <span class='ident'>flock</span>),
             <span class='ident'>F_SETLKW</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_SETLKW</span>, <span class='ident'>flock</span>),
             <span class='ident'>F_GETLK</span>(<span class='ident'>flock</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_GETLK</span>, <span class='ident'>flock</span>),
+            <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
+            <span class='ident'>F_ADD_SEALS</span>(<span class='ident'>flag</span>) <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_ADD_SEALS</span>, <span class='ident'>flag</span>.<span class='ident'>bits</span>()),
+            <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>)]</span>
+            <span class='ident'>F_GET_SEALS</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>fcntl</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>F_GET_SEALS</span>),
             <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
             _ <span class='op'>=&gt;</span> <span class='macro'>unimplemented</span><span class='macro'>!</span>()
         }
@@ -405,6 +481,36 @@
     }
 
     <span class='prelude-val'>Ok</span>(<span class='ident'>res</span>)
+}
+
+<span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>FlockArg</span> {
+    <span class='ident'>LockShared</span>,
+    <span class='ident'>LockExclusive</span>,
+    <span class='ident'>Unlock</span>,
+    <span class='ident'>LockSharedNonblock</span>,
+    <span class='ident'>LockExclusiveNonblock</span>,
+    <span class='ident'>UnlockNonblock</span>,
+}
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flock</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>, <span class='ident'>arg</span>: <span class='ident'>FlockArg</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>FlockArg</span>::<span class='op'>*</span>;
+
+    <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
+        <span class='kw'>match</span> <span class='ident'>arg</span> {
+            <span class='ident'>LockShared</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_SH</span>),
+            <span class='ident'>LockExclusive</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_EX</span>),
+            <span class='ident'>Unlock</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_UN</span>),
+            <span class='ident'>LockSharedNonblock</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_SH</span> <span class='op'>|</span> <span class='ident'>ffi</span>::<span class='ident'>LOCK_NB</span>),
+            <span class='ident'>LockExclusiveNonblock</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_EX</span> <span class='op'>|</span> <span class='ident'>ffi</span>::<span class='ident'>LOCK_NB</span>),
+            <span class='ident'>UnlockNonblock</span> <span class='op'>=&gt;</span> <span class='ident'>ffi</span>::<span class='ident'>libc_flock</span>(<span class='ident'>fd</span>, <span class='ident'>ffi</span>::<span class='ident'>LOCK_UN</span> <span class='op'>|</span> <span class='ident'>ffi</span>::<span class='ident'>LOCK_NB</span>),
+        }
+    };
+
+    <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>&lt;</span> <span class='number'>0</span> {
+        <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()));
+    }
+
+    <span class='prelude-val'>Ok</span>(())
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
@@ -442,6 +548,16 @@
             <span class='kw'>const</span> <span class='ident'>FD_CLOEXEC</span> <span class='op'>=</span> <span class='number'>1</span>
         }
     );
+
+    <span class='macro'>bitflags</span><span class='macro'>!</span>(
+        <span class='ident'>flags</span> <span class='ident'>SealFlag</span>: <span class='ident'>c_int</span> {
+            <span class='kw'>const</span> <span class='ident'>F_SEAL_SEAL</span> <span class='op'>=</span> <span class='number'>1</span>,
+            <span class='kw'>const</span> <span class='ident'>F_SEAL_SHRINK</span> <span class='op'>=</span> <span class='number'>2</span>,
+            <span class='kw'>const</span> <span class='ident'>F_SEAL_GROW</span> <span class='op'>=</span> <span class='number'>4</span>,
+            <span class='kw'>const</span> <span class='ident'>F_SEAL_WRITE</span> <span class='op'>=</span> <span class='number'>8</span>,
+        }
+    );
+
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>))]</span>

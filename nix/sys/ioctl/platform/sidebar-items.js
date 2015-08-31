@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["ioc_dir","Extracts the \"direction\" (read/write/none) from an encoded ioctl command."],["ioc_nr","Extracts the ioctl number from an encoded ioctl command."],["ioc_size","Extracts the size from an encoded ioctl command."],["ioc_type","Extracts the type from an encoded ioctl command."]]});

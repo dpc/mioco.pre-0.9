@@ -70,7 +70,7 @@
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;total bits set to true: {}&quot;</span>, <span class='ident'>bv</span>.<span class='ident'>iter</span>().<span class='ident'>filter</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>x</span>).<span class='ident'>count</span>());
 
 <span class='comment'>// reset bitvector to empty</span>
-<span class='ident'>bv</span>.<span class='ident'>clear_all</span>();
+<span class='ident'>bv</span>.<span class='ident'>clear</span>();
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>bv</span>);
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;total bits set to true: {}&quot;</span>, <span class='ident'>bv</span>.<span class='ident'>iter</span>().<span class='ident'>filter</span>(<span class='op'>|</span><span class='ident'>x</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>x</span>).<span class='ident'>count</span>());</pre>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
@@ -454,10 +454,8 @@ element less than this amount will not trigger a resizing.</p>
 <p>Almost certainly can cause bad stuff. Only really intended for BitSet.</p>
 </div><h4 id='method.is_empty' class='method'><code>fn <a href='#method.is_empty' class='fnname'>is_empty</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns true if there are no bits in this vector</p>
-</div><h4 id='method.clear_all' class='method'><code>fn <a href='#method.clear_all' class='fnname'>clear_all</a>(&amp;mut self)</code></h4>
-<div class='docblock'><p>Clears all bits in this vector.</p>
 </div><h4 id='method.clear' class='method'><code>fn <a href='#method.clear' class='fnname'>clear</a>(&amp;mut self)</code></h4>
-<div class='docblock'><p>Set the size to zero</p>
+<div class='docblock'><p>Clears all bits in this vector.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; for <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Output' class='type'><code>type Output = <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <h4 id='method.index' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#method.index' class='fnname'>index</a>(&amp;self, i: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 </div><h3 class='impl'><code>impl&lt;B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#method.default' class='fnname'>default</a>() -&gt; Self</code></h4>

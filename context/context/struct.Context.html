@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Context` struct in crate `context`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Context">
+
+    <title>context::context::Context - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>context</a>::<wbr><a href='index.html'>context</a></p><script>window.sidebarCurrent = {name: 'Context', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>context</a>::<wbr><a href='index.html'>context</a>::<wbr><a class='struct' href=''>Context</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-18' class='srclink' href='../../src/context/context.rs.html#29-34' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Context {
+    // some fields omitted
+}</pre><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.empty' class='method'><code>fn <a href='#method.empty' class='fnname'>empty</a>() -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
+<h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;'a, F&gt;(init: <a class='type' href='../../context/context/type.InitFn.html' title='context::context::InitFn'>InitFn</a>, arg: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, start: F, stack: &amp;mut <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>) -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/ops/trait.FnOnce.html' title='thunk::core::ops::FnOnce'>FnOnce</a>() + <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a> + 'a</span></code></h4>
+<div class='docblock'><p>Create a new context that will resume execution by running start</p>
+
+<p>The <code>init</code> function will be run with <code>arg</code> and the <code>start</code> procedure
+split up into code and env pointers. It is required that the <code>init</code>
+function never return.</p>
+
+<p>FIXME: this is basically an awful the interface. The main reason for
+       this is to reduce the number of allocations made when a green
+       task is spawned as much as possible</p>
+</div><h4 id='method.init_with' class='method'><code>fn <a href='#method.init_with' class='fnname'>init_with</a>&lt;'a, F&gt;(&amp;mut self, init: <a class='type' href='../../context/context/type.InitFn.html' title='context::context::InitFn'>InitFn</a>, arg: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, start: F, stack: &amp;mut <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/ops/trait.FnOnce.html' title='thunk::core::ops::FnOnce'>FnOnce</a>() + <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a> + 'a</span></code></h4>
+<h4 id='method.swap' class='method'><code>fn <a href='#method.swap' class='fnname'>swap</a>(out_context: &amp;mut <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>, in_context: &amp;<a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>)</code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html' title='thunk::core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/thunk/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/struct.Formatter.html' title='thunk::core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/thunk/core/fmt/type.Result.html' title='thunk::core::fmt::Result'>Result</a></code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "context";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>
