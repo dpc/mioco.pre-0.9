@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1536' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1537' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</p>
 
 <p>Using <code>mioco</code> you can handle scalable, asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using set of synchronous-IO
@@ -62,61 +62,59 @@
 <li>mailboxes (see <code>mailbox()</code>)</li>
 <li><p>coroutine exit notification (see <code>CoroutineHandle</code>)</p>
 
-<p>See <code>examples/echo.rs</code> for an example TCP echo server.
-```
-extern crate mio;
-extern crate mioco;
-extern crate env_logger;</p></li>
+<p>See <code>examples/echo.rs</code> for an example TCP echo server.</p></li>
 </ul>
-
-<p>use std::net::SocketAddr;
-use std::str::FromStr;
-use std::io::{Read, Write};
-use mio::tcp::{TcpSocket};</p>
-
-<p>const DEFAULT_LISTEN_ADDR : &amp;&#39;static str = &quot;127.0.0.1:5555&quot;;</p>
-
-<p>fn listend_addr() -&gt; SocketAddr {
-    FromStr::from_str(DEFAULT_LISTEN_ADDR).unwrap()
-}</p>
-
-<p>fn main() {
-    env_logger::init().unwrap();</p>
 <pre class='rust rust-example-rendered'>
-<span class='ident'>mioco</span>::<span class='ident'>start</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
-    <span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='ident'>listend_addr</span>();
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mio</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mioco</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>env_logger</span>;
 
-    <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>TcpSocket</span>::<span class='ident'>v4</span>());
-    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>bind</span>(<span class='kw-2'>&amp;</span><span class='ident'>addr</span>));
-    <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>listen</span>(<span class='number'>1024</span>));
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>::<span class='ident'>FromStr</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='ident'>Read</span>, <span class='ident'>Write</span>};
+<span class='kw'>use</span> <span class='ident'>mio</span>::<span class='ident'>tcp</span>::{<span class='ident'>TcpSocket</span>};
 
-    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Starting tcp echo server on {:?}&quot;</span>, <span class='ident'>sock</span>.<span class='ident'>local_addr</span>().<span class='ident'>unwrap</span>());
+<span class='kw'>const</span> <span class='ident'>DEFAULT_LISTEN_ADDR</span> : <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>str</span> <span class='op'>=</span> <span class='string'>&quot;127.0.0.1:5555&quot;</span>;
 
-    <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>sock</span>);
+<span class='kw'>fn</span> <span class='ident'>listend_addr</span>() <span class='op'>-&gt;</span> <span class='ident'>SocketAddr</span> {
+    <span class='ident'>FromStr</span>::<span class='ident'>from_str</span>(<span class='ident'>DEFAULT_LISTEN_ADDR</span>).<span class='ident'>unwrap</span>()
+}
 
-    <span class='kw'>loop</span> {
-        <span class='kw'>let</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>accept</span>());
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='ident'>env_logger</span>::<span class='ident'>init</span>().<span class='ident'>unwrap</span>();
 
-        <span class='ident'>mioco</span>.<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>conn</span>);
+    <span class='ident'>mioco</span>::<span class='ident'>start</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
+        <span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='ident'>listend_addr</span>();
 
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>16</span>];
-            <span class='kw'>loop</span> {
-                <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>));
-                <span class='kw'>if</span> <span class='ident'>size</span> <span class='op'>==</span> <span class='number'>0</span> {
-                    <span class='comment'>/* eof */</span>
-                    <span class='kw'>break</span>;
+        <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>TcpSocket</span>::<span class='ident'>v4</span>());
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>bind</span>(<span class='kw-2'>&amp;</span><span class='ident'>addr</span>));
+        <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>listen</span>(<span class='number'>1024</span>));
+
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Starting tcp echo server on {:?}&quot;</span>, <span class='ident'>sock</span>.<span class='ident'>local_addr</span>().<span class='ident'>unwrap</span>());
+
+        <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>sock</span>);
+
+        <span class='kw'>loop</span> {
+            <span class='kw'>let</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>accept</span>());
+
+            <span class='ident'>mioco</span>.<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>conn</span>);
+
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>16</span>];
+                <span class='kw'>loop</span> {
+                    <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>));
+                    <span class='kw'>if</span> <span class='ident'>size</span> <span class='op'>==</span> <span class='number'>0</span> {
+                        <span class='comment'>/* eof */</span>
+                        <span class='kw'>break</span>;
+                    }
+                    <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>write_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>[<span class='number'>0</span>..<span class='ident'>size</span>]))
                 }
-                <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>write_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>[<span class='number'>0</span>..<span class='ident'>size</span>]))
-            }
 
-            <span class='prelude-val'>Ok</span>(())
-        });
-    }
-});</pre>
-
-<p>}
-```</p>
+                <span class='prelude-val'>Ok</span>(())
+            });
+        }
+    });
+}</pre>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
