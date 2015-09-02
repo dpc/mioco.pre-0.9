@@ -51,7 +51,7 @@ extern crate time;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::io;
-use std::mem::transmute;
+use std::mem::{transmute, size_of_val};
 
 use mio::{TryRead, TryWrite, Token, EventLoop, EventSet};
 use std::any::Any;
@@ -496,25 +496,43 @@ impl Coroutine {
             _ => panic!("This should not happen"),
         };
 
-        // TODO: count leading zeros + for i in 0..32 {
-        for i in 0..self.io.len() {
-            match (self.registered[i], self.blocked_on[i])  {
-                (false, false) | (true, true) => {},
-                (false, true) => {
-                    let io = self.io[i].upgrade().unwrap();
-                    let mut io = io.borrow_mut();
-                    io.reregister(event_loop, rw);
-                },
-                (true, false) => {
-                    let io = self.io[i].upgrade().unwrap();
-                    let io = io.borrow();
-                    io.unreregister(event_loop);
+        let Coroutine {
+            ref mut registered,
+            ref mut blocked_on,
+            ref mut io,
+            ..
+        } = *self;
+
+        let mut i = 0;
+        for (registered_block, blocked_on_block) in registered.blocks().zip(blocked_on.blocks()) {
+            debug_assert!(size_of_val(&registered_block) == size_of_val(&blocked_on_block));
+            let bit_size = size_of_val(&registered_block) * 8;
+            let mut block = registered_block ^ blocked_on_block;
+            'for_each_set_bit: loop {
+                let lz = block.leading_zeros() as usize;
+                if lz == bit_size {
+                    break 'for_each_set_bit
+                } else {
+                    let bit = bit_size - 1 - lz;
+                    debug_assert!(bit < bit_size);
+                    block &= !(1 << bit);
+                    let io = io[i + bit].upgrade().unwrap();
+                    if registered_block & (1 << bit) != 0 {
+                        debug_assert!(blocked_on_block & (1 << bit) == 0);
+                        let io = io.borrow();
+                        io.unreregister(event_loop);
+                    } else {
+                        debug_assert!(blocked_on_block & (1 << bit) != 0);
+                        let mut io = io.borrow_mut();
+                        io.reregister(event_loop, rw);
+                    }
                 }
             }
+            i += bit_size;
         }
 
         // effectively: self.registered = self.blocked_on;
-        for (mut target, src) in unsafe { self.registered.storage_mut().iter_mut().zip(self.blocked_on.storage().iter()) } {
+        for (mut target, src) in unsafe { registered.storage_mut().iter_mut().zip(blocked_on.storage().iter()) } {
             *target = *src
         }
     }
