@@ -1015,22 +1015,30 @@ impl MiocoHandle {
         }.expect("run out of tokens");
         trace!("Added source token={:?}", token);
 
-        let io = {
+        let io_new = {
             let co = self.coroutine.borrow();
             let shared = co.server_shared.borrow_mut();
             shared.sources[token].inn.clone()
         };
 
         let handle = EventSource {
-            inn: io.clone(),
+            inn: io_new.clone(),
             _t: PhantomData,
         };
 
-        self.coroutine.borrow_mut().io.push(Rc::downgrade(&io.clone()));
-        let len = self.coroutine.borrow().io.len();
-        trace!("setting lengths to {}", len);
-        self.coroutine.borrow_mut().blocked_on.grow(len, false);
-        self.coroutine.borrow_mut().registered.grow(len, false);
+        let Coroutine {
+            ref mut registered,
+            ref mut blocked_on,
+            ref mut io,
+            ..
+        } = *self.coroutine.borrow_mut();
+
+
+        io.push(Rc::downgrade(&io_new.clone()));
+        blocked_on.push(false);
+        registered.push(false);
+        debug_assert!(io.len() == blocked_on.len());
+        debug_assert!(io.len() == registered.len());
 
         handle
     }
