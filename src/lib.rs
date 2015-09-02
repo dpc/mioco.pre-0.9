@@ -333,10 +333,10 @@ struct Coroutine {
     /// All handles, weak to avoid `Rc`-cycle
     io : Vec<Weak<RefCell<EventSourceRefShared>>>,
 
-    /// Mask of handle indexes that we're blocked on
+    /// Mask of handle ids that we're blocked on
     blocked_on : BitVec<usize>,
 
-    /// Mask of handle indexes that are registered in Handler
+    /// Mask of handle ids that are registered in Handler
     registered : BitVec<usize>,
 
     /// `Handler` shared data that this `Coroutine` is running in
@@ -756,16 +756,16 @@ impl EventSourceRef {
 
         let my_id = {
             let inn = self.inn.borrow();
-            let index = inn.id;
+            let id = inn.id;
             let mut co = inn.coroutine.borrow_mut();
             let prev_last_tick = co.last_tick;
             co.last_tick = tick;
 
-            co.registered.set(index, false);
+            co.registered.set(id, false);
 
             if prev_last_tick == tick {
                 None
-            } else if !co.blocked_on.get(index).unwrap() {
+            } else if !co.blocked_on.get(id).unwrap() {
                 // spurious event, probably after select in which
                 // more than one event sources were reported ready
                 // in one group of events, and first event source
@@ -788,7 +788,7 @@ impl EventSourceRef {
                     },
                     _ => {
                         if inn.io.should_resume() {
-                            Some(index)
+                            Some(id)
                         } else {
                             None
                         }
@@ -923,12 +923,12 @@ pub struct MiocoHandle {
     timer : Option<EventSource<Timer>>,
 }
 
-fn select_impl_set_mask_from_indices(indices : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
+fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
     {
         // TODO: https://github.com/contain-rs/bit-vec/pulls
         blocked_on.clear();
-        for &index in indices {
-            blocked_on.set(index.as_usize(), true);
+        for &id in ids {
+            blocked_on.set(id.as_usize(), true);
         }
     }
 }
@@ -1069,8 +1069,8 @@ impl MiocoHandle {
 
     /// Wait till an event is ready
     ///
-    /// The returned value contains event type and the index id of the `EventSource`.
-    /// See `EventSource::index()`.
+    /// The returned value contains event type and the id of the `EventSource`.
+    /// See `EventSource::id()`.
     pub fn select(&mut self) -> Event {
         {
             let Coroutine {
@@ -1118,16 +1118,16 @@ impl MiocoHandle {
 
     /// Wait till any event is ready on a set of Handles.
     ///
-    /// See `EventSource::index()`.
+    /// See `EventSource::id()`.
     /// See `MiocoHandle::select()`.
-    pub fn select_from(&mut self, indices : &[EventSourceId]) -> Event {
+    pub fn select_from(&mut self, ids : &[EventSourceId]) -> Event {
         {
             let Coroutine {
                 ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on);
+            select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
         self.select_impl(RW::Both)
@@ -1136,14 +1136,14 @@ impl MiocoHandle {
     /// Wait till write event is ready on a set of Handles.
     ///
     /// See `MiocoHandle::select_from`.
-    pub fn select_write_from(&mut self, indices : &[EventSourceId]) -> Event {
+    pub fn select_write_from(&mut self, ids : &[EventSourceId]) -> Event {
         {
             let Coroutine {
                 ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on);
+            select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
         self.select_impl(RW::Write)
@@ -1152,14 +1152,14 @@ impl MiocoHandle {
     /// Wait till read event is ready on a set of Handles.
     ///
     /// See `MiocoHandle::select_from`.
-    pub fn select_read_from(&mut self, indices : &[EventSourceId]) -> Event {
+    pub fn select_read_from(&mut self, ids : &[EventSourceId]) -> Event {
         {
             let Coroutine {
                 ref mut blocked_on,
                 ..
             } = *self.coroutine.borrow_mut();
 
-            select_impl_set_mask_from_indices(indices, blocked_on);
+            select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
         self.select_impl(RW::Read)
