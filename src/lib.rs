@@ -1213,7 +1213,7 @@ struct HandlerShared {
 impl HandlerShared {
     fn new() -> Self {
         HandlerShared {
-            sources: Slab::new(1024),
+            sources: Slab::new(32 * 1024),
             coroutines_no: 0,
             context: Context::empty(),
         }
