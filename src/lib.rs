@@ -312,7 +312,10 @@ impl Evented for Timer {
     }
 }
 
-type RefCoroutine = Rc<RefCell<Coroutine>>;
+type RcCoroutine = Rc<RefCell<Coroutine>>;
+type RcEventSourceRefShared = Rc<RefCell<EventSourceRefShared>>;
+type ArcMailboxShared<T> = Arc<Mutex<MailboxShared<T>>>;
+type RcHandlerShared = Rc<RefCell<HandlerShared>>;
 
 /// *`mioco` coroutine* (a.k.a. *mioco handler*)
 ///
@@ -342,17 +345,17 @@ struct Coroutine {
     registered : BitVec<usize>,
 
     /// `Handler` shared data that this `Coroutine` is running in
-    server_shared : RefHandlerShared,
+    server_shared : RcHandlerShared,
 
     /// Newly spawned `Coroutine`-es
-    children_to_start : Vec<RefCoroutine>,
+    children_to_start : Vec<RcCoroutine>,
 
     /// `Coroutine` will send exit status on it's finish
     exit_notificators : Vec<MailboxOuterEnd<ExitStatus>>,
 }
 
 impl Coroutine {
-    fn spawn<F>(server : RefHandlerShared, f : F) -> RefCoroutine
+    fn spawn<F>(server : RcHandlerShared, f : F) -> RcCoroutine
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static {
 
         trace!("Coroutine: spawning");
@@ -387,14 +390,14 @@ impl Coroutine {
 
             }
 
-        struct SendRefCoroutine {
-            coroutine: RefCoroutine,
+        struct SendRcCoroutine {
+            coroutine: RcCoroutine,
         }
 
         // Same logic as in `SendFnOnce` applies here.
-        unsafe impl Send for SendRefCoroutine { }
+        unsafe impl Send for SendRcCoroutine { }
 
-        let sendref = SendRefCoroutine {
+        let sendref = SendRcCoroutine {
             coroutine: coroutine_ref.clone(),
         };
 
@@ -540,7 +543,7 @@ impl Coroutine {
 }
 
 /// Resume coroutine execution
-fn resume(coroutine_ref: &RefCoroutine) {
+fn resume(coroutine_ref: &RcCoroutine) {
     if coroutine_ref.borrow().state.is_finished() {
         return
     }
@@ -565,7 +568,7 @@ fn resume(coroutine_ref: &RefCoroutine) {
 }
 
 /// Block coroutine execution
-fn block(coroutine_ref: &RefCoroutine) {
+fn block(coroutine_ref: &RcCoroutine) {
     debug_assert!(!coroutine_ref.borrow().state.is_finished());
 
     // See `resume()` for unsafe comment
@@ -587,11 +590,11 @@ fn block(coroutine_ref: &RefCoroutine) {
 /// Coroutine guard used for cleanup and exit notification
 struct CoroutineGuard {
     finished : bool,
-    coroutine_ref : RefCoroutine,
+    coroutine_ref : RcCoroutine,
 }
 
 impl CoroutineGuard {
-    fn new(coroutine : RefCoroutine) -> CoroutineGuard {
+    fn new(coroutine : RcCoroutine) -> CoroutineGuard {
         CoroutineGuard {
             finished: false,
             coroutine_ref: coroutine,
@@ -624,13 +627,11 @@ impl Drop for CoroutineGuard {
 }
 
 
-type RefEventSourceRefShared = Rc<RefCell<EventSourceRefShared>>;
-
 /// Wrapped mio IO (mio::Evented+TryRead+TryWrite)
 ///
 /// `Handle` is just a cloneable reference to this struct
 struct EventSourceRefShared {
-    coroutine: RefCoroutine,
+    coroutine: RcCoroutine,
     token: Token,
     id : usize, /// Index in MiocoHandle::handles
     io : Box<Evented+'static>,
@@ -687,7 +688,7 @@ impl EventSourceRefShared {
 /// `mioco` wrapper over raw structure implementing `mio::Evented` trait
 #[derive(Clone)]
 struct EventSourceRef {
-    inn : RefEventSourceRefShared,
+    inn : RcEventSourceRefShared,
 }
 
 /// Event source inside a coroutine
@@ -700,7 +701,7 @@ struct EventSourceRef {
 /// `MiocoHandle::timeout()`.
 #[derive(Clone)]
 pub struct EventSource<T> {
-    inn : RefEventSourceRefShared,
+    inn : RcEventSourceRefShared,
     _t: PhantomData<T>,
 }
 
@@ -981,7 +982,7 @@ fn select_impl_set_mask_rc_handles(handles : &[Weak<RefCell<EventSourceRefShared
 
 /// Handle to spawned coroutine
 pub struct CoroutineHandle {
-    coroutine_ref: RefCoroutine,
+    coroutine_ref: RcCoroutine,
 }
 
 impl CoroutineHandle {
@@ -1212,15 +1213,11 @@ impl MiocoHandle {
     }
 }
 
-type RefHandlerShared = Rc<RefCell<HandlerShared>>;
 /// Data belonging to `Handler`, but referenced and manipulated by `Coroutine`-es
 /// belonging to it.
 struct HandlerShared {
     /// Slab allocator
     /// TODO: dynamically growing slab would be better; or a fast hashmap?
-    /// FIXME: See https://github.com/carllerche/mio/issues/219 . Using an allocator
-    /// in which just-deleted entries are not potentially reused right away might prevent
-    /// potentical sporious wakeups on newly allocated entries.
     sources : Slab<EventSourceRef>,
 
     /// Number of `Coroutine`-s running in the `Handler`.
@@ -1245,11 +1242,11 @@ impl HandlerShared {
 /// Registered in `mio::EventLoop` and implementing `mio::Handler`.  This `struct` is quite
 /// internal so you should not have to worry about it.
 pub struct Handler {
-    shared : RefHandlerShared,
+    shared : RcHandlerShared,
 }
 
 impl Handler {
-    fn new(shared : RefHandlerShared) -> Self {
+    fn new(shared : RcHandlerShared) -> Self {
         Handler {
             shared: shared,
         }
@@ -1363,7 +1360,6 @@ pub fn mailbox<T>() -> (MailboxOuterEnd<T>, MailboxInnerEnd<T>) {
     (MailboxOuterEnd::new(shared.clone()), MailboxInnerEnd::new(shared))
 }
 
-type RefMailboxShared<T> = Arc<Mutex<MailboxShared<T>>>;
 type MailboxQueue<T> = Option<T>;
 
 struct MailboxShared<T> {
@@ -1379,7 +1375,7 @@ struct MailboxShared<T> {
 ///
 /// Create with `mailbox()`
 pub struct MailboxOuterEnd<T> {
-    shared : RefMailboxShared<T>,
+    shared : ArcMailboxShared<T>,
 }
 
 impl<T> Clone for MailboxOuterEnd<T> {
@@ -1396,11 +1392,11 @@ impl<T> Clone for MailboxOuterEnd<T> {
 ///
 /// Create with `mailbox()`.
 pub struct MailboxInnerEnd<T> {
-    shared : RefMailboxShared<T>,
+    shared : ArcMailboxShared<T>,
 }
 
 impl<T> MailboxOuterEnd<T> {
-    fn new(shared : RefMailboxShared<T>) -> Self {
+    fn new(shared : ArcMailboxShared<T>) -> Self {
         MailboxOuterEnd {
             shared: shared
         }
@@ -1408,7 +1404,7 @@ impl<T> MailboxOuterEnd<T> {
 }
 
 impl<T> MailboxInnerEnd<T> {
-    fn new(shared : RefMailboxShared<T>) -> Self {
+    fn new(shared : ArcMailboxShared<T>) -> Self {
         MailboxInnerEnd {
             shared: shared
         }
