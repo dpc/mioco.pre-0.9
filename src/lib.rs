@@ -332,9 +332,6 @@ struct Coroutine {
     /// Last event that resumed the coroutine
     last_event: Event,
 
-    /// Last register tick
-    last_tick : u32,
-
     /// All handles, weak to avoid `Rc`-cycle
     io : Vec<Weak<RefCell<EventSourceRefShared>>>,
 
@@ -369,7 +366,6 @@ impl Coroutine {
             registered: Default::default(),
             server_shared: server,
             children_to_start: Vec::new(),
-            last_tick: !0,
             exit_notificators: Vec::new(),
             context: Context::empty(),
             stack: Stack::new(1024 * 1024),
@@ -771,7 +767,7 @@ impl EventSourceRef {
                  event_loop : &mut EventLoop<Handler>,
                  token : Token,
                  events : EventSet,
-                 tick : u32) {
+                 ) {
         if events.is_hup() {
             let mut inn = self.inn.borrow_mut();
             inn.hup(event_loop, token);
@@ -781,14 +777,10 @@ impl EventSourceRef {
             let inn = self.inn.borrow();
             let id = inn.id;
             let mut co = inn.coroutine.borrow_mut();
-            let prev_last_tick = co.last_tick;
-            co.last_tick = tick;
 
             co.registered.set(id, false);
 
-            if prev_last_tick == tick {
-                None
-            } else if !co.blocked_on.get(id).unwrap() {
+            if !co.blocked_on.get(id).unwrap() {
                 // spurious event, probably after select in which
                 // more than one event sources were reported ready
                 // in one group of events, and first event source
@@ -1254,14 +1246,12 @@ impl HandlerShared {
 /// internal so you should not have to worry about it.
 pub struct Handler {
     shared : RefHandlerShared,
-    tick : u32,
 }
 
 impl Handler {
     fn new(shared : RefHandlerShared) -> Self {
         Handler {
             shared: shared,
-            tick : 0,
         }
     }
 }
@@ -1271,8 +1261,6 @@ impl mio::Handler for Handler {
     type Message = Token;
 
     fn tick(&mut self, event_loop: &mut mio::EventLoop<Self>) {
-        self.tick += 1;
-
         if self.shared.borrow().coroutines_no == 0 {
             event_loop.shutdown();
         }
@@ -1291,7 +1279,7 @@ impl mio::Handler for Handler {
                 return
             },
         };
-        source.ready(event_loop, token, events, self.tick);
+        source.ready(event_loop, token, events);
         trace!("Handler::ready finished");
     }
 
