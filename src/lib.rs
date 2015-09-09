@@ -1363,9 +1363,16 @@ struct MailboxShared<T> {
 /// Use from outside the coroutine handler.
 ///
 /// Create with `mailbox()`
-#[derive(Clone)]
 pub struct MailboxOuterEnd<T> {
     shared : RefMailboxShared<T>,
+}
+
+impl<T> Clone for MailboxOuterEnd<T> {
+    fn clone(&self) -> Self {
+        MailboxOuterEnd {
+            shared: self.shared.clone()
+        }
+    }
 }
 
 /// Inner Mailbox End
