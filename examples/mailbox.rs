@@ -44,7 +44,7 @@ fn main() {
         let mut mail_recv = mioco.wrap(mail_recv);
 
         loop {
-            let _ = mail_recv.recv();
+            let _ = mail_recv.read();
             let conn = try!(sock.accept());
 
             mioco.spawn(move |mioco| {
