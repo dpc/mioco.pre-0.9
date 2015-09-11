@@ -265,6 +265,11 @@ where T:Reflect+'static {
         let mut lock = self.shared.lock();
         lock.interest = EventSet::none();
     }
+
+    fn should_resume(&self) -> bool {
+        let lock = self.shared.lock();
+        !lock.inn.is_empty()
+    }
 }
 
 impl Evented for Timer {
@@ -901,6 +906,15 @@ where T : TryRead+Reflect+'static {
     }
 }
 
+impl<T> EventSource<T>
+where T : TryRead+Reflect+'static {
+    /// Try to read without blocking
+    pub fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
+        let mut inn = self.inn.borrow_mut();
+        inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_read(buf)
+    }
+}
+
 impl<T> std::io::Write for EventSource<T>
 where T : TryWrite+Reflect+'static {
     /// Block on write
@@ -932,6 +946,16 @@ where T : TryWrite+Reflect+'static {
         Ok(())
     }
 }
+
+impl<T> EventSource<T>
+where T : TryWrite+Reflect+'static {
+    /// Try to write without blocking
+    pub fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
+        let mut inn = self.inn.borrow_mut();
+        inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_write(buf)
+    }
+}
+
 
 /// Mioco instance handle
 ///
@@ -980,7 +1004,7 @@ impl CoroutineHandle {
         } = *co;
 
         if let &State::Finished(ref exit) = state {
-            outer.send(exit.clone()).unwrap();
+            outer.send(exit.clone());
         } else {
             exit_notificators.push(outer);
         }
@@ -1094,6 +1118,10 @@ impl MiocoHandle {
     }
 
     /// Wait till an event is ready
+    ///
+    /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+    /// not block when actually attempting to `read` or `write`. You must
+    /// use `try_read` and `try_write` instead.
     ///
     /// The returned value contains event type and the id of the `EventSource`.
     /// See `EventSource::id()`.
@@ -1325,7 +1353,6 @@ impl Mioco {
                 trace!("No coroutines to start event loop with");
             }
         }
-
 }
 
 /// Create a Mailbox
@@ -1408,7 +1435,7 @@ impl<T> MailboxOuterEnd<T> {
     /// This is non-blocking operation.
     ///
     /// See `EventSource<MailboxInnerEnd<T>>::recv()`.
-    pub fn send(&self, t : T) -> io::Result<()> {
+    pub fn send(&self, t : T) {
         let mut lock = self.shared.lock();
         let MailboxShared {
             ref mut sender,
@@ -1425,8 +1452,6 @@ impl<T> MailboxOuterEnd<T> {
                 sender.send(token).unwrap()
             }
         }
-
-        Ok(())
     }
 }
 
@@ -1435,20 +1460,23 @@ where T : Reflect+'static {
     /// Receive `T` sent using corresponding `MailboxOuterEnd::send()`.
     ///
     /// Will block coroutine if no elements are available.
-    pub fn recv(&mut self) -> io::Result<T> {
+    pub fn read(&mut self) -> T {
         loop {
-            {
-                let mut inn = self.inn.borrow_mut();
-                let handle = inn.io.as_any_mut().downcast_mut::<MailboxInnerEnd<T>>().unwrap();
-                let mut lock = handle.shared.lock();
-
-                if let Some(t) = lock.inn.pop_front() {
-                    return Ok(t);
-                }
+            if let Some(t) = self.try_read() {
+                return t
             }
 
             self.block_on(RW::Read)
         }
+    }
+
+    /// Try reading current time (if the timer is done)
+    pub fn try_read(&mut self) -> Option<T> {
+        let mut inn = self.inn.borrow_mut();
+        let handle = inn.io.as_any_mut().downcast_mut::<MailboxInnerEnd<T>>().unwrap();
+        let mut lock = handle.shared.lock();
+
+        lock.inn.pop_front()
     }
 }
 
@@ -1476,17 +1504,31 @@ impl Timer {
 
 impl EventSource<Timer> {
     /// Read a timer to block on it until it is done.
-    pub fn read(&self) -> io::Result<()> {
+    ///
+    /// Returns current time
+    ///
+    /// TODO: Return wakeup time instead
+    pub fn read(&mut self) -> SteadyTime {
         loop {
-            let done = self.with_raw(|timer| { timer.is_done() });
-
-            if done {
-                break;
+            if let Some(t) = self.try_read() {
+                return t;
             }
 
             self.block_on(RW::Read);
         }
-        Ok(())
+    }
+
+    /// Try reading current time (if the timer is done)
+    ///
+    /// TODO: Return wakeup time instead
+    pub fn try_read(&mut self) -> Option<SteadyTime> {
+        let done = self.with_raw(|timer| { timer.is_done() });
+
+        if done {
+            Some(SteadyTime::now())
+        } else {
+            None
+        }
     }
 
     /// Set timeout for the timer
