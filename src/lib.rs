@@ -406,7 +406,7 @@ impl CoroutineControl {
         }
     }
 
-    fn ready(
+    fn event(
         &self,
         event_loop : &mut EventLoop<Handler>,
         token : Token,
@@ -414,7 +414,7 @@ impl CoroutineControl {
         ) -> bool {
         let (_, io_id) = token_to_ids(token);
 
-        let should_resume = {
+        let (should_resume, should_reregister) = {
             let coroutine = self.rc.borrow();
             let io = coroutine.io[io_id.as_usize()].clone();
 
@@ -426,38 +426,44 @@ impl CoroutineControl {
 
             co_shared.registered.set(io_id.as_usize(), false);
 
-            if !co_shared.blocked_on.get(io_id.as_usize()).unwrap() {
-                // spurious event, probably after select in which
-                // more than one event sources were reported ready
-                // in one group of events, and first event source
-                // deregistered the later ones
-                debug!("spurious event for event source coroutine is not blocked on");
-                false
-            } else if let State::BlockedOn(rw) = co_shared.state {
-                match rw {
-                    RW::Read if !events.is_readable() && !events.is_hup() => {
-                        debug!("spurious not read event for coroutine blocked on read");
-                        false
-                    },
-                    RW::Write if !events.is_writable() => {
-                        debug!("spurious not write event for coroutine blocked on write");
-                        false
-                    },
-                    RW::Both if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
-                        debug!("spurious unknown type event for coroutine blocked on read/write");
-                        false
-                    },
-                    _ => {
-                        if io.borrow().io.should_resume() {
-                            true
-                        } else {
-                            false
+            if let State::BlockedOn(rw) = co_shared.state {
+
+                if !co_shared.blocked_on.get(io_id.as_usize()).unwrap() {
+                    // spurious event, probably after select in which
+                    // more than one event sources were reported ready
+                    // in one group of events, and first event source
+                    // deregistered the later ones
+                    debug!("spurious event for event source coroutine is not blocked on");
+                    (false, false)
+                } else {
+                    match rw {
+                        RW::Read if !events.is_readable() && !events.is_hup() => {
+                            debug!("spurious not read event for coroutine blocked on read");
+                            (false, false)
+                        },
+                        RW::Write if !events.is_writable() => {
+                            debug!("spurious not write event for coroutine blocked on write");
+                            (false, false)
+                        },
+                        RW::Both if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
+                            debug!("spurious unknown type event for coroutine blocked on read/write");
+                            (false, false)
+                        },
+                        _ => {
+                            if io.borrow().io.should_resume() {
+                                (true, false)
+                            } else {
+                                // TODO: Actually, we can just reregister the Timer,
+                                // not all sources, and in just this one case
+                                (false, true)
+                            }
                         }
                     }
                 }
             } else {
-                debug_assert!(co_shared.state.is_finished());
-                false
+                // subsequent event to coroutine that is either already
+                // Finished, or Ready
+                (false, false)
             }
         };
 
@@ -478,8 +484,10 @@ impl CoroutineControl {
                 id: io_id,
             };
             true
-        } else {
+        } else if should_reregister {
             self.after_resume(event_loop);
+            false
+        } else {
             false
         }
     }
@@ -498,15 +506,16 @@ impl CoroutineControl {
         }
     }
 
-    /// After `resume()` on the `Coroutine.handle` finished,
-    /// the `Coroutine` have blocked or finished and we need to
-    /// perform the following maintenance
+    /// After `resume()` (or ignored event()) we need to perform the following maintenance
     fn after_resume(
         &self,
         event_loop: &mut EventLoop<Handler>
         ) {
         // If there were any newly spawned child-coroutines: start them now
         let mut children = Vec::new();
+
+        debug_assert!(!self.rc.borrow().state().is_running());
+        debug_assert!(!self.rc.borrow().state().is_ready());
 
         std::mem::swap(&mut children, &mut self.rc.borrow_mut().children_to_start);
 
@@ -623,7 +632,7 @@ impl Coroutine {
                     };
 
                     // Guard to perform cleanup in case of panic
-                    let mut guard = CoroutineGuard::new(mioco_handle.coroutine.borrow().shared.clone());
+                    let mut guard = CoroutineGuard::new(mioco_handle.coroutine.clone());
 
                     let SendFnOnce { f } = send_f;
 
@@ -767,31 +776,33 @@ fn coroutine_jump_out(coroutine_shared : &RefCell<CoroutineShared>) {
 
 /// Coroutine guard used for cleanup and exit notification
 struct CoroutineGuard {
-    finished : bool,
-    coroutine_shared: RcCoroutineShared,
+    res: Option<io::Result<()>>,
+    rc_coroutine: RcCoroutine,
 }
 
 impl CoroutineGuard {
-    fn new(coroutine_shared : RcCoroutineShared) -> CoroutineGuard {
+    fn new(rc_coroutine: RcCoroutine) -> CoroutineGuard {
         CoroutineGuard {
-            finished: false,
-            coroutine_shared: coroutine_shared,
+            res: None,
+            rc_coroutine: rc_coroutine,
         }
     }
 
     fn finish(&mut self, res : io::Result<()>) {
-        self.finished = true;
-
-        let arc_res = Arc::new(res);
-        let mut co_shared = self.coroutine_shared.borrow_mut();
-        co_shared.exit_notificators.iter().map(|end| end.send(ExitStatus::Exit(arc_res.clone()))).count();
-        co_shared.state = State::Finished(ExitStatus::Exit(arc_res));
+        self.res = Some(res);
     }
 }
 
 impl Drop for CoroutineGuard {
     fn drop(&mut self) {
-        let mut co_shared = self.coroutine_shared.borrow_mut();
+        let CoroutineGuard {
+            ref mut res,
+            ref rc_coroutine,
+        } = *self;
+
+        let mut co = rc_coroutine.borrow_mut();
+        co.io.clear();
+        let mut co_shared = co.shared.borrow_mut();
 
         let id = co_shared.id;
         co_shared.blocked_on.clear();
@@ -800,7 +811,13 @@ impl Drop for CoroutineGuard {
         // TODO: https://github.com/contain-rs/bit-vec/pulls
         co_shared.blocked_on.clear();
 
-        if !self.finished {
+
+        if let Some(res) = res.take() {
+            let arc_res = Arc::new(res);
+            co_shared.exit_notificators.iter().map(|end| end.send(ExitStatus::Exit(arc_res.clone()))).count();
+            co_shared.state = State::Finished(ExitStatus::Exit(arc_res));
+
+        } else {
             co_shared.state = State::Finished(ExitStatus::Panic);
             co_shared.exit_notificators.iter().map(|end| end.send(ExitStatus::Panic)).count();
         }
@@ -1406,7 +1423,7 @@ impl mio::Handler for Handler {
                 return
             },
         };
-        if co.ready(event_loop, token, events) {
+        if co.event(event_loop, token, events) {
             co.resume(event_loop);
         }
         trace!("Handler::ready finished");
