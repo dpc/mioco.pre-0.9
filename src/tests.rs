@@ -314,7 +314,7 @@ fn exit_notifier_simple() {
             Ok(())
         }).exit_notificator();
 
-        let mut notify = mioco.wrap(notify);
+        let notify = mioco.wrap(notify);
 
         assert!(!notify.read().is_panic());
 
@@ -337,7 +337,7 @@ fn exit_notifier_simple_panic() {
             panic!()
         }).exit_notificator();
 
-        let mut notify = mioco.wrap(notify);
+        let notify = mioco.wrap(notify);
 
         assert!(notify.read().is_panic());
 
@@ -364,18 +364,18 @@ fn exit_notifier_wrap_after_finish() {
         let notify1 = handle1.exit_notificator();
 
         let handle2 = mioco.spawn(move |mioco| {
-            let mut notify1 = mioco.wrap(notify1);
+            let notify1 = mioco.wrap(notify1);
             assert!(notify1.read().is_panic());
             Ok(())
         });
 
         let notify2 = handle2.exit_notificator();
-        let mut notify2 = mioco.wrap(notify2);
+        let notify2 = mioco.wrap(notify2);
         assert!(!notify2.read().is_panic());
 
 
         let notify1 = handle1.exit_notificator();
-        let mut notify1 = mioco.wrap(notify1);
+        let notify1 = mioco.wrap(notify1);
         assert!(notify1.read().is_panic());
 
 
