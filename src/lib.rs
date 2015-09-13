@@ -1392,6 +1392,13 @@ impl HandlerShared {
 /// Custom implementations of this trait allow users to change the order in
 /// which Coroutines are being scheduled.
 pub trait Scheduler {
+    /// Spawn per-thread Scheduler
+    fn spawn_thread(&self, thread_id : u32) -> Box<SchedulerThread + 'static>;
+}
+
+
+/// Per-thread Scheduler
+pub trait SchedulerThread : Send {
     /// A Coroutine became ready.
     ///
     /// `coroutines_num` is a control reference to the Coroutine that became
@@ -1410,8 +1417,15 @@ pub trait Scheduler {
 }
 /// Default, simple first-in-first-out Scheduler.
 struct FifoScheduler;
+struct FifoSchedulerThread;
 
 impl Scheduler for FifoScheduler {
+    fn spawn_thread(&self, _ : u32) -> Box<SchedulerThread> {
+        Box::new(FifoSchedulerThread)
+    }
+}
+
+impl SchedulerThread for FifoSchedulerThread {
     fn ready(&self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
         coroutine_ctrl.resume(event_loop);
     }
@@ -1425,11 +1439,11 @@ impl Scheduler for FifoScheduler {
 /// internal so you should not have to worry about it.
 pub struct Handler {
     shared : RcHandlerShared,
-    scheduler : Box<Scheduler>,
+    scheduler : Box<SchedulerThread>,
 }
 
 impl Handler {
-    fn new(shared : RcHandlerShared, scheduler : Box<Scheduler>) -> Self {
+    fn new(shared : RcHandlerShared, scheduler : Box<SchedulerThread>) -> Self {
         Handler {
             shared: shared,
             scheduler: scheduler,
@@ -1478,30 +1492,30 @@ impl mio::Handler for Handler {
 ///
 /// Main mioco structure.
 pub struct Mioco {
+    scheduler: Box<Scheduler + 'static>,
     senders : Vec<mio::Sender<<Handler as mio::Handler>::Message>>,
     join_handles : Vec<thread::JoinHandle<()>>,
 }
 
 impl Mioco {
     /// Create new `Mioco` instance
-    pub fn new() -> Self {
-        Mioco {
+    pub fn new() -> Self
+    {
+        Self::new_with_scheduler(FifoScheduler)
+    }
+
+    /// Create new `Mioco` instance with custom scheduler
+    pub fn new_with_scheduler<S>(scheduler : S) -> Self
+        where
+        S : Scheduler + 'static,
+    {
+         Mioco {
+            scheduler: Box::new(scheduler),
             senders: Vec::new(),
             join_handles: Vec::new(),
-        }
+         }
     }
-/*
-    /// Create new `Mioco` instance using custom scheduler.
-    ///
-    /// See `Scheduler`.
-    pub fn new_with_scheduler<T : Scheduler+'static>(t : T) -> Self {
-        let shared = Rc::new(RefCell::new(HandlerShared::new()));
-        Mioco {
-            event_loop: EventLoop::new().expect("new EventLoop"),
-            server: Handler::new(shared.clone(), Box::new(t)),
-        }
-    }
-*/
+
     /// Start mioco handling
     ///
     /// Takes a starting handler function that will be executed in `mioco` environment.
@@ -1513,13 +1527,13 @@ impl Mioco {
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
               F : Send
         {
-            self.start_smp(f, 1);
+            self.start_smp::<F, FifoScheduler>(f, 1);
             for join in self.join_handles.drain(..) {
                 let _ = join.join(); // TODO: Do something with it
             }
         }
 
-    fn spawn_thread<F>(&mut self, f : Option<F>)
+    fn spawn_thread<F>(&mut self, f : Option<F>, sched : Box<SchedulerThread+'static>)
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
               F : Send
     {
@@ -1529,7 +1543,7 @@ impl Mioco {
         let join = thread::spawn(move || {
             {
                 let shared = Rc::new(RefCell::new(HandlerShared::new()));
-                let mut server = Handler::new(shared.clone(), Box::new(FifoScheduler));
+                let mut server = Handler::new(shared.clone(), sched);
                 if let Some(f) = f {
                     let coroutine_rc = Coroutine::spawn(shared, f);
                     let coroutine_shared = coroutine_rc.borrow().shared.clone();
@@ -1546,13 +1560,17 @@ impl Mioco {
     }
 
     /// Start mioco server that will spawn a `thread` number of threads
-    pub fn start_smp<F>(&mut self, f : F, threads : u32)
-        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
-              F : Send
+    pub fn start_smp<F, S>(&mut self, f : F, threads : u32)
+        where
+        S : Scheduler + 'static,
+        F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+        F : Send
         {
-            self.spawn_thread(Some(f));
-            for _ in 1..threads {
-                self.spawn_thread::<F>(None);
+            let sched = self.scheduler.spawn_thread(0);
+            self.spawn_thread(Some(f), sched);
+            for thread_i in 1..threads {
+                let sched = self.scheduler.spawn_thread(thread_i);
+                self.spawn_thread::<F>(None, sched);
             }
         }
 }
