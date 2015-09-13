@@ -41,7 +41,7 @@ fn main() {
 
         println!("Starting tcp echo server on {:?}", sock.local_addr().unwrap());
         let sock = mioco.wrap(sock);
-        let mut mail_recv = mioco.wrap(mail_recv);
+        let mail_recv = mioco.wrap(mail_recv);
 
         loop {
             let _ = mail_recv.read();

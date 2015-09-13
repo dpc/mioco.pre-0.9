@@ -1640,7 +1640,7 @@ where T : Reflect+'static {
     /// Receive `T` sent using corresponding `MailboxOuterEnd::send()`.
     ///
     /// Will block coroutine if no elements are available.
-    pub fn read(&mut self) -> T {
+    pub fn read(&self) -> T {
         loop {
             if let Some(t) = self.try_read() {
                 return t
@@ -1651,7 +1651,7 @@ where T : Reflect+'static {
     }
 
     /// Try reading current time (if the timer is done)
-    pub fn try_read(&mut self) -> Option<T> {
+    pub fn try_read(&self) -> Option<T> {
         let mut inn = self.inn.borrow_mut();
         let handle = inn.io.as_any_mut().downcast_mut::<MailboxInnerEnd<T>>().unwrap();
         let mut lock = handle.shared.lock();
