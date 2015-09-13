@@ -35,6 +35,7 @@
 #![cfg_attr(test, feature(convert))]
 #![feature(result_expect)]
 #![feature(reflect_marker)]
+#![feature(drain)]
 #![feature(rt)]
 #![warn(missing_docs)]
 
@@ -50,6 +51,7 @@ extern crate time;
 use std::cell::RefCell;
 use std::rc::{Rc};
 use std::io;
+use std::thread;
 use std::mem::{transmute, size_of_val};
 
 use mio::{TryRead, TryWrite, Token, EventLoop, EventSet};
@@ -1476,20 +1478,19 @@ impl mio::Handler for Handler {
 ///
 /// Main mioco structure.
 pub struct Mioco {
-    event_loop : EventLoop<Handler>,
-    server : Handler,
+    senders : Vec<mio::Sender<<Handler as mio::Handler>::Message>>,
+    join_handles : Vec<thread::JoinHandle<()>>,
 }
 
 impl Mioco {
     /// Create new `Mioco` instance
     pub fn new() -> Self {
-        let shared = Rc::new(RefCell::new(HandlerShared::new()));
         Mioco {
-            event_loop: EventLoop::new().expect("new EventLoop"),
-            server: Handler::new(shared.clone(), Box::new(FifoScheduler)),
+            senders: Vec::new(),
+            join_handles: Vec::new(),
         }
     }
-
+/*
     /// Create new `Mioco` instance using custom scheduler.
     ///
     /// See `Scheduler`.
@@ -1500,7 +1501,7 @@ impl Mioco {
             server: Handler::new(shared.clone(), Box::new(t)),
         }
     }
-
+*/
     /// Start mioco handling
     ///
     /// Takes a starting handler function that will be executed in `mioco` environment.
@@ -1510,28 +1511,48 @@ impl Mioco {
     /// See `MiocoHandle::spawn()`.
     pub fn start<F>(&mut self, f : F)
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+              F : Send
         {
-            let Mioco {
-                ref mut server,
-                ref mut event_loop,
-            } = *self;
-
-            {
-                let shared = server.shared.clone();
-                let coroutine_rc = Coroutine::spawn(shared, f);
-                let coroutine_shared = coroutine_rc.borrow().shared.clone();
-                coroutine_jump_in(&coroutine_shared);
-                let coroutine_ctrl = CoroutineControl{ rc: coroutine_rc };
-                coroutine_ctrl.after_resume(event_loop);
+            self.start_smp(f, 1);
+            for join in self.join_handles.drain(..) {
+                let _ = join.join(); // TODO: Do something with it
             }
+        }
 
-            let coroutines_num = server.shared.borrow().coroutines_num;
-            if  coroutines_num > 0 {
-                trace!("Start event_loop");
-                event_loop.run(server).unwrap();
-                trace!("Finished event_loop");
-            } else {
-                trace!("No coroutines to start event loop with");
+    fn spawn_thread<F>(&mut self, f : Option<F>)
+        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+              F : Send
+    {
+        let mut event_loop =  EventLoop::new().expect("new EventLoop");
+        self.senders.push(event_loop.channel());
+
+        let join = thread::spawn(move || {
+            {
+                let shared = Rc::new(RefCell::new(HandlerShared::new()));
+                let mut server = Handler::new(shared.clone(), Box::new(FifoScheduler));
+                if let Some(f) = f {
+                    let coroutine_rc = Coroutine::spawn(shared, f);
+                    let coroutine_shared = coroutine_rc.borrow().shared.clone();
+                    coroutine_jump_in(&coroutine_shared);
+                    let coroutine_ctrl = CoroutineControl{ rc: coroutine_rc };
+                    coroutine_ctrl.after_resume(&mut event_loop);
+                }
+
+                event_loop.run(&mut server).unwrap();
+            }
+        });
+
+        self.join_handles.push(join);
+    }
+
+    /// Start mioco server that will spawn a `thread` number of threads
+    pub fn start_smp<F>(&mut self, f : F, threads : u32)
+        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+              F : Send
+        {
+            self.spawn_thread(Some(f));
+            for _ in 1..threads {
+                self.spawn_thread::<F>(None);
             }
         }
 }
@@ -1739,6 +1760,7 @@ impl EventSource<Timer> {
 /// Shorthand for creating new `Mioco` instance and starting it right away.
 pub fn start<F>(f : F)
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + 'static,
+          F : Send
 {
     let mut mioco = Mioco::new();
     mioco.start(f);
