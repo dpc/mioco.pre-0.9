@@ -1385,18 +1385,52 @@ impl HandlerShared {
     }
 }
 
+/// Coroutine Scheduler
+///
+/// Custom implementations of this trait allow users to change the order in
+/// which Coroutines are being scheduled.
+pub trait Scheduler {
+    /// A Coroutine became ready.
+    ///
+    /// `coroutines_num` is a control reference to the Coroutine that became
+    /// ready (to be resumed). It can be resumed immediately, or stored
+    /// somewhere to be resumed later.
+    fn ready(&self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
+
+    /// A mio's tick have complete.
+    ///
+    /// This means all pending events have been processed and all Coroutines blocked on them
+    /// already signaled with `Scheduler::ready()`.
+    ///
+    /// After returning from this function, `mioco` will let mio process a
+    /// new batch of events.
+    fn tick(&self, event_loop: &mut mio::EventLoop<Handler>);
+}
+/// Default, simple first-in-first-out Scheduler.
+struct FifoScheduler;
+
+impl Scheduler for FifoScheduler {
+    fn ready(&self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+        coroutine_ctrl.resume(event_loop);
+    }
+
+    fn tick(&self, _: &mut mio::EventLoop<Handler>) {}
+}
+
 /// Mioco event loop `Handler`
 ///
 /// Registered in `mio::EventLoop` and implementing `mio::Handler`.  This `struct` is quite
 /// internal so you should not have to worry about it.
 pub struct Handler {
     shared : RcHandlerShared,
+    scheduler : Box<Scheduler>,
 }
 
 impl Handler {
-    fn new(shared : RcHandlerShared) -> Self {
+    fn new(shared : RcHandlerShared, scheduler : Box<Scheduler>) -> Self {
         Handler {
             shared: shared,
+            scheduler: scheduler,
         }
     }
 }
@@ -1424,7 +1458,7 @@ impl mio::Handler for Handler {
             },
         };
         if co.event(event_loop, token, events) {
-            co.resume(event_loop);
+            self.scheduler.ready(event_loop, co);
         }
         trace!("Handler::ready finished");
     }
@@ -1452,7 +1486,18 @@ impl Mioco {
         let shared = Rc::new(RefCell::new(HandlerShared::new()));
         Mioco {
             event_loop: EventLoop::new().expect("new EventLoop"),
-            server: Handler::new(shared.clone()),
+            server: Handler::new(shared.clone(), Box::new(FifoScheduler)),
+        }
+    }
+
+    /// Create new `Mioco` instance using custom scheduler.
+    ///
+    /// See `Scheduler`.
+    pub fn new_with_scheduler<T : Scheduler+'static>(t : T) -> Self {
+        let shared = Rc::new(RefCell::new(HandlerShared::new()));
+        Mioco {
+            event_loop: EventLoop::new().expect("new EventLoop"),
+            server: Handler::new(shared.clone(), Box::new(t)),
         }
     }
 
