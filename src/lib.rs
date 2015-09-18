@@ -145,8 +145,8 @@ pub enum ExitStatus {
 impl ExitStatus {
     /// Is the `ExitStatus` a `Panic`?
     pub fn is_panic(&self) -> bool {
-        match self {
-            &ExitStatus::Panic => true,
+        match *self {
+            ExitStatus::Panic => true,
             _ => false,
         }
     }
@@ -168,32 +168,32 @@ enum State {
 impl State {
     /// Is the `State` a `Finished(_)`?
     fn is_finished(&self) -> bool {
-        match self {
-            &State::Finished(_) => true,
+        match *self {
+            State::Finished(_) => true,
             _ => false,
         }
     }
 
     /// Is the `State` `Ready`?
     fn is_ready(&self) -> bool {
-        match self {
-            &State::Ready => true,
+        match *self {
+            State::Ready => true,
             _ => false,
         }
     }
 
     /// Is the `State` `Running`?
     fn is_running(&self) -> bool {
-        match self {
-            &State::Running => true,
+        match *self {
+            State::Running => true,
             _ => false,
         }
     }
 
     /// Is the `State` `Blocked`?
     fn is_blocked(&self) -> bool {
-        match self {
-            &State::BlockedOn(_) => true,
+        match *self {
+            State::BlockedOn(_) => true,
             _ => false,
         }
     }
@@ -446,6 +446,7 @@ pub struct CoroutineControl {
     rc : RcCoroutine,
 }
 
+
 impl CoroutineControl {
     fn new(rc : RcCoroutine) -> Self {
         CoroutineControl {
@@ -453,14 +454,12 @@ impl CoroutineControl {
         }
     }
 
-    /// Clone is private to prevent any references
-    /// after `migrate()`.
-    fn clone(&self) -> Self {
+    /// Private Clone to prevent any references after `migrate()`.
+    fn clone_priv(&self) -> Self {
         CoroutineControl {
             rc: self.rc.clone(),
         }
     }
-
     /// Deliver an event to a Coroutine
     fn event(
         &self,
@@ -653,7 +652,7 @@ impl CoroutineControl {
 
             co_shared.handler_shared = Some(handler_shared);
 
-            self.clone()
+            self.clone_priv()
         }).expect("Run out of slab for coroutines");
     }
 }
@@ -1687,12 +1686,15 @@ impl mio::Handler for Handler {
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
         trace!("Handler::ready({:?}): started", token);
         let (co_id, _) = token_to_ids(token);
-        let co = match self.shared.borrow().coroutines.get(Token(co_id.as_usize())) {
-            Some(co) => co.clone(),
-            None => {
-                trace!("Handler::ready() ignored");
-                return
-            },
+        let co = {
+            let shared = self.shared.borrow();
+            match shared.coroutines.get(Token(co_id.as_usize())).as_ref() {
+                Some(&co) => co.clone_priv(),
+                None => {
+                    trace!("Handler::ready() ignored");
+                    return
+                },
+            }
         };
         if co.event(event_loop, &mut *self.scheduler, token, events) {
             self.scheduler.ready(event_loop, co);
@@ -1909,7 +1911,7 @@ impl<T> MailboxOuterEnd<T> {
         } = *lock;
 
         inn.push_back(t);
-        debug_assert!(inn.len() > 0);
+        debug_assert!(!inn.is_empty());
         trace!("MailboxOuterEnd: putting message in a queue; new len: {}", inn.len());
 
         if interest.is_readable() {
