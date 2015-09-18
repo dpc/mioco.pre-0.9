@@ -46,6 +46,7 @@ extern crate nix;
 extern crate log;
 extern crate bit_vec;
 extern crate time;
+extern crate num_cpus;
 
 use std::cell::RefCell;
 use std::rc::{Rc};
@@ -2027,7 +2028,7 @@ pub fn start<F>(f : F)
           F : Send
 {
     let mut mioco = Mioco::new();
-    mioco.start_threads::<F, FifoScheduler>(1, f);
+    mioco.start_threads::<F, FifoScheduler>(num_cpus::get(), f);
 }
 
 /// Shorthand for creating new `Mioco` instance and starting it right away.
