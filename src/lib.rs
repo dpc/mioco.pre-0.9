@@ -416,6 +416,9 @@ pub struct Coroutine {
 
     /// Newly spawned `Coroutine`-es
     children_to_start : Vec<RcCoroutine>,
+
+    /// Function to be run inside Coroutine
+    coroutine_func : Option<Box<FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static>>,
 }
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
@@ -682,6 +685,7 @@ impl Coroutine {
                 io: Vec::with_capacity(4),
                 children_to_start: Vec::new(),
                 stack: Stack::new(1024 * 1024),
+                coroutine_func: Some(Box::new(f)),
             };
 
             CoroutineControl::new(Rc::new(RefCell::new(coroutine)))
@@ -698,20 +702,6 @@ impl Coroutine {
             coroutine_ptr
         };
 
-        struct SendFnOnce<F>
-        {
-            f : F
-        }
-
-        // We fake the `Send` because `mioco` guarantees serialized
-        // execution between coroutines, switching between them
-        // only in predefined points.
-        unsafe impl<F> Send for SendFnOnce<F>
-            where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static
-            {
-
-            }
-
         #[derive(Copy, Clone)]
         #[allow(raw_pointer_derive)]
         struct SendCoroutinePtr {
@@ -722,21 +712,7 @@ impl Coroutine {
             coroutine_ptr: coroutine_ptr,
         };
 
-        // Same logic as in `SendFnOnce` applies here.
         unsafe impl Send for SendCoroutinePtr { }
-
-        /*
-        let sendref1 = SendRcCoroutine {
-            coroutine: coroutine_rc.clone(),
-        };
-
-        let sendref2 = SendRcCoroutine {
-            coroutine: coroutine_rc.clone(),
-        };*/
-
-        let send_f = SendFnOnce {
-            f: f,
-        };
 
         extern "C" fn init_fn(arg: usize, f: *mut ()) -> ! {
             let func: Box<Thunk<(), ()>> = unsafe { transmute(f) };
@@ -782,13 +758,13 @@ impl Coroutine {
                                 shared.id.as_usize()
                             });
 
+                            let f = coroutine.coroutine_func.take().unwrap();
 
                             let mut mioco_handle = MiocoHandle {
                                 coroutine: coroutine,
                                 timer: None,
                             };
 
-                            let SendFnOnce { f } = send_f;
                             f(&mut mioco_handle)
                         }
                         );
