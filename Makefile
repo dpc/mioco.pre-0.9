@@ -29,7 +29,7 @@ bench:
 
 .PHONY: longtest
 longtest:
-	for i in `seq 100`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
+	for i in `seq 10`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
 
 .PHONY: $(EXAMPLES)
 $(EXAMPLES):
