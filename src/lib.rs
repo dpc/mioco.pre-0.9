@@ -351,7 +351,7 @@ impl Evented for Timer {
         match event_loop.timeout_ms(token, delay as u64) {
             Ok(_) => {},
             Err(reason)=> {
-                error!("Could not create mio::Timeout: {:?}", reason);
+                panic!("Could not create mio::Timeout: {:?}", reason);
             }
         }
     }
@@ -793,7 +793,7 @@ impl Coroutine {
 
                     match res {
                         Ok(res) => {
-                            error!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
+                            trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
                             let arc_res = Arc::new(res);
                             co_shared.exit_notificators.iter().map(
                                 |end| end.send(ExitStatus::Exit(arc_res.clone()))
@@ -802,7 +802,7 @@ impl Coroutine {
 
                         },
                         Err(cause) => {
-                            error!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
+                            trace!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
                             co_shared.state = State::Finished(ExitStatus::Panic);
                             co_shared.exit_notificators.iter().map(
                                 |end| end.send(ExitStatus::Panic)
