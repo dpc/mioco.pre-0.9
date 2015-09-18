@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `SchedulerThread` trait in crate `mioco`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, SchedulerThread">
+
+    <title>mioco::SchedulerThread - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>mioco</a></p><script>window.sidebarCurrent = {name: 'SchedulerThread', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content trait">
+<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>mioco</a>::<wbr><a class='trait' href=''>SchedulerThread</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-8527' class='srclink' href='../src/mioco/lib.rs.html#1613-1635' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait SchedulerThread: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> {
+    fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
+    fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
+
+    fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;) { ... }
+}</pre><div class='docblock'><p>Per-thread Scheduler</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.new' class='method stab '><code>fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine was spawned.</p>
+
+<p>New Coroutine was spawned. This can be used to run it immediately
+(or not), or migrate it to different thread immediately.</p>
+</div><h3 id='tymethod.ready' class='method stab '><code>fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine became ready.</p>
+
+<p><code>coroutines_num</code> is a control reference to the Coroutine that became
+ready (to be resumed). It can be resumed immediately, or stored
+somewhere to be resumed later.</p>
+</div></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.tick' class='method stab '><code>fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></h3><div class='docblock'><p>A mio&#39;s tick have complete.</p>
+
+<p>This means all pending events have been processed and all Coroutines blocked on them
+already signaled with <code>Scheduler::ready()</code>.</p>
+
+<p>After returning from this function, <code>mioco</code> will let mio process a
+new batch of events.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    </ul><script type="text/javascript" async
+                              src="../implementors/mioco/trait.SchedulerThread.js">
+                      </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mioco";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>

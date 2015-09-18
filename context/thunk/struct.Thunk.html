@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='../index.html'>context</a>::<wbr><a href='index.html'>thunk</a></p><script>window.sidebarCurrent = {name: 'Thunk', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1828' class='srclink' href='../../src/context/thunk.rs.html#19-21' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1738' class='srclink' href='../../src/context/thunk.rs.html#19-21' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Thunk&lt;'a, A = <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, R = <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; {
     // some fields omitted
 }</pre><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, R&gt; <a class='struct' href='../../context/thunk/struct.Thunk.html' title='context::thunk::Thunk'>Thunk</a>&lt;'a, <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, R&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;F&gt;(func: F) -&gt; <a class='struct' href='../../context/thunk/struct.Thunk.html' title='context::thunk::Thunk'>Thunk</a>&lt;'a, <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, R&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/ops/trait.FnOnce.html' title='thunk::core::ops::FnOnce'>FnOnce</a>() -&gt; R, F: <a class='trait' href='https://doc.rust-lang.org/nightly/thunk/core/marker/trait.Send.html' title='thunk::core::marker::Send'>Send</a> + 'a</span></code></h4>
@@ -56,10 +56,12 @@
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -76,7 +78,7 @@
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -96,7 +98,7 @@
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 

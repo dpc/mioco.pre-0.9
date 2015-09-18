@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='index.html'>mioco</a></p><script>window.sidebarCurrent = {name: 'MiocoHandle', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -45,13 +45,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-5009' class='srclink' href='../src/mioco/lib.rs.html#989-992' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-7427' class='srclink' href='../src/mioco/lib.rs.html#1246-1249' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance handle</p>
 
 <p>Use this from withing coroutines to use Mioco-provided functionality.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a></code></h3><div class='impl-items'><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(&amp;self, f: F) -&gt; <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + 'static</span></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a></code></h3><div class='impl-items'><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(&amp;self, f: F) -&gt; <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
 <div class='docblock'><p>Create a <code>mioco</code> coroutine handler</p>
 
 <p><code>f</code> is routine handling connection. It must not use any real blocking-IO operations, only
@@ -71,6 +71,10 @@ when it&#39;s timeout (see <code>set_timer()</code> ) expire.</p>
 <div class='docblock'><p>Block coroutine for a given time</p>
 </div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till an event is ready</p>
+
+<p><strong>Warning</strong>: Mioco can&#39;t guarantee that the returned <code>EventSource</code> will
+not block when actually attempting to <code>read</code> or <code>write</code>. You must
+use <code>try_read</code> and <code>try_write</code> instead.</p>
 
 <p>The returned value contains event type and the id of the <code>EventSource</code>.
 See <code>EventSource::id()</code>.</p>
@@ -100,10 +104,12 @@ See <code>MiocoHandle::select()</code>.</p>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -120,7 +126,7 @@ See <code>MiocoHandle::select()</code>.</p>
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -140,7 +146,7 @@ See <code>MiocoHandle::select()</code>.</p>
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 

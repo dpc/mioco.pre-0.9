@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='index.html'>regex_syntax</a></p><script>window.sidebarCurrent = {name: 'CharClass', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -265,8 +265,7 @@ is empty.</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>vec</span>.<span class='ident'>pop</span>(), <span class='prelude-val'>Some</span>(<span class='number'>3</span>));
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>vec</span>, [<span class='number'>1</span>, <span class='number'>2</span>]);</pre>
 </div><h4 id='method.append' class='method'><code>fn <a href='#method.append' class='fnname'>append</a>(&amp;mut self, other: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;)</code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>append</code>)<p>: new API, waiting for dust to settle</p>
-</em></div><div class='docblock'><p>Moves all the elements of <code>other</code> into <code>Self</code>, leaving <code>other</code> empty.</p>
+<div class='docblock'><p>Moves all the elements of <code>other</code> into <code>Self</code>, leaving <code>other</code> empty.</p>
 
 <h1 id="panics" class='section-header'><a
                            href="#panics">Panics</a></h1>
@@ -274,8 +273,6 @@ is empty.</p>
 
 <h1 id="examples" class='section-header'><a
                            href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>append</span>)]</span>
-
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec2</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>4</span>, <span class='number'>5</span>, <span class='number'>6</span>];
 <span class='ident'>vec</span>.<span class='ident'>append</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>vec2</span>);
@@ -332,8 +329,7 @@ the end point is greater than the length of the vector.</p>
 <span class='ident'>v</span>.<span class='ident'>push</span>(<span class='number'>1</span>);
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>v</span>.<span class='ident'>is_empty</span>());</pre>
 </div><h4 id='method.split_off' class='method'><code>fn <a href='#method.split_off' class='fnname'>split_off</a>(&amp;mut self, at: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;T&gt;</code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>split_off</code>)<p>: new API, waiting for dust to settle</p>
-</em></div><div class='docblock'><p>Splits the collection into two at the given index.</p>
+<div class='docblock'><p>Splits the collection into two at the given index.</p>
 
 <p>Returns a newly allocated <code>Self</code>. <code>self</code> contains elements <code>[0, at)</code>,
 and the returned <code>Self</code> contains elements <code>[at, len)</code>.</p>
@@ -415,10 +411,12 @@ it to this <code>Vec</code>. The <code>other</code> vector is traversed in-order
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -435,7 +433,7 @@ it to this <code>Vec</code>. The <code>other</code> vector is traversed in-order
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -455,7 +453,7 @@ it to this <code>Vec</code>. The <code>other</code> vector is traversed in-order
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 
