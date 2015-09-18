@@ -234,6 +234,7 @@ where T : mio::Evented+Reflect+'static {
     }
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+        trace!("Evented({}): register", token.as_usize());
         event_loop.register_opt(
             self, token,
             interest,
@@ -242,6 +243,7 @@ where T : mio::Evented+Reflect+'static {
     }
 
     fn reregister(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+        trace!("Evented({}): reregister", token.as_usize());
         event_loop.reregister(
             self, token,
             interest,
@@ -249,7 +251,8 @@ where T : mio::Evented+Reflect+'static {
             ).expect("reregister failed");
     }
 
-    fn deregister(&self, event_loop : &mut EventLoop<Handler>, _token : Token) {
+    fn deregister(&self, event_loop : &mut EventLoop<Handler>, token : Token) {
+        trace!("Evented({}): deregister", token.as_usize());
         event_loop.deregister(self).expect("deregister failed");
     }
 }
@@ -265,8 +268,11 @@ fn sender_retry<M : Send>(sender : &mio::Sender<M>, msg : M) {
             Ok(()) => break,
             Err(mio::NotifyError::Closed(_)) => panic!("Closed channel on sender.send()."),
             Err(mio::NotifyError::Io(_)) => panic!("IO error on sender.send()."),
-            Err(mio::NotifyError::Full(retry_msg)) => {msg = Some(retry_msg);},
+            Err(mio::NotifyError::Full(retry_msg)) => {
+                msg = Some(retry_msg);
+            },
         }
+        trace!("send_retry: retry");
         thread::yield_now();
     }
 }
@@ -282,6 +288,7 @@ where T:Reflect+'static {
     }
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+        trace!("MailboxInnerEnd({}): register", token.as_usize());
         let mut lock = self.shared.lock();
 
         lock.token = Some(token);
@@ -289,12 +296,14 @@ where T:Reflect+'static {
         lock.interest = interest;
 
         if interest.is_readable() && !lock.inn.is_empty() {
+            trace!("MailboxInnerEnd({}): not empty; self notify", token.as_usize());
             lock.interest = EventSet::none();
             sender_retry(lock.sender.as_ref().unwrap(), MailboxMsg(token));
         }
     }
 
     fn reregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+        trace!("MailboxInnerEnd({}): reregister", token.as_usize());
         let mut lock = self.shared.lock();
 
         lock.interest = interest;
@@ -305,13 +314,17 @@ where T:Reflect+'static {
         }
     }
 
-    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, _token : Token) {
+    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token) {
+        trace!("MailboxInnerEnd({}): dereregister", token.as_usize());
         let mut lock = self.shared.lock();
+        lock.token = None;
+        lock.sender = None;
         lock.interest = EventSet::none();
     }
 
     fn should_resume(&self) -> bool {
         let lock = self.shared.lock();
+        trace!("MailboxInnerEnd: should_resume? {}", !lock.inn.is_empty());
         !lock.inn.is_empty()
     }
 }
@@ -326,7 +339,6 @@ impl Evented for Timer {
     }
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, _interest : EventSet) {
-        trace!("register timer: {:?}", token);
         let timeout = self.timeout;
         let now = SteadyTime::now();
         let delay = if timeout <= now {
@@ -335,6 +347,7 @@ impl Evented for Timer {
             (timeout - now).num_milliseconds()
         };
 
+        trace!("Timer({}): set timeout in {}ms", token.as_usize(), delay);
         match event_loop.timeout_ms(token, delay as u64) {
             Ok(_) => {},
             Err(reason)=> {
@@ -347,11 +360,11 @@ impl Evented for Timer {
         self.register(event_loop, token, interest)
     }
 
-    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token) {
-        trace!("deregister timer: {:?}", token);
+    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, _token : Token) {
     }
 
     fn should_resume(&self) -> bool {
+        trace!("Timer: should_resume? {}", self.timeout <= SteadyTime::now());
         self.timeout <= SteadyTime::now()
     }
 }
@@ -410,7 +423,6 @@ const EVENT_SOURCE_TOKEN_BITS : usize = 10;
 const EVENT_SOURCE_TOKEN_MASK : usize = (1 << EVENT_SOURCE_TOKEN_BITS) - 1;
 
 /// Convert token to ids
-///
 fn token_to_ids(token : Token) -> (CoroutineId, EventSourceId) {
     let val = token.as_usize();
     (
@@ -458,6 +470,7 @@ impl CoroutineControl {
         ) -> bool {
         let (_, io_id) = token_to_ids(token);
 
+        trace!("Coroutine({}): event", self.id().as_usize());
         let (should_resume, should_reregister) = {
             let coroutine = self.rc.borrow();
             let io = coroutine.io[io_id.as_usize()].clone();
@@ -512,6 +525,7 @@ impl CoroutineControl {
         };
 
         if should_resume {
+            trace!("Coroutine({}): set to ready", self.id().as_usize());
             // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
             let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
                 (true, true) => RW::Both,
@@ -529,9 +543,12 @@ impl CoroutineControl {
             };
             true
         } else if should_reregister {
+            trace!("Coroutine({}): event ignored (reregister)", self.id().as_usize());
+            // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
             self.after_resume(event_loop, scheduler);
             false
         } else {
+            trace!("Coroutine({}): event ignored (no reregister)", self.id().as_usize());
             false
         }
     }
@@ -544,6 +561,7 @@ impl CoroutineControl {
         event_loop : &mut EventLoop<Handler>,
         scheduler : &mut (SchedulerThread+'static),
         ) {
+        trace!("Coroutine({}): resume", self.id().as_usize());
         let shared = self.rc.borrow().shared.clone();
         let is_ready = shared.borrow().state.is_ready();
         if is_ready {
@@ -552,6 +570,12 @@ impl CoroutineControl {
         } else {
             panic!("Tried to resume Coroutine that is not ready");
         }
+    }
+
+    fn id(&self) -> CoroutineId {
+        let coroutine = self.rc.borrow();
+        let shared = coroutine.shared.borrow();
+        shared.id
     }
 
     /// After `resume()` (or ignored event()) we need to perform the following maintenance
@@ -568,12 +592,12 @@ impl CoroutineControl {
 
         std::mem::swap(&mut children, &mut self.rc.borrow_mut().children_to_start);
 
+        trace!("Coroutine({}): {} children spawned", self.id().as_usize(), children.len());
         for coroutine in children.drain(..) {
             let coroutine_ctrl = CoroutineControl { rc: coroutine };
             scheduler.new(event_loop, coroutine_ctrl);
         }
 
-        trace!("Reregister coroutine");
         self.rc.borrow_mut().reregister(event_loop);
     }
 
@@ -589,6 +613,7 @@ impl CoroutineControl {
         thread_id : usize,
         ) {
         let sender = {
+            trace!("Coroutine({}): migrate to thread {}", self.id().as_usize(), thread_id);
             let mut co = self.rc.borrow_mut();
             co.deregister_all(event_loop);
             let mut co_shared = co.shared.borrow_mut();
@@ -616,7 +641,7 @@ impl CoroutineControl {
         ) {
         let handler_shared = handler.shared.clone();
 
-        trace!("Coroutine: reattaching ");
+        trace!("Coroutine({}): reattach in a new thread", self.id().as_usize());
         let _id = handler.shared.borrow_mut().coroutines.insert_with(|id| {
             let id = CoroutineId(id.as_usize());
 
@@ -733,7 +758,13 @@ impl Coroutine {
                 init_fn,
                 shared_ptr,
                 move || {
-                    trace!("Coroutine: started");
+
+                    trace!("Coroutine({}): started", {
+                        let coroutine = sendref1.coroutine.borrow();
+                        let shared = coroutine.shared.borrow();
+                        shared.id.as_usize()
+                    }
+                    );
 
                     let res = thread::catch_panic(
                         move|| {
@@ -762,6 +793,7 @@ impl Coroutine {
 
                     match res {
                         Ok(res) => {
+                            error!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
                             let arc_res = Arc::new(res);
                             co_shared.exit_notificators.iter().map(
                                 |end| end.send(ExitStatus::Exit(arc_res.clone()))
@@ -770,15 +802,13 @@ impl Coroutine {
 
                         },
                         Err(cause) => {
-                            error!("Panicked inside: {:?}", cause.downcast::<&str>());
+                            error!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
                             co_shared.state = State::Finished(ExitStatus::Panic);
                             co_shared.exit_notificators.iter().map(
                                 |end| end.send(ExitStatus::Panic)
                                 ).count();
                         }
                     }
-
-                    trace!("Coroutine: finished");
                 },
                 stack,
                 );
@@ -1022,17 +1052,18 @@ where T : Reflect+'static {
         {
             let inn = self.inn.borrow();
             let mut co_shared = inn.coroutine_shared.borrow_mut();
+            trace!("Coroutine({}): blocked on {:?}", co_shared.id.as_usize(), rw);
             co_shared.state = State::BlockedOn(rw);
             // TODO: https://github.com/contain-rs/bit-vec/pulls
             co_shared.blocked_on.clear();
             co_shared.blocked_on.set(inn.id.as_usize(), true);
         };
-        trace!("coroutine blocked on {:?}", rw);
         let co_shared_ref = self.inn.borrow().coroutine_shared.clone();
         coroutine_jump_out(&co_shared_ref);
         {
             let inn = self.inn.borrow_mut();
             let co_shared = inn.coroutine_shared.borrow_mut();
+            trace!("Coroutine({}): resumed due to event {:?}", co_shared.id.as_usize(), co_shared.last_event);
             debug_assert!(rw.has_read() || co_shared.last_event.has_write());
             debug_assert!(rw.has_write() || co_shared.last_event.has_read());
             debug_assert!(co_shared.last_event.id().as_usize() == inn.id.as_usize());
@@ -1304,11 +1335,12 @@ impl MiocoHandle {
     fn select_impl(&mut self, rw : RW) -> Event {
         let shared = self.coroutine.borrow().shared.clone();
         shared.borrow_mut().state = State::BlockedOn(rw);
-        trace!("coroutine blocked on {:?}", rw);
+        trace!("Coroutine({}): blocked on {:?}", shared.borrow().id.as_usize(), rw);
         coroutine_jump_out(&shared);
+        trace!("Coroutine({}): resumed due to event {:?}", shared.borrow().id.as_usize(), shared.borrow().last_event);
         debug_assert!(shared.borrow().state.is_running());
         let e = shared.borrow().last_event;
-        e // Rust can be silly...
+        e
     }
 
     /// Wait till an event is ready
@@ -1644,7 +1676,7 @@ impl mio::Handler for Handler {
 
     fn tick(&mut self, event_loop: &mut mio::EventLoop<Self>) {
         let coroutines_num = self.shared.borrow().coroutines_num();
-        trace!("Handler::tick(); coroutines_num = {}", coroutines_num);
+        trace!("Handler::tick(): coroutines_num = {}", coroutines_num);
         if coroutines_num == 0 {
             trace!("Shutting down EventLoop");
             event_loop.shutdown();
@@ -1652,7 +1684,7 @@ impl mio::Handler for Handler {
     }
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
-        trace!("Handler::ready(token={:?})", token);
+        trace!("Handler::ready({:?}): started", token);
         let (co_id, _) = token_to_ids(token);
         let co = match self.shared.borrow().coroutines.get(Token(co_id.as_usize())) {
             Some(co) => co.clone(),
@@ -1664,7 +1696,7 @@ impl mio::Handler for Handler {
         if co.event(event_loop, &mut *self.scheduler, token, events) {
             self.scheduler.ready(event_loop, co);
         }
-        trace!("Handler::ready finished");
+        trace!("Handler::ready({:?}): finished", token);
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
@@ -1865,7 +1897,7 @@ impl<T> MailboxOuterEnd<T> {
     ///
     /// This is non-blocking operation.
     ///
-    /// See `EventSource<MailboxInnerEnd<T>>::recv()`.
+    /// See `EventSource<MailboxInnerEnd<T>>::read()`.
     pub fn send(&self, t : T) {
         let mut lock = self.shared.lock();
         let MailboxShared {
@@ -1876,12 +1908,14 @@ impl<T> MailboxOuterEnd<T> {
         } = *lock;
 
         inn.push_back(t);
+        debug_assert!(inn.len() > 0);
+        trace!("MailboxOuterEnd: putting message in a queue; new len: {}", inn.len());
 
         if interest.is_readable() {
-            if let &mut Some(token) = token {
-                let sender = sender.as_ref().unwrap();
-                sender_retry(&sender, MailboxMsg(token))
-            }
+            let token = token.unwrap();
+            trace!("MailboxOuterEnd: notifying {:?}", token);
+            let sender = sender.as_ref().unwrap();
+            sender_retry(&sender, MailboxMsg(token))
         }
     }
 }
