@@ -36,8 +36,10 @@
 #![feature(reflect_marker)]
 #![feature(catch_panic)]
 #![feature(drain)]
+#![feature(fnbox)]
 #![warn(missing_docs)]
 
+extern crate libc;
 extern crate spin;
 extern crate mio;
 extern crate context;
@@ -54,6 +56,8 @@ use std::io;
 use std::thread;
 use std::mem::{transmute, size_of_val};
 
+use std::boxed::FnBox;
+
 use mio::{TryRead, TryWrite, Token, EventLoop, EventSet};
 use std::any::Any;
 use std::marker::{PhantomData, Reflect};
@@ -69,7 +73,6 @@ use bit_vec::BitVec;
 use time::{SteadyTime, Duration};
 
 use context::{Context, Stack};
-use context::thunk::Thunk;
 
 use Message::*;
 
@@ -418,7 +421,7 @@ pub struct Coroutine {
     children_to_start : Vec<RcCoroutine>,
 
     /// Function to be run inside Coroutine
-    coroutine_func : Option<Box<FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static>>,
+    coroutine_func : Option<Box<FnBox(&mut MiocoHandle) -> io::Result<()> + Send + 'static>>,
 }
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
@@ -702,31 +705,66 @@ impl Coroutine {
             coroutine_ptr
         };
 
-        #[derive(Copy, Clone)]
-        #[allow(raw_pointer_derive)]
-        struct SendCoroutinePtr {
-            coroutine_ptr: *const Coroutine,
-        }
+        extern "C" fn init_fn(arg: usize, _: *mut libc::c_void) -> ! {
+            let ctx : &Context = {
 
-        let send_coroutine_ptr = SendCoroutinePtr {
-            coroutine_ptr: coroutine_ptr,
-        };
+                let res = thread::catch_panic(
+                    move|| {
+                        let coroutine: &mut Coroutine = unsafe { transmute(arg) };
+                        trace!("Coroutine({}): started", {
+                            let shared = coroutine.shared.borrow();
+                            shared.id.as_usize()
+                        });
 
-        unsafe impl Send for SendCoroutinePtr { }
+                        let f = coroutine.coroutine_func.take().unwrap();
 
-        extern "C" fn init_fn(arg: usize, f: *mut ()) -> ! {
-            let func: Box<Thunk<(), ()>> = unsafe { transmute(f) };
+                        let mut mioco_handle = MiocoHandle {
+                            coroutine: coroutine,
+                            timer: None,
+                        };
 
-            func.invoke(());
+                        // TODO: Weird syntax...
+                        f.call_box((&mut mioco_handle, ))
+                    }
+                    );
 
-           let ctx : &Context = {
-               let coroutine: &Coroutine= unsafe { transmute(arg) };
-               let coroutine_shared = coroutine.shared.borrow();
-               unsafe {
-                   let handler = coroutine_shared.handler_shared.as_ref().unwrap().borrow();
-                   transmute(&handler.context as *const Context)
-               }
-           };
+                let coroutine: &mut Coroutine = unsafe { transmute(arg) };
+                coroutine.io.clear();
+                let mut co_shared = coroutine.shared.borrow_mut();
+
+                let id = co_shared.id;
+                // TODO: https://github.com/contain-rs/bit-vec/pulls
+                co_shared.blocked_on.clear();
+                {
+                    let mut handler_shared = co_shared.handler_shared.as_ref().unwrap().borrow_mut();
+                    handler_shared.coroutines.remove(Token(id.as_usize())).unwrap();
+                    handler_shared.coroutines_dec();
+                }
+
+                match res {
+                    Ok(res) => {
+                        trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
+                        let arc_res = Arc::new(res);
+                        co_shared.exit_notificators.iter().map(
+                            |end| end.send(ExitStatus::Exit(arc_res.clone()))
+                            ).count();
+                        co_shared.state = State::Finished(ExitStatus::Exit(arc_res));
+
+                    },
+                    Err(cause) => {
+                        trace!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
+                        co_shared.state = State::Finished(ExitStatus::Panic);
+                        co_shared.exit_notificators.iter().map(
+                            |end| end.send(ExitStatus::Panic)
+                            ).count();
+                    }
+                }
+
+                unsafe {
+                    let handler = co_shared.handler_shared.as_ref().unwrap().borrow();
+                    transmute(&handler.context as *const Context)
+                }
+            };
 
             let mut dummy = Context::empty();
             Context::swap(&mut dummy, ctx);
@@ -746,61 +784,9 @@ impl Coroutine {
                 ..
             } = *shared.borrow_mut();
 
-            context.init_with(
+            context.init_with_unboxed(
                 init_fn,
                 coroutine_ptr as usize,
-                move || {
-                    let res = thread::catch_panic(
-                        move|| {
-                            let coroutine : &mut Coroutine = unsafe { transmute(send_coroutine_ptr.coroutine_ptr) };
-                            trace!("Coroutine({}): started", {
-                                let shared = coroutine.shared.borrow();
-                                shared.id.as_usize()
-                            });
-
-                            let f = coroutine.coroutine_func.take().unwrap();
-
-                            let mut mioco_handle = MiocoHandle {
-                                coroutine: coroutine,
-                                timer: None,
-                            };
-
-                            f(&mut mioco_handle)
-                        }
-                        );
-
-                    let coroutine : &mut Coroutine = unsafe { transmute(send_coroutine_ptr.coroutine_ptr) };
-                    coroutine.io.clear();
-                    let mut co_shared = coroutine.shared.borrow_mut();
-
-                    let id = co_shared.id;
-                    // TODO: https://github.com/contain-rs/bit-vec/pulls
-                    co_shared.blocked_on.clear();
-                    {
-                        let mut handler_shared = co_shared.handler_shared.as_ref().unwrap().borrow_mut();
-                        handler_shared.coroutines.remove(Token(id.as_usize())).unwrap();
-                        handler_shared.coroutines_dec();
-                    }
-
-                    match res {
-                        Ok(res) => {
-                            trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
-                            let arc_res = Arc::new(res);
-                            co_shared.exit_notificators.iter().map(
-                                |end| end.send(ExitStatus::Exit(arc_res.clone()))
-                                ).count();
-                            co_shared.state = State::Finished(ExitStatus::Exit(arc_res));
-
-                        },
-                        Err(cause) => {
-                            trace!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
-                            co_shared.state = State::Finished(ExitStatus::Panic);
-                            co_shared.exit_notificators.iter().map(
-                                |end| end.send(ExitStatus::Panic)
-                                ).count();
-                        }
-                    }
-                },
                 stack,
                 );
         }
