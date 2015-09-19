@@ -690,6 +690,14 @@ impl Coroutine {
 
         let coroutine_rc = handler_shared.borrow().coroutines[id].rc.clone();
 
+        let coroutine_ptr = {
+            // The things we do for borrowck...
+            let coroutine_ptr = {
+                &*coroutine_rc.borrow() as *const Coroutine
+            };
+            coroutine_ptr
+        };
+
         struct SendFnOnce<F>
         {
             f : F
@@ -704,20 +712,27 @@ impl Coroutine {
 
             }
 
-        struct SendRcCoroutine {
-            coroutine: RcCoroutine,
+        #[derive(Copy, Clone)]
+        #[allow(raw_pointer_derive)]
+        struct SendCoroutinePtr {
+            coroutine_ptr: *const Coroutine,
         }
 
-        // Same logic as in `SendFnOnce` applies here.
-        unsafe impl Send for SendRcCoroutine { }
+        let send_coroutine_ptr = SendCoroutinePtr {
+            coroutine_ptr: coroutine_ptr,
+        };
 
+        // Same logic as in `SendFnOnce` applies here.
+        unsafe impl Send for SendCoroutinePtr { }
+
+        /*
         let sendref1 = SendRcCoroutine {
             coroutine: coroutine_rc.clone(),
         };
 
         let sendref2 = SendRcCoroutine {
             coroutine: coroutine_rc.clone(),
-        };
+        };*/
 
         let send_f = SendFnOnce {
             f: f,
@@ -728,11 +743,14 @@ impl Coroutine {
 
             func.invoke(());
 
-            let coroutine_shared: &CoroutineShared = unsafe { transmute(arg) };
-            let ctx : &Context = unsafe {
-                let handler = coroutine_shared.handler_shared.as_ref().unwrap().borrow();
-                transmute(&handler.context as *const Context)
-            };
+           let ctx : &Context = {
+               let coroutine: &Coroutine= unsafe { transmute(arg) };
+               let coroutine_shared = coroutine.shared.borrow();
+               unsafe {
+                   let handler = coroutine_shared.handler_shared.as_ref().unwrap().borrow();
+                   transmute(&handler.context as *const Context)
+               }
+           };
 
             let mut dummy = Context::empty();
             Context::swap(&mut dummy, ctx);
@@ -747,8 +765,6 @@ impl Coroutine {
                 ..
             } = *coroutine_rc.borrow_mut();
 
-            let shared_ptr = unsafe { transmute(&*shared.borrow() as *const CoroutineShared) };
-
             let CoroutineShared {
                 ref mut context,
                 ..
@@ -756,20 +772,19 @@ impl Coroutine {
 
             context.init_with(
                 init_fn,
-                shared_ptr,
+                coroutine_ptr as usize,
                 move || {
-
-                    trace!("Coroutine({}): started", {
-                        let coroutine = sendref1.coroutine.borrow();
-                        let shared = coroutine.shared.borrow();
-                        shared.id.as_usize()
-                    }
-                    );
-
                     let res = thread::catch_panic(
                         move|| {
+                            let coroutine : &mut Coroutine = unsafe { transmute(send_coroutine_ptr.coroutine_ptr) };
+                            trace!("Coroutine({}): started", {
+                                let shared = coroutine.shared.borrow();
+                                shared.id.as_usize()
+                            });
+
+
                             let mut mioco_handle = MiocoHandle {
-                                coroutine: sendref1.coroutine,
+                                coroutine: coroutine,
                                 timer: None,
                             };
 
@@ -778,9 +793,9 @@ impl Coroutine {
                         }
                         );
 
-                    let mut co = sendref2.coroutine.borrow_mut();
-                    co.io.clear();
-                    let mut co_shared = co.shared.borrow_mut();
+                    let coroutine : &mut Coroutine = unsafe { transmute(send_coroutine_ptr.coroutine_ptr) };
+                    coroutine.io.clear();
+                    let mut co_shared = coroutine.shared.borrow_mut();
 
                     let id = co_shared.id;
                     // TODO: https://github.com/contain-rs/bit-vec/pulls
@@ -1194,8 +1209,8 @@ where T : TryWrite+Reflect+'static {
 /// Mioco instance handle
 ///
 /// Use this from withing coroutines to use Mioco-provided functionality.
-pub struct MiocoHandle {
-    coroutine : Rc<RefCell<Coroutine>>,
+pub struct MiocoHandle<'a> {
+    coroutine : &'a mut Coroutine,
     timer : Option<EventSource<Timer>>,
 }
 
@@ -1245,20 +1260,22 @@ impl CoroutineHandle {
     }
 }
 
-impl MiocoHandle {
+impl<'a> MiocoHandle<'a> {
     /// Create a `mioco` coroutine handler
     ///
     /// `f` is routine handling connection. It must not use any real blocking-IO operations, only
     /// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
     /// cooperative scheduling can block on real blocking-IO which defeats using mioco.
-    pub fn spawn<F>(&self, f : F) -> CoroutineHandle
+    pub fn spawn<F>(&mut self, f : F) -> CoroutineHandle
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static {
-            let mut co = self.coroutine.borrow_mut();
-            let coroutine_ref = Coroutine::spawn(co.shared.borrow().handler_shared.as_ref().unwrap().clone(), f);
+            let coroutine_ref = Coroutine::spawn(
+                self.coroutine.shared.borrow().handler_shared.as_ref().unwrap().clone(),
+                f
+                );
             let ret = CoroutineHandle {
                 coroutine_shared: coroutine_ref.borrow().shared.clone(),
             };
-            co.children_to_start.push(coroutine_ref);
+            self.coroutine.children_to_start.push(coroutine_ref);
 
             ret
         }
@@ -1270,7 +1287,7 @@ impl MiocoHandle {
     pub fn wrap<T : 'static>(&mut self, io : T) -> EventSource<T>
     where T : Evented {
         let io_new = {
-            let co = self.coroutine.borrow();
+            let co = &self.coroutine;
 
             Rc::new(RefCell::new(
                     EventSourceShared {
@@ -1288,11 +1305,11 @@ impl MiocoHandle {
             _t: PhantomData,
         };
 
-        let Coroutine {
+        let &mut Coroutine {
             ref mut io,
             ref shared,
             ..
-        } = *self.coroutine.borrow_mut();
+        } = self.coroutine;
 
         let CoroutineShared {
             ref mut registered,
@@ -1333,7 +1350,7 @@ impl MiocoHandle {
 
     /// Wait till a read event is ready
     fn select_impl(&mut self, rw : RW) -> Event {
-        let shared = self.coroutine.borrow().shared.clone();
+        let shared = &self.coroutine.shared;
         shared.borrow_mut().state = State::BlockedOn(rw);
         trace!("Coroutine({}): blocked on {:?}", shared.borrow().id.as_usize(), rw);
         coroutine_jump_out(&shared);
@@ -1357,7 +1374,7 @@ impl MiocoHandle {
                 ref io,
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
@@ -1378,7 +1395,7 @@ impl MiocoHandle {
                 ref io,
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
@@ -1399,7 +1416,7 @@ impl MiocoHandle {
                 ref io,
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
@@ -1420,7 +1437,7 @@ impl MiocoHandle {
             let Coroutine {
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
@@ -1442,7 +1459,7 @@ impl MiocoHandle {
             let Coroutine {
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
@@ -1463,7 +1480,7 @@ impl MiocoHandle {
             let Coroutine {
                 ref shared,
                 ..
-            } = *self.coroutine.borrow_mut();
+            } = *self.coroutine;
 
             let CoroutineShared {
                 ref mut blocked_on,
