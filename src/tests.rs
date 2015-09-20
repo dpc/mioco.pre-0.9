@@ -209,6 +209,41 @@ fn lots_of_event_sources() {
     }
 }
 
+/// Test if drop is performed on IOs when coroutine panics.
+#[test]
+fn destructs_io_on_panic() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        start_threads(threads, move |mioco| {
+
+            let (reader, writer) = try!(mio::unix::pipe());
+
+            mioco.spawn(move |mioco| {
+                let mut reader = mioco.wrap(reader);
+                let mut buf = [0u8; 16];
+                let ret = reader.read(&mut buf);
+                assert!(ret.is_ok());
+
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+
+            mioco.spawn(move |mioco| {
+                let _writer = mioco.wrap(writer);
+                panic!();
+            });
+
+
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
 #[test]
 fn timer_times_out() {
     for &threads in THREADS_N.iter() {
