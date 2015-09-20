@@ -426,14 +426,14 @@ pub struct Coroutine {
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
 /// Token bits encode both Coroutine and EventSource within it
-const EVENT_SOURCE_TOKEN_BITS : usize = 10;
-const EVENT_SOURCE_TOKEN_MASK : usize = (1 << EVENT_SOURCE_TOKEN_BITS) - 1;
+const EVENT_SOURCE_TOKEN_SHIFT : usize = 10;
+const EVENT_SOURCE_TOKEN_MASK : usize = (1 << EVENT_SOURCE_TOKEN_SHIFT) - 1;
 
 /// Convert token to ids
 fn token_to_ids(token : Token) -> (CoroutineId, EventSourceId) {
     let val = token.as_usize();
     (
-        CoroutineId(val >> EVENT_SOURCE_TOKEN_BITS),
+        CoroutineId(val >> EVENT_SOURCE_TOKEN_SHIFT),
         EventSourceId(val & EVENT_SOURCE_TOKEN_MASK),
     )
 }
@@ -442,7 +442,7 @@ fn token_to_ids(token : Token) -> (CoroutineId, EventSourceId) {
 fn token_from_ids(co_id : CoroutineId, io_id : EventSourceId) -> Token {
     // TODO: Add checks on wrap()
     debug_assert!(io_id.as_usize() <= EVENT_SOURCE_TOKEN_MASK);
-    Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_BITS) | io_id.as_usize())
+    Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_SHIFT) | io_id.as_usize())
 }
 
 /// Coroutine control block
@@ -451,7 +451,6 @@ fn token_from_ids(co_id : CoroutineId, io_id : EventSourceId) -> Token {
 pub struct CoroutineControl {
     rc : RcCoroutine,
 }
-
 
 impl CoroutineControl {
     fn new(rc : RcCoroutine) -> Self {
