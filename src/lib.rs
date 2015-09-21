@@ -1700,24 +1700,29 @@ impl mio::Handler for Handler {
 ///
 /// Main mioco structure.
 pub struct Mioco {
-    scheduler : Box<Scheduler + 'static>,
     join_handles : Vec<thread::JoinHandle<()>>,
+    scheduler : Box<Scheduler + 'static>,
+    thread_num : usize,
 }
 
 impl Mioco {
     /// Create new `Mioco` instance
     pub fn new() -> Self {
-        Self::new_with_scheduler(FifoScheduler::new())
+        Mioco::new_configured(Config::new())
     }
 
-    /// Create new `Mioco` instance with custom scheduler
-    pub fn new_with_scheduler<S>(scheduler : S) -> Self
-        where
-        S : Scheduler + 'static,
+    /// Create new `Mioco` instance
+    pub fn new_configured(config : Config) -> Self
     {
-         Mioco {
-            scheduler: Box::new(scheduler),
+        let Config {
+            thread_num,
+            scheduler,
+        } = config;
+
+        Mioco {
             join_handles: Vec::new(),
+            scheduler: scheduler.unwrap_or_else(|| Box::new(FifoScheduler::new())),
+            thread_num: thread_num.unwrap_or_else(|| num_cpus::get()),
          }
     }
 
@@ -1729,24 +1734,16 @@ impl Mioco {
     ///
     /// See `MiocoHandle::spawn()`.
     pub fn start<F>(&mut self, f : F)
-        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
-              F : Send
-        {
-            self.start_threads::<F, FifoScheduler>(1, f);
-        }
-
-    /// Start mioco handler that will spawn a `thread` number of threads
-    pub fn start_threads<F, S>(&mut self, thread_num : usize, f : F)
         where
-        S : Scheduler + 'static,
         F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
         F : Send
         {
-            let thread_shared = Arc::new(HandlerThreadShared::new(thread_num));
+            info!("Starting mioco instance with {} handler threads", self.thread_num);
+            let thread_shared = Arc::new(HandlerThreadShared::new(self.thread_num));
 
             let mut event_loops = VecDeque::new();
             let mut senders = Vec::new();
-            for _ in 0..thread_num {
+            for _ in 0..self.thread_num {
                 let event_loop = EventLoop::new().expect("new EventLoop");
                 senders.push(event_loop.channel());
                 event_loops.push_back(event_loop);
@@ -1754,7 +1751,7 @@ impl Mioco {
 
             let sched = self.scheduler.spawn_thread();
             self.spawn_thread(0, Some(f), sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
-            for i in 1..thread_num {
+            for i in 1..self.thread_num {
                 let sched = self.scheduler.spawn_thread();
                 self.spawn_thread::<F>(i, None, sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
             }
@@ -1777,7 +1774,7 @@ impl Mioco {
               F : Send
     {
 
-        let join = thread::Builder::new().name(format!("mioco_thread_{}", thread_i)).spawn(move || {
+        let join = std::thread::Builder::new().name(format!("mioco_thread_{}", thread_i)).spawn(move || {
             let shared = Rc::new(RefCell::new(HandlerShared::new(senders, thread_shared)));
             if let Some(f) = f {
                 let coroutine_rc = Coroutine::spawn(shared.clone(), f);
@@ -2007,8 +2004,7 @@ pub fn start<F>(f : F)
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
           F : Send
 {
-    let mut mioco = Mioco::new();
-    mioco.start_threads::<F, FifoScheduler>(num_cpus::get(), f);
+    Mioco::new().start(f);
 }
 
 /// Shorthand for creating new `Mioco` instance and starting it right away.
@@ -2016,11 +2012,48 @@ pub fn start_threads<F>(thread_num : usize, f : F)
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
           F : Send
 {
-    info!("Starting mioco instance with {} handler threads", thread_num);
-    let mut mioco = Mioco::new();
-    mioco.start_threads::<F, FifoScheduler>(thread_num, f);
+    let mut config = Config::new();
+    config.set_thread_num(thread_num);
+    Mioco::new_configured(config).start(f);
 }
 
+/// Mioco builder
+pub struct Config {
+    thread_num : Option<usize>,
+    scheduler : Option<Box<Scheduler + 'static>>,
+}
+
+impl Config {
+    /// Create mioco `Config`
+    ///
+    /// Use it to configure mioco instance
+    ///
+    /// See `start` and `start_threads` for convenience wrappers.
+    pub fn new() -> Self {
+        Config {
+            thread_num: None,
+            scheduler: None,
+        }
+    }
+
+    /// Set numer of threads to run mioco with
+    ///
+    /// Default is numer of CPUs in the system.
+    pub fn set_thread_num(&mut self, thread_num : usize) -> &mut Self {
+        self.thread_num = Some(thread_num);
+        self
+    }
+
+    /// Set custom scheduler.
+    ///
+    /// See `Scheduler` trait.
+    ///
+    /// Default is `FifoScheduler`.
+    pub fn set_scheduler(&mut self, scheduler : Box<Scheduler + 'static>) -> &mut Self {
+        self.scheduler = Some(scheduler);
+        self
+    }
+}
 
 #[cfg(test)]
 mod tests;
