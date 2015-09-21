@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["context",""],["stack",""],["thunk",""]]});
+initSidebarItems({"mod":[["context",""],["stack",""]]});

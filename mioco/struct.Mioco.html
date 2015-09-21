@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-9439' class='srclink' href='../src/mioco/lib.rs.html#1770-1773' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-9355' class='srclink' href='../src/mioco/lib.rs.html#1751-1755' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Mioco {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance</p>
@@ -53,8 +53,8 @@
 <p>Main mioco structure.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
 <div class='docblock'><p>Create new <code>Mioco</code> instance</p>
-</div><h4 id='method.new_with_scheduler' class='method'><code>fn <a href='#method.new_with_scheduler' class='fnname'>new_with_scheduler</a>&lt;S&gt;(scheduler: S) -&gt; Self <span class='where'>where S: <a class='trait' href='../mioco/trait.Scheduler.html' title='mioco::Scheduler'>Scheduler</a> + 'static</span></code></h4>
-<div class='docblock'><p>Create new <code>Mioco</code> instance with custom scheduler</p>
+</div><h4 id='method.new_configured' class='method'><code>fn <a href='#method.new_configured' class='fnname'>new_configured</a>(config: <a class='struct' href='../mioco/struct.Config.html' title='mioco::Config'>Config</a>) -&gt; Self</code></h4>
+<div class='docblock'><p>Create new <code>Mioco</code> instance</p>
 </div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></code></h4>
 <div class='docblock'><p>Start mioco handling</p>
 
@@ -63,8 +63,6 @@
 <p>Will block until <code>mioco</code> is finished - there are no more handlers to run.</p>
 
 <p>See <code>MiocoHandle::spawn()</code>.</p>
-</div><h4 id='method.start_threads' class='method'><code>fn <a href='#method.start_threads' class='fnname'>start_threads</a>&lt;F, S&gt;(&amp;mut self, thread_num: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, f: F) <span class='where'>where S: <a class='trait' href='../mioco/trait.Scheduler.html' title='mioco::Scheduler'>Scheduler</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></code></h4>
-<div class='docblock'><p>Start mioco handler that will spawn a <code>thread</code> number of threads</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
 

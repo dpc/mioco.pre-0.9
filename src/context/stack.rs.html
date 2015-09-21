@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/context-0.1.2/src/stack.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/context-rs-df5b51b324c57eac/master/src/stack.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>stack.rs.html -- source</title>
@@ -260,11 +260,6 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2013 The Rust Project Developers. See the COPYRIGHT</span>
 <span class='comment'>// file at the top-level directory of this distribution and at</span>
@@ -283,11 +278,11 @@
 
 <span class='kw'>use</span> <span class='ident'>libc</span>;
 
-<span class='kw'>use</span> <span class='ident'>mmap</span>::{<span class='ident'>MemoryMap</span>, <span class='ident'>MapOption</span>};
+<span class='kw'>use</span> <span class='ident'>memmap</span>::{<span class='ident'>Mmap</span>, <span class='ident'>MmapOptions</span>, <span class='ident'>Protection</span>};
 
 <span class='doccomment'>/// A task&#39;s stack. The name &quot;Stack&quot; is a vestige of segmented stacks.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Stack</span> {
-    <span class='ident'>buf</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>MemoryMap</span><span class='op'>&gt;</span>,
+    <span class='ident'>buf</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Mmap</span><span class='op'>&gt;</span>,
     <span class='ident'>min_size</span>: <span class='ident'>usize</span>,
 }
 
@@ -295,27 +290,12 @@
     <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
         <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Stack {} buf: &quot;</span>, <span class='string'>&quot;{&quot;</span>));
         <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>buf</span> {
-            <span class='prelude-val'>Some</span>(<span class='kw-2'>ref</span> <span class='ident'>map</span>) <span class='op'>=&gt;</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Some({:#x}), &quot;</span>, <span class='ident'>map</span>.<span class='ident'>data</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>uintptr_t</span>)),
+            <span class='prelude-val'>Some</span>(<span class='kw-2'>ref</span> <span class='ident'>map</span>) <span class='op'>=&gt;</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Some({:#x}), &quot;</span>, <span class='ident'>map</span>.<span class='ident'>ptr</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>uintptr_t</span>)),
             <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;None, &quot;</span>)),
         }
         <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;min_size: {:?} {}&quot;</span>, <span class='self'>self</span>.<span class='ident'>min_size</span>, <span class='string'>&quot;}&quot;</span>)
     }
 }
-
-<span class='comment'>// Try to use MAP_STACK on platforms that support it (it&#39;s what we&#39;re doing</span>
-<span class='comment'>// anyway), but some platforms don&#39;t support it at all. For example, it appears</span>
-<span class='comment'>// that there&#39;s a bug in freebsd that MAP_STACK implies MAP_FIXED (so it always</span>
-<span class='comment'>// fails): http://lists.freebsd.org/pipermail/freebsd-bugs/2011-July/044840.html</span>
-<span class='comment'>//</span>
-<span class='comment'>// DragonFly BSD also seems to suffer from the same problem. When MAP_STACK is</span>
-<span class='comment'>// used, it returns the same `ptr` multiple times.</span>
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>), <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>), <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)))]</span>
-<span class='kw'>static</span> <span class='ident'>STACK_FLAGS</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>MAP_STACK</span> <span class='op'>|</span> <span class='ident'>libc</span>::<span class='ident'>MAP_PRIVATE</span> <span class='op'>|</span> <span class='ident'>libc</span>::<span class='ident'>MAP_ANON</span>;
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>,
-          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>))]</span>
-<span class='kw'>static</span> <span class='ident'>STACK_FLAGS</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>MAP_PRIVATE</span> <span class='op'>|</span> <span class='ident'>libc</span>::<span class='ident'>MAP_ANON</span>;
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>windows</span>)]</span>
-<span class='kw'>static</span> <span class='ident'>STACK_FLAGS</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0</span>;
 
 <span class='kw'>impl</span> <span class='ident'>Stack</span> {
     <span class='doccomment'>/// Allocate a new stack of `size`. If size = 0, this will fail. Use</span>
@@ -325,9 +305,17 @@
         <span class='comment'>// allocation failure, which would fail to spawn the task. But there&#39;s</span>
         <span class='comment'>// not many sensible things to do on OOM.  Failure seems fine (and is</span>
         <span class='comment'>// what the old stack allocation did).</span>
-        <span class='kw'>let</span> <span class='ident'>stack</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>MemoryMap</span>::<span class='ident'>new</span>(<span class='ident'>size</span>, <span class='kw-2'>&amp;</span>[<span class='ident'>MapOption</span>::<span class='ident'>MapReadable</span>,
-                                                 <span class='ident'>MapOption</span>::<span class='ident'>MapWritable</span>,
-                                                 <span class='ident'>MapOption</span>::<span class='ident'>MapNonStandardFlags</span>(<span class='ident'>STACK_FLAGS</span>)]) {
+
+        <span class='kw'>let</span> <span class='ident'>options</span> <span class='op'>=</span>
+            <span class='kw'>if</span> <span class='macro'>cfg</span><span class='macro'>!</span>(<span class='ident'>all</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>), <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>), <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>))) {
+                <span class='ident'>MmapOptions</span> { <span class='ident'>stack</span>: <span class='boolval'>true</span> }
+            } <span class='kw'>else</span> <span class='kw'>if</span> <span class='macro'>cfg</span><span class='macro'>!</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)) {
+                <span class='ident'>MmapOptions</span> { <span class='ident'>stack</span>: <span class='boolval'>false</span> }
+            } <span class='kw'>else</span> {
+                <span class='ident'>MmapOptions</span> { <span class='ident'>stack</span>: <span class='boolval'>false</span> }
+            };
+
+        <span class='kw'>let</span> <span class='ident'>stack</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>Mmap</span>::<span class='ident'>anonymous_with_options</span>(<span class='ident'>size</span>, <span class='ident'>Protection</span>::<span class='ident'>ReadCopy</span>, <span class='ident'>options</span>) {
             <span class='prelude-val'>Ok</span>(<span class='ident'>map</span>) <span class='op'>=&gt;</span> <span class='ident'>map</span>,
             <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;mmap for stack of size {} failed: {}&quot;</span>, <span class='ident'>size</span>, <span class='ident'>e</span>)
         };
@@ -338,7 +326,7 @@
         <span class='comment'>// guaranteed to be aligned properly.</span>
         <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>protect_last_page</span>(<span class='kw-2'>&amp;</span><span class='ident'>stack</span>) {
             <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Could not memory-protect guard page. stack={:?}&quot;</span>,
-                  <span class='ident'>stack</span>.<span class='ident'>data</span>());
+                  <span class='ident'>stack</span>.<span class='ident'>ptr</span>());
         }
 
         <span class='ident'>Stack</span> {
@@ -364,7 +352,7 @@
     <span class='doccomment'>/// Point to the low end of the allocated stack</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>start</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>as_ref</span>()
-            .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>m</span><span class='op'>|</span> <span class='ident'>m</span>.<span class='ident'>data</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>)
+            .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>m</span><span class='op'>|</span> <span class='ident'>m</span>.<span class='ident'>ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>)
             .<span class='ident'>unwrap_or</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>())
     }
 
@@ -373,29 +361,29 @@
         <span class='self'>self</span>.<span class='ident'>buf</span>
             .<span class='ident'>as_ref</span>()
             .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>buf</span><span class='op'>|</span> <span class='kw'>unsafe</span> {
-                <span class='ident'>buf</span>.<span class='ident'>data</span>().<span class='ident'>offset</span>(<span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>
+                <span class='ident'>buf</span>.<span class='ident'>ptr</span>().<span class='ident'>offset</span>(<span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>isize</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>usize</span>
             })
             .<span class='ident'>unwrap_or</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>())
     }
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>unix</span>)]</span>
-<span class='kw'>fn</span> <span class='ident'>protect_last_page</span>(<span class='ident'>stack</span>: <span class='kw-2'>&amp;</span><span class='ident'>MemoryMap</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+<span class='kw'>fn</span> <span class='ident'>protect_last_page</span>(<span class='ident'>stack</span>: <span class='kw-2'>&amp;</span><span class='ident'>Mmap</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
     <span class='kw'>unsafe</span> {
         <span class='comment'>// This may seem backwards: the start of the segment is the last page?</span>
         <span class='comment'>// Yes! The stack grows from higher addresses (the end of the allocated</span>
         <span class='comment'>// block) to lower addresses (the start of the allocated block).</span>
-        <span class='kw'>let</span> <span class='ident'>last_page</span> <span class='op'>=</span> <span class='ident'>stack</span>.<span class='ident'>data</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
+        <span class='kw'>let</span> <span class='ident'>last_page</span> <span class='op'>=</span> <span class='ident'>stack</span>.<span class='ident'>ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
         <span class='ident'>libc</span>::<span class='ident'>mprotect</span>(<span class='ident'>last_page</span>, <span class='ident'>page_size</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>,
                        <span class='ident'>libc</span>::<span class='ident'>PROT_NONE</span>) <span class='op'>!=</span> <span class='op'>-</span><span class='number'>1</span>
     }
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>windows</span>)]</span>
-<span class='kw'>fn</span> <span class='ident'>protect_last_page</span>(<span class='ident'>stack</span>: <span class='kw-2'>&amp;</span><span class='ident'>MemoryMap</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+<span class='kw'>fn</span> <span class='ident'>protect_last_page</span>(<span class='ident'>stack</span>: <span class='kw-2'>&amp;</span><span class='ident'>Mmap</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
     <span class='kw'>unsafe</span> {
         <span class='comment'>// see above</span>
-        <span class='kw'>let</span> <span class='ident'>last_page</span> <span class='op'>=</span> <span class='ident'>stack</span>.<span class='ident'>data</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
+        <span class='kw'>let</span> <span class='ident'>last_page</span> <span class='op'>=</span> <span class='ident'>stack</span>.<span class='ident'>ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>old_prot</span>: <span class='ident'>libc</span>::<span class='ident'>DWORD</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='ident'>libc</span>::<span class='ident'>VirtualProtect</span>(<span class='ident'>last_page</span>, <span class='ident'>page_size</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>SIZE_T</span>,
                              <span class='ident'>libc</span>::<span class='ident'>PAGE_NOACCESS</span>,
@@ -457,6 +445,8 @@
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>windows</span>)]</span>
 <span class='kw'>fn</span> <span class='ident'>page_size</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
+
     <span class='kw'>unsafe</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>info</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>zeroed</span>();
         <span class='ident'>libc</span>::<span class='ident'>GetSystemInfo</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>info</span>);

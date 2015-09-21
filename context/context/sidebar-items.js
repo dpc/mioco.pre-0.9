@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["mut_offset",""]],"struct":[["Context",""]],"type":[["InitFn",""]]});
+initSidebarItems({"struct":[["Context",""]],"type":[["InitFn",""]]});
