@@ -35,6 +35,7 @@
 #![cfg_attr(test, feature(convert))]
 #![feature(reflect_marker)]
 #![feature(catch_panic)]
+#![feature(raw)]
 #![feature(drain)]
 #![feature(fnbox)]
 #![warn(missing_docs)]
@@ -55,6 +56,7 @@ use std::rc::{Rc};
 use std::io;
 use std::thread;
 use std::mem::{transmute, size_of_val};
+use std::raw::TraitObject;
 
 use std::boxed::FnBox;
 
@@ -998,6 +1000,13 @@ pub struct EventSource<T> {
     _t: PhantomData<T>,
 }
 
+impl<T> EventSource<T> {
+    fn io(&self) -> &mut T {
+        let object : TraitObject = unsafe { transmute(&*self.inn.borrow().io) };
+        unsafe { transmute(object.data) }
+    }
+}
+
 /// Id of an event source used to enumerate them
 ///
 /// It's unique within coroutine of an event source, but not globally.
@@ -1052,15 +1061,13 @@ where T : Reflect+'static {
     /// Access raw mio type
     pub fn with_raw<F, R>(&self, f : F) -> R
         where F : Fn(&T) -> R {
-        let io = &self.inn.borrow().io;
-        f(io.as_any().downcast_ref::<T>().unwrap())
+        f(self.io())
     }
 
     /// Access mutable raw mio type
     pub fn with_raw_mut<F, R>(&mut self, f : F) -> R
         where F : Fn(&mut T) -> R {
-        let mut io = &mut self.inn.borrow_mut().io;
-        f(io.as_any_mut().downcast_mut::<T>().unwrap())
+        f(self.io())
     }
 
     /// Index identificator of a `EventSource`
@@ -1074,10 +1081,7 @@ where T : mio::TryAccept+Reflect+'static {
     /// Block on accept
     pub fn accept(&self) -> io::Result<T::Output> {
         loop {
-            let res = {
-                let mut inn = self.inn.borrow_mut();
-                inn.io.as_any_mut().downcast_mut::<T>().unwrap().accept()
-            };
+            let res = self.io().accept();
 
             match res {
                 Ok(None) => {
@@ -1099,10 +1103,7 @@ where T : TryRead+Reflect+'static {
     /// Block on read
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
-            let res = {
-                let mut inn = self.inn.borrow_mut();
-                inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_read(buf)
-            };
+            let res =self.io().try_read(buf);
 
             match res {
                 Ok(None) => {
@@ -1123,8 +1124,7 @@ impl<T> EventSource<T>
 where T : TryRead+Reflect+'static {
     /// Try to read without blocking
     pub fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<usize>> {
-        let mut inn = self.inn.borrow_mut();
-        inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_read(buf)
+        self.io().try_read(buf)
     }
 }
 
@@ -1133,10 +1133,7 @@ where T : TryWrite+Reflect+'static {
     /// Block on write
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         loop {
-            let res = {
-                let mut inn = self.inn.borrow_mut();
-                inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_write(buf)
-            };
+            let res = self.io().try_write(buf);
 
             match res {
                 Ok(None) => {
@@ -1164,24 +1161,21 @@ impl<T> EventSource<T>
 where T : TryWrite+Reflect+'static {
     /// Try to write without blocking
     pub fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
-        let mut inn = self.inn.borrow_mut();
-        inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_write(buf)
+        self.io().try_write(buf)
     }
 }
 
 impl EventSource<UdpSocket> {
     /// Try to read without blocking
     pub fn try_read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<Option<SocketAddr>> {
-        let mut inn = self.inn.borrow_mut();
-        inn.io.as_any_mut().downcast_mut::<UdpSocket>().unwrap().recv_from(buf)
+        self.io().recv_from(buf)
     }
 }
 
 impl EventSource<UdpSocket> {
     /// Try to read without blocking
     pub fn try_write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<Option<()>> {
-        let mut inn = self.inn.borrow_mut();
-        inn.io.as_any_mut().downcast_mut::<UdpSocket>().unwrap().send_to(buf, target)
+        self.io().send_to(buf, target)
     }
 }
 
