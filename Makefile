@@ -15,7 +15,7 @@ $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
 ALL_TARGETS += build test $(EXAMPLES)
 endif
 
-EXAMPLES = echo echoplus mailbox
+EXAMPLES = echo echoplus mailbox echo_udp
 
 all: $(ALL_TARGETS)
 

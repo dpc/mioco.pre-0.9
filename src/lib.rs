@@ -59,9 +59,12 @@ use std::mem::{transmute, size_of_val};
 use std::boxed::FnBox;
 
 use mio::{TryRead, TryWrite, Token, EventLoop, EventSet};
+use mio::udp::{UdpSocket};
+use std::net::SocketAddr;
 use std::any::Any;
 use std::marker::{PhantomData, Reflect};
 use mio::util::Slab;
+use mio::buf::{Buf, MutBuf};
 
 use std::collections::VecDeque;
 use spin::Mutex;
@@ -1163,6 +1166,22 @@ where T : TryWrite+Reflect+'static {
     pub fn try_write(&mut self, buf: &[u8]) -> std::io::Result<Option<usize>> {
         let mut inn = self.inn.borrow_mut();
         inn.io.as_any_mut().downcast_mut::<T>().unwrap().try_write(buf)
+    }
+}
+
+impl EventSource<UdpSocket> {
+    /// Try to read without blocking
+    pub fn try_read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<Option<SocketAddr>> {
+        let mut inn = self.inn.borrow_mut();
+        inn.io.as_any_mut().downcast_mut::<UdpSocket>().unwrap().recv_from(buf)
+    }
+}
+
+impl EventSource<UdpSocket> {
+    /// Try to read without blocking
+    pub fn try_write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<Option<()>> {
+        let mut inn = self.inn.borrow_mut();
+        inn.io.as_any_mut().downcast_mut::<UdpSocket>().unwrap().send_to(buf, target)
     }
 }
 
