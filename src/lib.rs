@@ -1581,21 +1581,19 @@ pub trait SchedulerThread : Send {
 /// Newly spawned coroutines will be spread in round-robbin fashion
 /// between threads.
 struct FifoScheduler {
-    thread_i : Arc<AtomicUsize>,
     thread_num : Arc<AtomicUsize>,
 }
 
 impl FifoScheduler {
     pub fn new() -> Self {
         FifoScheduler {
-            thread_i : Arc::new(AtomicUsize::new(0)),
             thread_num : Arc::new(AtomicUsize::new(0)),
         }
     }
 }
 
 struct FifoSchedulerThread {
-    thread_i : Arc<AtomicUsize>,
+    thread_i : usize,
     thread_num : Arc<AtomicUsize>,
 }
 
@@ -1603,15 +1601,19 @@ impl Scheduler for FifoScheduler {
     fn spawn_thread(&mut self) -> Box<SchedulerThread> {
         self.thread_num.fetch_add(1, Ordering::Relaxed);
         Box::new(FifoSchedulerThread{
-            thread_i: self.thread_i.clone(),
+            thread_i: 0,
             thread_num: self.thread_num.clone(),
         })
     }
 }
 
 impl FifoSchedulerThread {
-    fn thread_next_i(&self) -> usize {
-        self.thread_i.fetch_add(1, Ordering::Relaxed)
+    fn thread_next_i(&mut self) -> usize {
+        self.thread_i += 1;
+        if self.thread_i >= self.thread_num() {
+            self.thread_i = 0;
+        }
+        self.thread_i
     }
 
     fn thread_num(&self) -> usize {
@@ -1621,7 +1623,7 @@ impl FifoSchedulerThread {
 
 impl SchedulerThread for FifoSchedulerThread {
     fn new(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
-        let thread_i = self.thread_next_i() % self.thread_num();
+        let thread_i = self.thread_next_i();
         trace!("Migrating newly spawn Coroutine to thread {}", thread_i);
         coroutine_ctrl.migrate(event_loop, thread_i);
     }
