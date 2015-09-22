@@ -5,6 +5,7 @@ extern crate env_logger;
 use std::net::SocketAddr;
 use std::str::FromStr;
 
+use mio::buf::{MutSliceBuf, SliceBuf};
 use mio::udp::{UdpSocket};
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
 
@@ -25,18 +26,11 @@ fn main() {
 
         let mut sock = mioco.wrap(sock);
 
+        let mut buf = [0u8; 1024 * 16];
+
         loop {
-            let mut buf = mio::buf::ByteBuf::mut_with_capacity(1024 * 16);
-            let res = try!(sock.try_read(&mut buf));
-
-            let mut buf = buf.flip();
-
-            match res {
-                Some(addr) => {
-                    try!(sock.try_write(&mut buf, &addr));
-                },
-                None => {},
-            }
+            let addr = try!(sock.read(&mut MutSliceBuf::wrap(&mut buf)));
+            try!(sock.write(&mut SliceBuf::wrap(&buf), &addr));
         }
     });
 }

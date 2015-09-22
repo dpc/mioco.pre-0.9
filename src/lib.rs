@@ -1096,6 +1096,11 @@ where T : mio::TryAccept+Reflect+'static {
             }
         }
     }
+
+    /// Try accepting
+    pub fn try_accept(&self) -> io::Result<Option<T::Output>> {
+        self.io().accept()
+    }
 }
 
 impl<T> std::io::Read for EventSource<T>
@@ -1103,7 +1108,7 @@ where T : TryRead+Reflect+'static {
     /// Block on read
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         loop {
-            let res =self.io().try_read(buf);
+            let res = self.io().try_read(buf);
 
             match res {
                 Ok(None) => {
@@ -1170,12 +1175,48 @@ impl EventSource<UdpSocket> {
     pub fn try_read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<Option<SocketAddr>> {
         self.io().recv_from(buf)
     }
-}
 
-impl EventSource<UdpSocket> {
+    /// Block on read
+    pub fn read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<SocketAddr> {
+        loop {
+            let res = self.io().recv_from(buf);
+
+            match res {
+                Ok(None) => {
+                    self.block_on(RW::Read)
+                },
+                Ok(Some(r))  => {
+                    return Ok(r);
+                },
+                Err(e) => {
+                    return Err(e)
+                }
+            }
+        }
+    }
+
     /// Try to read without blocking
     pub fn try_write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<Option<()>> {
         self.io().send_to(buf, target)
+    }
+
+    /// Block on write
+    pub fn write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<()> {
+        loop {
+            let res = self.io().send_to(buf, target);
+
+            match res {
+                Ok(None) => {
+                    self.block_on(RW::Write)
+                },
+                Ok(Some(r)) => {
+                    return Ok(r);
+                },
+                Err(e) => {
+                    return Err(e)
+                }
+            }
+        }
     }
 }
 
