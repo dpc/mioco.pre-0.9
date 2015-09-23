@@ -415,7 +415,7 @@ struct CoroutineShared {
     id : CoroutineId,
 }
 
-/// *`mioco` coroutine* (a.k.a. *mioco handler*)
+/// Mioco coroutine (a.k.a. *mioco handler*)
 pub struct Coroutine {
     /// Shared data
     shared : RcCoroutineShared,
