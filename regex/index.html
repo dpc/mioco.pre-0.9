@@ -57,8 +57,7 @@ documented further down.</p>
 support and exhaustively lists the supported syntax. For more specific
 details on the API, please see the documentation for the <code>Regex</code> type.</p>
 
-<h1 id="usage" class='section-header'><a
-                           href="#usage">Usage</a></h1>
+<h1 id='usage' class='section-header'><a href='#usage'>Usage</a></h1>
 <p>This crate is <a href="https://crates.io/crates/regex">on crates.io</a> and can be
 used by adding <code>regex</code> to your dependencies in your project&#39;s <code>Cargo.toml</code>.</p>
 
@@ -70,8 +69,7 @@ regex = &quot;0.1.8&quot;
 <pre class='rust rust-example-rendered'>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>regex</span>;</pre>
 
-<h1 id="first-example:-find-a-date" class='section-header'><a
-                           href="#first-example:-find-a-date">First example: find a date</a></h1>
+<h1 id='first-example-find-a-date' class='section-header'><a href='#first-example-find-a-date'>First example: find a date</a></h1>
 <p>General use of regular expressions in this package involves compiling an
 expression and then using it to search, split or replace text. For example,
 to confirm that some text resembles a date:</p>
@@ -92,8 +90,7 @@ are just like regular strings except they are prefixed with an <code>r</code> an
 not process any escape sequences. For example, <code>&quot;\\d&quot;</code> is the same
 expression as <code>r&quot;\d&quot;</code>.</p>
 
-<h1 id="the-regex!-macro" class='section-header'><a
-                           href="#the-regex!-macro">The <code>regex!</code> macro</a></h1>
+<h1 id='the-regex-macro' class='section-header'><a href='#the-regex-macro'>The <code>regex!</code> macro</a></h1>
 <p>Rust&#39;s compile-time meta-programming facilities provide a way to write a
 <code>regex!</code> macro which compiles regular expressions <em>when your program
 compiles</em>. Said differently, if you only use <code>regex!</code> to build regular
@@ -131,8 +128,7 @@ noticeably bigger binary.</p>
 available on the Rust 1.0 beta/stable channels. Therefore, you&#39;ll only
 be able to use <code>regex!</code> on the nightlies.</p>
 
-<h1 id="example:-iterating-over-capture-groups" class='section-header'><a
-                           href="#example:-iterating-over-capture-groups">Example: iterating over capture groups</a></h1>
+<h1 id='example-iterating-over-capture-groups' class='section-header'><a href='#example-iterating-over-capture-groups'>Example: iterating over capture groups</a></h1>
 <p>This crate provides convenient iterators for matching an expression
 repeatedly against a search string to find successive non-overlapping
 matches. For example, to find all dates in a string and be able to access
@@ -153,8 +149,7 @@ them by their component pieces:</p>
 <p>Notice that the year is in the capture group indexed at <code>1</code>. This is
 because the <em>entire match</em> is stored in the capture group at index <code>0</code>.</p>
 
-<h1 id="example:-replacement-with-named-capture-groups" class='section-header'><a
-                           href="#example:-replacement-with-named-capture-groups">Example: replacement with named capture groups</a></h1>
+<h1 id='example-replacement-with-named-capture-groups' class='section-header'><a href='#example-replacement-with-named-capture-groups'>Example: replacement with named capture groups</a></h1>
 <p>Building on the previous example, perhaps we&#39;d like to rearrange the date
 formats. This can be done with text replacement. But to make the code
 clearer, we can <em>name</em>  our capture groups and use those names as variables
@@ -183,8 +178,7 @@ enable insigificant whitespace mode, which also lets you write comments:</p>
 <span class='kw'>let</span> <span class='ident'>after</span> <span class='op'>=</span> <span class='ident'>re</span>.<span class='ident'>replace_all</span>(<span class='ident'>before</span>, <span class='string'>&quot;$m/$d/$y&quot;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>after</span>, <span class='string'>&quot;03/14/2012, 01/01/2013 and 07/05/2014&quot;</span>);</pre>
 
-<h1 id="pay-for-what-you-use" class='section-header'><a
-                           href="#pay-for-what-you-use">Pay for what you use</a></h1>
+<h1 id='pay-for-what-you-use' class='section-header'><a href='#pay-for-what-you-use'>Pay for what you use</a></h1>
 <p>With respect to searching text with a regular expression, there are three
 questions that can be asked:</p>
 
@@ -203,8 +197,7 @@ best not to do it if you don&#39;t need to.</p>
 only need to test if an expression matches a string. (Use <code>is_match</code>
 instead.)</p>
 
-<h1 id="unicode" class='section-header'><a
-                           href="#unicode">Unicode</a></h1>
+<h1 id='unicode' class='section-header'><a href='#unicode'>Unicode</a></h1>
 <p>This implementation executes regular expressions <strong>only</strong> on sequences of
 Unicode scalar values while exposing match locations as byte indices into
 the search string.</p>
@@ -228,8 +221,7 @@ Cherokee letters:</p>
 <span class='kw'>let</span> <span class='ident'>re</span> <span class='op'>=</span> <span class='ident'>Regex</span>::<span class='ident'>new</span>(<span class='string'>r&quot;[\pN\p{Greek}\p{Cherokee}]+&quot;</span>).<span class='ident'>unwrap</span>();
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>re</span>.<span class='ident'>find</span>(<span class='string'>&quot;abcΔᎠβⅠᏴγδⅡxyz&quot;</span>), <span class='prelude-val'>Some</span>((<span class='number'>3</span>, <span class='number'>23</span>)));</pre>
 
-<h1 id="syntax" class='section-header'><a
-                           href="#syntax">Syntax</a></h1>
+<h1 id='syntax' class='section-header'><a href='#syntax'>Syntax</a></h1>
 <p>The syntax supported in this crate is almost in an exact correspondence
 with the syntax supported by RE2. It is documented below.</p>
 
@@ -237,8 +229,7 @@ with the syntax supported by RE2. It is documented below.</p>
 a separate crate,
 <a href="../regex_syntax/index.html"><code>regex-syntax</code></a>.</p>
 
-<h2 id="matching-one-character" class='section-header'><a
-                           href="#matching-one-character">Matching one character</a></h2>
+<h2 id='matching-one-character' class='section-header'><a href='#matching-one-character'>Matching one character</a></h2>
 <pre class="rust">
 .           any character except new line (includes new line with s flag)
 [xyz]       A character class matching either x, y or z.
@@ -258,15 +249,13 @@ a separate crate,
 class. For example, <code>[\p{Greek}\pN]</code> matches any Greek or numeral
 character.</p>
 
-<h2 id="composites" class='section-header'><a
-                           href="#composites">Composites</a></h2>
+<h2 id='composites' class='section-header'><a href='#composites'>Composites</a></h2>
 <pre class="rust">
 xy    concatenation (x followed by y)
 x|y   alternation (x or y, prefer x)
 </pre>
 
-<h2 id="repetitions" class='section-header'><a
-                           href="#repetitions">Repetitions</a></h2>
+<h2 id='repetitions' class='section-header'><a href='#repetitions'>Repetitions</a></h2>
 <pre class="rust">
 x*        zero or more of x (greedy)
 x+        one or more of x (greedy)
@@ -282,8 +271,7 @@ x{n,}?    at least n x (ungreedy)
 x{n}?     exactly n x
 </pre>
 
-<h2 id="empty-matches" class='section-header'><a
-                           href="#empty-matches">Empty matches</a></h2>
+<h2 id='empty-matches' class='section-header'><a href='#empty-matches'>Empty matches</a></h2>
 <pre class="rust">
 ^     the beginning of text (or start-of-line with multi-line mode)
 $     the end of text (or end-of-line with multi-line mode)
@@ -293,8 +281,7 @@ $     the end of text (or end-of-line with multi-line mode)
 \B    not a Unicode word boundary
 </pre>
 
-<h2 id="grouping-and-flags" class='section-header'><a
-                           href="#grouping-and-flags">Grouping and flags</a></h2>
+<h2 id='grouping-and-flags' class='section-header'><a href='#grouping-and-flags'>Grouping and flags</a></h2>
 <pre class="rust">
 (exp)          numbered capture group (indexed by opening parenthesis)
 (?P&lt;name&gt;exp)  named (also numbered) capture group (allowed chars: [_0-9a-zA-Z])
@@ -328,8 +315,7 @@ expression:</p>
 <p>Notice that the <code>a+</code> matches either <code>a</code> or <code>A</code>, but the <code>b+</code> only matches
 <code>b</code>.</p>
 
-<h2 id="escape-sequences" class='section-header'><a
-                           href="#escape-sequences">Escape sequences</a></h2>
+<h2 id='escape-sequences' class='section-header'><a href='#escape-sequences'>Escape sequences</a></h2>
 <pre class="rust">
 \*         literal *, works for any punctuation character: \.+*?()|[]{}^$
 \a         bell (\x07)
@@ -343,8 +329,7 @@ expression:</p>
 \x{10FFFF} any hex character code corresponding to a Unicode code point
 </pre>
 
-<h2 id="perl-character-classes-(unicode-friendly)" class='section-header'><a
-                           href="#perl-character-classes-(unicode-friendly)">Perl character classes (Unicode friendly)</a></h2>
+<h2 id='perl-character-classes-unicode-friendly' class='section-header'><a href='#perl-character-classes-unicode-friendly'>Perl character classes (Unicode friendly)</a></h2>
 <p>These classes are based on the definitions provided in
 <a href="http://www.unicode.org/reports/tr18/#Compatibility_Properties">UTS#18</a>:</p>
 
@@ -357,8 +342,7 @@ expression:</p>
 \W     not word character
 </pre>
 
-<h2 id="ascii-character-classes" class='section-header'><a
-                           href="#ascii-character-classes">ASCII character classes</a></h2>
+<h2 id='ascii-character-classes' class='section-header'><a href='#ascii-character-classes'>ASCII character classes</a></h2>
 <pre class="rust">
 [:alnum:]    alphanumeric ([0-9A-Za-z])
 [:alpha:]    alphabetic ([A-Za-z])
@@ -376,8 +360,7 @@ expression:</p>
 [:xdigit:]   hex digit ([0-9A-Fa-f])
 </pre>
 
-<h1 id="untrusted-input" class='section-header'><a
-                           href="#untrusted-input">Untrusted input</a></h1>
+<h1 id='untrusted-input' class='section-header'><a href='#untrusted-input'>Untrusted input</a></h1>
 <p>This crate can handle both untrusted regular expressions and untrusted
 search text.</p>
 

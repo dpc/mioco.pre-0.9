@@ -57,8 +57,7 @@ the <code>regex</code> crate, it may experience more frequent breaking changes. 
 exposed as a separate crate so that others may use it to do analysis on regular
 expressions or even build their own matching engine.</p>
 
-<h1 id="example:-parsing-an-expression" class='section-header'><a
-                           href="#example:-parsing-an-expression">Example: parsing an expression</a></h1>
+<h1 id='example-parsing-an-expression' class='section-header'><a href='#example-parsing-an-expression'>Example: parsing an expression</a></h1>
 <p>Parsing a regular expression can be done with the <code>Expr::parse</code> function.</p>
 <pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>regex_syntax</span>::<span class='ident'>Expr</span>;
@@ -68,8 +67,7 @@ expressions or even build their own matching engine.</p>
     <span class='ident'>Expr</span>::<span class='ident'>Literal</span> { <span class='ident'>chars</span>: <span class='macro'>vec</span><span class='macro'>!</span>[<span class='string'>&#39;y&#39;</span>, <span class='string'>&#39;z&#39;</span>], <span class='ident'>casei</span>: <span class='boolval'>false</span> },
 ]));</pre>
 
-<h1 id="example:-inspecting-an-error" class='section-header'><a
-                           href="#example:-inspecting-an-error">Example: inspecting an error</a></h1>
+<h1 id='example-inspecting-an-error' class='section-header'><a href='#example-inspecting-an-error'>Example: inspecting an error</a></h1>
 <p>The parser in this crate provides very detailed error values. For example,
 if an invalid character class range is given:</p>
 <pre class='rust rust-example-rendered'>

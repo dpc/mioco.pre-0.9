@@ -2161,6 +2161,63 @@
 <span id="2119">2119</span>
 <span id="2120">2120</span>
 <span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
+<span id="2157">2157</span>
+<span id="2158">2158</span>
+<span id="2159">2159</span>
+<span id="2160">2160</span>
+<span id="2161">2161</span>
+<span id="2162">2162</span>
+<span id="2163">2163</span>
+<span id="2164">2164</span>
+<span id="2165">2165</span>
+<span id="2166">2166</span>
+<span id="2167">2167</span>
+<span id="2168">2168</span>
+<span id="2169">2169</span>
+<span id="2170">2170</span>
+<span id="2171">2171</span>
+<span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2273,7 +2330,7 @@ fn main() {
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>boxed</span>::<span class='ident'>FnBox</span>;
 
-<span class='kw'>use</span> <span class='ident'>mio</span>::{<span class='ident'>TryRead</span>, <span class='ident'>TryWrite</span>, <span class='ident'>Token</span>, <span class='ident'>EventLoop</span>, <span class='ident'>EventSet</span>};
+<span class='kw'>use</span> <span class='ident'>mio</span>::{<span class='ident'>TryRead</span>, <span class='ident'>TryWrite</span>, <span class='ident'>Token</span>, <span class='ident'>EventLoop</span>, <span class='ident'>EventSet</span>, <span class='ident'>EventLoopConfig</span>};
 <span class='kw'>use</span> <span class='ident'>mio</span>::<span class='ident'>udp</span>::{<span class='ident'>UdpSocket</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
@@ -2485,6 +2542,7 @@ fn main() {
 <span class='doccomment'>/// of retrying on recoverable errors.</span>
 <span class='kw'>fn</span> <span class='ident'>sender_retry</span><span class='op'>&lt;</span><span class='ident'>M</span> : <span class='ident'>Send</span><span class='op'>&gt;</span>(<span class='ident'>sender</span> : <span class='kw-2'>&amp;</span><span class='ident'>mio</span>::<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>M</span><span class='op'>&gt;</span>, <span class='ident'>msg</span> : <span class='ident'>M</span>) {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>msg</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>msg</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>warning_printed</span> <span class='op'>=</span> <span class='boolval'>false</span>;
     <span class='kw'>loop</span> {
         <span class='kw'>match</span> <span class='ident'>sender</span>.<span class='ident'>send</span>(<span class='ident'>msg</span>.<span class='ident'>take</span>().<span class='ident'>expect</span>(<span class='string'>&quot;sender_retry&quot;</span>)) {
             <span class='prelude-val'>Ok</span>(()) <span class='op'>=&gt;</span> <span class='kw'>break</span>,
@@ -2494,7 +2552,10 @@ fn main() {
                 <span class='ident'>msg</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>retry_msg</span>);
             },
         }
-        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;send_retry: retry&quot;</span>);
+        <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>warning_printed</span> {
+            <span class='ident'>warning_printed</span> <span class='op'>=</span> <span class='boolval'>true</span>;
+            <span class='macro'>warn</span><span class='macro'>!</span>(<span class='string'>&quot;send_retry: retry; consider increasing `EventLoopConfig::notify_capacity`&quot;</span>);
+        }
         <span class='ident'>thread</span>::<span class='ident'>yield_now</span>();
     }
 }
@@ -3309,6 +3370,11 @@ fn main() {
             }
         }
     }
+
+    <span class='doccomment'>/// Try accepting</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_accept</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>T</span>::<span class='ident'>Output</span><span class='op'>&gt;&gt;</span> {
+        <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>accept</span>()
+    }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Read</span> <span class='kw'>for</span> <span class='ident'>EventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
@@ -3316,7 +3382,7 @@ fn main() {
     <span class='doccomment'>/// Block on read</span>
     <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
-            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span><span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>try_read</span>(<span class='ident'>buf</span>);
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>try_read</span>(<span class='ident'>buf</span>);
 
             <span class='kw'>match</span> <span class='ident'>res</span> {
                 <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
@@ -3383,12 +3449,48 @@ fn main() {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_read</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>recv_from</span>(<span class='ident'>buf</span>)
     }
-}
 
-<span class='kw'>impl</span> <span class='ident'>EventSource</span><span class='op'>&lt;</span><span class='ident'>UdpSocket</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// Block on read</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span> {
+        <span class='kw'>loop</span> {
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>recv_from</span>(<span class='ident'>buf</span>);
+
+            <span class='kw'>match</span> <span class='ident'>res</span> {
+                <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
+                    <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>Read</span>)
+                },
+                <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>r</span>))  <span class='op'>=&gt;</span> {
+                    <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>r</span>);
+                },
+                <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> {
+                    <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>)
+                }
+            }
+        }
+    }
+
     <span class='doccomment'>/// Try to read without blocking</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_write</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>send_to</span>(<span class='ident'>buf</span>, <span class='ident'>target</span>)
+    }
+
+    <span class='doccomment'>/// Block on write</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>write</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+        <span class='kw'>loop</span> {
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>send_to</span>(<span class='ident'>buf</span>, <span class='ident'>target</span>);
+
+            <span class='kw'>match</span> <span class='ident'>res</span> {
+                <span class='prelude-val'>Ok</span>(<span class='prelude-val'>None</span>) <span class='op'>=&gt;</span> {
+                    <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>Write</span>)
+                },
+                <span class='prelude-val'>Ok</span>(<span class='prelude-val'>Some</span>(<span class='ident'>r</span>)) <span class='op'>=&gt;</span> {
+                    <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>r</span>);
+                },
+                <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> {
+                    <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>)
+                }
+            }
+        }
     }
 }
 
@@ -3794,21 +3896,19 @@ fn main() {
 <span class='doccomment'>/// Newly spawned coroutines will be spread in round-robbin fashion</span>
 <span class='doccomment'>/// between threads.</span>
 <span class='kw'>struct</span> <span class='ident'>FifoScheduler</span> {
-    <span class='ident'>thread_i</span> : <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>AtomicUsize</span><span class='op'>&gt;</span>,
     <span class='ident'>thread_num</span> : <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>AtomicUsize</span><span class='op'>&gt;</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>FifoScheduler</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>FifoScheduler</span> {
-            <span class='ident'>thread_i</span> : <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>AtomicUsize</span>::<span class='ident'>new</span>(<span class='number'>0</span>)),
             <span class='ident'>thread_num</span> : <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>AtomicUsize</span>::<span class='ident'>new</span>(<span class='number'>0</span>)),
         }
     }
 }
 
 <span class='kw'>struct</span> <span class='ident'>FifoSchedulerThread</span> {
-    <span class='ident'>thread_i</span> : <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>AtomicUsize</span><span class='op'>&gt;</span>,
+    <span class='ident'>thread_i</span> : <span class='ident'>usize</span>,
     <span class='ident'>thread_num</span> : <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>AtomicUsize</span><span class='op'>&gt;</span>,
 }
 
@@ -3816,15 +3916,19 @@ fn main() {
     <span class='kw'>fn</span> <span class='ident'>spawn_thread</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>SchedulerThread</span><span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>thread_num</span>.<span class='ident'>fetch_add</span>(<span class='number'>1</span>, <span class='ident'>Ordering</span>::<span class='ident'>Relaxed</span>);
         <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>FifoSchedulerThread</span>{
-            <span class='ident'>thread_i</span>: <span class='self'>self</span>.<span class='ident'>thread_i</span>.<span class='ident'>clone</span>(),
+            <span class='ident'>thread_i</span>: <span class='number'>0</span>,
             <span class='ident'>thread_num</span>: <span class='self'>self</span>.<span class='ident'>thread_num</span>.<span class='ident'>clone</span>(),
         })
     }
 }
 
 <span class='kw'>impl</span> <span class='ident'>FifoSchedulerThread</span> {
-    <span class='kw'>fn</span> <span class='ident'>thread_next_i</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
-        <span class='self'>self</span>.<span class='ident'>thread_i</span>.<span class='ident'>fetch_add</span>(<span class='number'>1</span>, <span class='ident'>Ordering</span>::<span class='ident'>Relaxed</span>)
+    <span class='kw'>fn</span> <span class='ident'>thread_next_i</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='self'>self</span>.<span class='ident'>thread_i</span> <span class='op'>+=</span> <span class='number'>1</span>;
+        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>thread_i</span> <span class='op'>&gt;=</span> <span class='self'>self</span>.<span class='ident'>thread_num</span>() {
+            <span class='self'>self</span>.<span class='ident'>thread_i</span> <span class='op'>=</span> <span class='number'>0</span>;
+        }
+        <span class='self'>self</span>.<span class='ident'>thread_i</span>
     }
 
     <span class='kw'>fn</span> <span class='ident'>thread_num</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
@@ -3834,7 +3938,7 @@ fn main() {
 
 <span class='kw'>impl</span> <span class='ident'>SchedulerThread</span> <span class='kw'>for</span> <span class='ident'>FifoSchedulerThread</span> {
     <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>) {
-        <span class='kw'>let</span> <span class='ident'>thread_i</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>thread_next_i</span>() <span class='op'>%</span> <span class='self'>self</span>.<span class='ident'>thread_num</span>();
+        <span class='kw'>let</span> <span class='ident'>thread_i</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>thread_next_i</span>();
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Migrating newly spawn Coroutine to thread {}&quot;</span>, <span class='ident'>thread_i</span>);
         <span class='ident'>coroutine_ctrl</span>.<span class='ident'>migrate</span>(<span class='ident'>event_loop</span>, <span class='ident'>thread_i</span>);
     }
@@ -3929,6 +4033,7 @@ fn main() {
     <span class='ident'>join_handles</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>thread</span>::<span class='ident'>JoinHandle</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span>,
     <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
     <span class='ident'>thread_num</span> : <span class='ident'>usize</span>,
+    <span class='ident'>event_loop_config</span> : <span class='ident'>EventLoopConfig</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Mioco</span> {
@@ -3943,12 +4048,14 @@ fn main() {
         <span class='kw'>let</span> <span class='ident'>Config</span> {
             <span class='ident'>thread_num</span>,
             <span class='ident'>scheduler</span>,
+            <span class='ident'>event_loop_config</span>,
         } <span class='op'>=</span> <span class='ident'>config</span>;
 
         <span class='ident'>Mioco</span> {
             <span class='ident'>join_handles</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
             <span class='ident'>scheduler</span>: <span class='ident'>scheduler</span>.<span class='ident'>unwrap_or_else</span>(<span class='op'>||</span> <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>FifoScheduler</span>::<span class='ident'>new</span>())),
             <span class='ident'>thread_num</span>: <span class='ident'>thread_num</span>.<span class='ident'>unwrap_or_else</span>(<span class='op'>||</span> <span class='ident'>num_cpus</span>::<span class='ident'>get</span>()),
+            <span class='ident'>event_loop_config</span>: <span class='ident'>event_loop_config</span>,
          }
     }
 
@@ -3970,7 +4077,7 @@ fn main() {
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>event_loops</span> <span class='op'>=</span> <span class='ident'>VecDeque</span>::<span class='ident'>new</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>senders</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
             <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='self'>self</span>.<span class='ident'>thread_num</span> {
-                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>new</span>().<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
+                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>configured</span>(<span class='self'>self</span>.<span class='ident'>event_loop_config</span>).<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
                 <span class='ident'>senders</span>.<span class='ident'>push</span>(<span class='ident'>event_loop</span>.<span class='ident'>channel</span>());
                 <span class='ident'>event_loops</span>.<span class='ident'>push_back</span>(<span class='ident'>event_loop</span>);
             }
@@ -4247,6 +4354,7 @@ fn main() {
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Config</span> {
     <span class='ident'>thread_num</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
     <span class='ident'>scheduler</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;&gt;</span>,
+    <span class='ident'>event_loop_config</span> : <span class='ident'>EventLoopConfig</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Config</span> {
@@ -4259,6 +4367,7 @@ fn main() {
         <span class='ident'>Config</span> {
             <span class='ident'>thread_num</span>: <span class='prelude-val'>None</span>,
             <span class='ident'>scheduler</span>: <span class='prelude-val'>None</span>,
+            <span class='ident'>event_loop_config</span>: <span class='ident'>Default</span>::<span class='ident'>default</span>(),
         }
     }
 
@@ -4278,6 +4387,11 @@ fn main() {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>scheduler</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>scheduler</span>);
         <span class='self'>self</span>
+    }
+
+    <span class='doccomment'>/// Configure `mio::EvenLoop` for all the threads</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>even_loop</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoopConfig</span> {
+        <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>event_loop_config</span>
     }
 }
 

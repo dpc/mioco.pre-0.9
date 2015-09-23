@@ -66,15 +66,13 @@
 </div><h4 id='method.extract' class='method'><code>fn <a href='#method.extract' class='fnname'>extract</a>(self, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a></code></h4>
 <div class='docblock'><p>Extract the value of the <code>idx</code>th lane of <code>self</code>.</p>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>extract</code> will panic if <code>idx</code> is out of bounds.</p>
 </div><h4 id='method.replace' class='method'><code>fn <a href='#method.replace' class='fnname'>replace</a>(self, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>, elem: <a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>) -&gt; Self</code></h4>
 <div class='docblock'><p>Return a new vector where the <code>idx</code>th lane is replaced
 by <code>elem</code>.</p>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>replace</code> will panic if <code>idx</code> is out of bounds.</p>
 </div><h4 id='method.load' class='method'><code>fn <a href='#method.load' class='fnname'>load</a>(array: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; Self</code></h4>
 <div class='docblock'><p>Load a new value from the <code>idx</code>th position of <code>array</code>.</p>
@@ -84,8 +82,7 @@ more efficient:</p>
 <pre class='rust rust-example-rendered'>
 <span class='ident'>Self</span>::<span class='ident'>new</span>(<span class='ident'>array</span>[<span class='ident'>idx</span>], <span class='ident'>array</span>[<span class='ident'>idx</span> <span class='op'>+</span> <span class='number'>1</span>], ...)</pre>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>load</code> will panic if <code>idx</code> is out of bounds in
 <code>array</code>, or if <code>array[idx..]</code> is too short.</p>
 </div><h4 id='method.store' class='method'><code>fn <a href='#method.store' class='fnname'>store</a>(self, array: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></h4>
@@ -99,8 +96,7 @@ more efficient:</p>
 <span class='ident'>array</span>[<span class='ident'>i</span> <span class='op'>+</span> <span class='number'>1</span>] <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>extract</span>(<span class='number'>1</span>);
 <span class='comment'>// ...</span></pre>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>store</code> will panic if <code>idx</code> is out of bounds in
 <code>array</code>, or if <code>array[idx...]</code> is too short.</p>
 </div></div><h3 class='impl'><code>impl <a class='struct' href='../../../simd/x86/sse2/struct.i64x2.html' title='simd::x86::sse2::i64x2'>i64x2</a></code></h3><div class='impl-items'><h4 id='method.to_u64' class='method'><code>fn <a href='#method.to_u64' class='fnname'>to_u64</a>(self) -&gt; <a class='struct' href='../../../simd/x86/sse2/struct.u64x2.html' title='simd::x86::sse2::u64x2'>u64x2</a></code></h4>

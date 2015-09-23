@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/spin-0.3.3/src/rw_lock.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/spin-0.3.4/src/rw_lock.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>rw_lock.rs.html -- source</title>
@@ -459,7 +459,7 @@
             <span class='ident'>old</span> <span class='op'>&amp;=</span> <span class='op'>!</span><span class='ident'>USIZE_MSB</span>;
 
             <span class='kw'>let</span> <span class='ident'>new</span> <span class='op'>=</span> <span class='ident'>old</span> <span class='op'>+</span> <span class='number'>1</span>;
-            <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>new</span> <span class='op'>!=</span> (<span class='op'>!</span><span class='ident'>USIZE_MSB</span>) <span class='kw-2'>&amp;</span> (<span class='op'>!</span><span class='number'>1</span>));
+            <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>new</span> <span class='op'>!=</span> (<span class='op'>!</span><span class='ident'>USIZE_MSB</span>) <span class='kw-2'>&amp;</span> (<span class='op'>!</span><span class='number'>0</span>));
 
             <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='ident'>old</span>, <span class='ident'>new</span>, <span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>) <span class='op'>!=</span> <span class='ident'>old</span>
         } {}
@@ -498,7 +498,7 @@
         <span class='kw'>let</span> <span class='ident'>old</span> <span class='op'>=</span> (<span class='op'>!</span><span class='ident'>USIZE_MSB</span>) <span class='kw-2'>&amp;</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>load</span>(<span class='ident'>Ordering</span>::<span class='ident'>Relaxed</span>);
 
         <span class='kw'>let</span> <span class='ident'>new</span> <span class='op'>=</span> <span class='ident'>old</span> <span class='op'>+</span> <span class='number'>1</span>;
-        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>new</span> <span class='op'>!=</span> (<span class='op'>!</span><span class='ident'>USIZE_MSB</span>) <span class='kw-2'>&amp;</span> (<span class='op'>!</span><span class='number'>1</span>));
+        <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>new</span> <span class='op'>!=</span> (<span class='op'>!</span><span class='ident'>USIZE_MSB</span>) <span class='kw-2'>&amp;</span> (<span class='op'>!</span><span class='number'>0</span>));
         <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='ident'>old</span>,
                                       <span class='ident'>new</span>,
                                       <span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>) <span class='op'>==</span> <span class='ident'>old</span>

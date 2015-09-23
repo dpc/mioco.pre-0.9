@@ -63,15 +63,12 @@ request, though that default may be overridden. Logger implementations
 typically use the target to filter requests based on some user
 configuration.</p>
 
-<h1 id="use" class='section-header'><a
-                           href="#use">Use</a></h1>
-<h2 id="in-libraries" class='section-header'><a
-                           href="#in-libraries">In libraries</a></h2>
+<h1 id='use' class='section-header'><a href='#use'>Use</a></h1>
+<h2 id='in-libraries' class='section-header'><a href='#in-libraries'>In libraries</a></h2>
 <p>Libraries should link only to the <code>log</code> crate, and use the provided
 macros to log whatever information will be useful to downstream consumers.</p>
 
-<h3 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h3><pre class='rust rust-example-rendered'>
+<h3 id='examples' class='section-header'><a href='#examples'>Examples</a></h3><pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 
@@ -92,8 +89,7 @@ macros to log whatever information will be useful to downstream consumers.</p>
     }
 }</pre>
 
-<h2 id="in-executables" class='section-header'><a
-                           href="#in-executables">In executables</a></h2>
+<h2 id='in-executables' class='section-header'><a href='#in-executables'>In executables</a></h2>
 <p>Executables should chose a logging framework and initialize it early in the
 runtime of the program. Logging frameworks will typically include a
 function to do this. Any log messages generated before the framework is
@@ -101,12 +97,10 @@ initialized will be ignored.</p>
 
 <p>The executable itself may use the <code>log</code> crate to log as well.</p>
 
-<h3 id="warning" class='section-header'><a
-                           href="#warning">Warning</a></h3>
+<h3 id='warning' class='section-header'><a href='#warning'>Warning</a></h3>
 <p>The logging system may only be initialized once.</p>
 
-<h3 id="examples-1" class='section-header'><a
-                           href="#examples-1">Examples</a></h3><pre class='rust rust-example-rendered'>
+<h3 id='examples-1' class='section-header'><a href='#examples-1'>Examples</a></h3><pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>my_logger</span>;
@@ -119,8 +113,7 @@ initialized will be ignored.</p>
     <span class='comment'>// ...</span>
 }</pre>
 
-<h1 id="logger-implementations" class='section-header'><a
-                           href="#logger-implementations">Logger implementations</a></h1>
+<h1 id='logger-implementations' class='section-header'><a href='#logger-implementations'>Logger implementations</a></h1>
 <p>Loggers implement the <code>Log</code> trait. Here&#39;s a very basic example that simply
 logs all messages at the <code>Error</code>, <code>Warn</code> or <code>Info</code> levels to stdout:</p>
 <pre class='rust rust-example-rendered'>

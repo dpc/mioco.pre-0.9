@@ -54,15 +54,13 @@
 </div><h4 id='method.extract' class='method'><code>fn <a href='#method.extract' class='fnname'>extract</a>(self, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Extract the value of the <code>idx</code>th lane of <code>self</code>.</p>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>extract</code> will panic if <code>idx</code> is out of bounds.</p>
 </div><h4 id='method.replace' class='method'><code>fn <a href='#method.replace' class='fnname'>replace</a>(self, idx: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>, elem: <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; Self</code></h4>
 <div class='docblock'><p>Return a new vector where the <code>idx</code>th lane is replaced
 by <code>elem</code>.</p>
 
-<h1 id="panics" class='section-header'><a
-                           href="#panics">Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>replace</code> will panic if <code>idx</code> is out of bounds.</p>
 </div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>&lt;T: <a class='trait' href='../simd/trait.Simd.html' title='simd::Simd'>Simd</a>&lt;Bool=<a class='struct' href='../simd/struct.bool32fx4.html' title='simd::bool32fx4'>bool32fx4</a>&gt;&gt;(self, then: T, else_: T) -&gt; T</code></h4>
 <div class='docblock'><p>Select between elements of <code>then</code> and <code>else_</code>, based on

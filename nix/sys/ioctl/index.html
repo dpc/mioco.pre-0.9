@@ -52,8 +52,7 @@
 
 <p>This library is pretty low-level and messy. <code>ioctl</code> is not fun.</p>
 
-<h1 id="what-is-an-ioctl?" class='section-header'><a
-                           href="#what-is-an-ioctl?">What is an <code>ioctl</code>?</a></h1>
+<h1 id='what-is-an-ioctl' class='section-header'><a href='#what-is-an-ioctl'>What is an <code>ioctl</code>?</a></h1>
 <p>The <code>ioctl</code> syscall is the grab-bag syscall on POSIX systems. Don&#39;t want
 to add a new syscall? Make it an <code>ioctl</code>! <code>ioctl</code> refers to both the syscall,
 and the commands that can be send with it. <code>ioctl</code> stands for &quot;IO control&quot;,
@@ -76,8 +75,7 @@ to the CDROM device.</li>
 <p><code>ioctl</code>s are synchronous system calls and are similar to read and
 write calls in that regard.</p>
 
-<h1 id="what-does-this-module-support?" class='section-header'><a
-                           href="#what-does-this-module-support?">What does this module support?</a></h1>
+<h1 id='what-does-this-module-support' class='section-header'><a href='#what-does-this-module-support'>What does this module support?</a></h1>
 <p>This library provides the <code>ioctl!</code> macro, for binding <code>ioctl</code>s. It also tries
 to bind every <code>ioctl</code> supported by the system with said macro, but
 some <code>ioctl</code>s requires some amount of manual work (usually by
@@ -86,8 +84,7 @@ providing <code>struct</code> declaration) that this library does not support ye
 <p>Additionally, in <code>etc</code>, there are scripts for scraping system headers for
 <code>ioctl</code> definitions, and generating calls to <code>ioctl!</code> corresponding to them.</p>
 
-<h1 id="how-do-i-get-the-magic-numbers?" class='section-header'><a
-                           href="#how-do-i-get-the-magic-numbers?">How do I get the magic numbers?</a></h1>
+<h1 id='how-do-i-get-the-magic-numbers' class='section-header'><a href='#how-do-i-get-the-magic-numbers'>How do I get the magic numbers?</a></h1>
 <p>For Linux, look at your system&#39;s headers. For example, <code>/usr/include/linxu/input.h</code> has a lot
 of lines defining macros which use <code>_IOR</code>, <code>_IOW</code>, <code>_IOC</code>, and <code>_IORW</code>.  These macros
 correspond to the <code>ior!</code>, <code>iow!</code>, <code>ioc!</code>, and <code>iorw!</code> macros defined in this crate.
@@ -97,8 +94,7 @@ somewhat more type-safe.</p>
 <p>Most <code>ioctl</code>s have no or little documentation. You&#39;ll need to scrounge through
 the source to figure out what they do and how they should be used.</p>
 
-<h1 id="interface-overview" class='section-header'><a
-                           href="#interface-overview">Interface Overview</a></h1>
+<h1 id='interface-overview' class='section-header'><a href='#interface-overview'>Interface Overview</a></h1>
 <p>This ioctl module seeks to tame the ioctl beast by providing a set of safer (although not safe)
 functions implementing the most common ioctl access patterns.</p>
 
