@@ -2218,6 +2218,21 @@
 <span id="2176">2176</span>
 <span id="2177">2177</span>
 <span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2947,6 +2962,8 @@ fn main() {
     <span class='kw'>fn</span> <span class='ident'>spawn</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>handler_shared</span> : <span class='ident'>RcHandlerShared</span>, <span class='ident'>f</span> : <span class='ident'>F</span>) <span class='op'>-&gt;</span> <span class='ident'>RcCoroutine</span>
     <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine: spawning&quot;</span>);
+        <span class='kw'>let</span> <span class='ident'>stack_size</span> <span class='op'>=</span> <span class='ident'>handler_shared</span>.<span class='ident'>borrow</span>().<span class='ident'>stack_size</span>;
+
         <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>handler_shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>coroutines</span>.<span class='ident'>insert_with</span>(<span class='op'>|</span><span class='ident'>id</span><span class='op'>|</span> {
             <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>CoroutineId</span>(<span class='ident'>id</span>.<span class='ident'>as_usize</span>());
 
@@ -2965,7 +2982,7 @@ fn main() {
                 <span class='ident'>shared</span>: <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>)),
                 <span class='ident'>io</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>4</span>),
                 <span class='ident'>children_to_start</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
-                <span class='ident'>stack</span>: <span class='ident'>Stack</span>::<span class='ident'>new</span>(<span class='number'>1024</span> <span class='op'>*</span> <span class='number'>1024</span>),
+                <span class='ident'>stack</span>: <span class='ident'>Stack</span>::<span class='ident'>new</span>(<span class='ident'>stack_size</span>),
                 <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>f</span>)),
             };
 
@@ -3816,15 +3833,19 @@ fn main() {
 
     <span class='doccomment'>/// Shared between threads</span>
     <span class='ident'>thread_shared</span> : <span class='ident'>ArcHandlerThreadShared</span>,
+
+    <span class='doccomment'>/// Default stack size</span>
+    <span class='ident'>stack_size</span> : <span class='ident'>usize</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>HandlerShared</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>senders</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>MioSender</span><span class='op'>&gt;</span>, <span class='ident'>thread_shared</span> : <span class='ident'>ArcHandlerThreadShared</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>senders</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>MioSender</span><span class='op'>&gt;</span>, <span class='ident'>thread_shared</span> : <span class='ident'>ArcHandlerThreadShared</span>, <span class='ident'>stack_size</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>HandlerShared</span> {
             <span class='ident'>coroutines</span>: <span class='ident'>Slab</span>::<span class='ident'>new</span>(<span class='number'>32</span> <span class='op'>*</span> <span class='number'>1024</span>),
             <span class='ident'>thread_shared</span>: <span class='ident'>thread_shared</span>,
             <span class='ident'>context</span>: <span class='ident'>Context</span>::<span class='ident'>empty</span>(),
             <span class='ident'>senders</span>: <span class='ident'>senders</span>,
+            <span class='ident'>stack_size</span> : <span class='ident'>stack_size</span>,
         }
     }
 
@@ -4031,9 +4052,7 @@ fn main() {
 <span class='doccomment'>/// Main mioco structure.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Mioco</span> {
     <span class='ident'>join_handles</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>thread</span>::<span class='ident'>JoinHandle</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span>,
-    <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
-    <span class='ident'>thread_num</span> : <span class='ident'>usize</span>,
-    <span class='ident'>event_loop_config</span> : <span class='ident'>EventLoopConfig</span>,
+    <span class='ident'>config</span> : <span class='ident'>Config</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Mioco</span> {
@@ -4045,17 +4064,9 @@ fn main() {
     <span class='doccomment'>/// Create new `Mioco` instance</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new_configured</span>(<span class='ident'>config</span> : <span class='ident'>Config</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span>
     {
-        <span class='kw'>let</span> <span class='ident'>Config</span> {
-            <span class='ident'>thread_num</span>,
-            <span class='ident'>scheduler</span>,
-            <span class='ident'>event_loop_config</span>,
-        } <span class='op'>=</span> <span class='ident'>config</span>;
-
         <span class='ident'>Mioco</span> {
             <span class='ident'>join_handles</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
-            <span class='ident'>scheduler</span>: <span class='ident'>scheduler</span>.<span class='ident'>unwrap_or_else</span>(<span class='op'>||</span> <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>FifoScheduler</span>::<span class='ident'>new</span>())),
-            <span class='ident'>thread_num</span>: <span class='ident'>thread_num</span>.<span class='ident'>unwrap_or_else</span>(<span class='op'>||</span> <span class='ident'>num_cpus</span>::<span class='ident'>get</span>()),
-            <span class='ident'>event_loop_config</span>: <span class='ident'>event_loop_config</span>,
+            <span class='ident'>config</span>: <span class='ident'>config</span>,
          }
     }
 
@@ -4071,21 +4082,21 @@ fn main() {
         <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
         <span class='ident'>F</span> : <span class='ident'>Send</span>
         {
-            <span class='macro'>info</span><span class='macro'>!</span>(<span class='string'>&quot;Starting mioco instance with {} handler threads&quot;</span>, <span class='self'>self</span>.<span class='ident'>thread_num</span>);
-            <span class='kw'>let</span> <span class='ident'>thread_shared</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>HandlerThreadShared</span>::<span class='ident'>new</span>(<span class='self'>self</span>.<span class='ident'>thread_num</span>));
+            <span class='macro'>info</span><span class='macro'>!</span>(<span class='string'>&quot;Starting mioco instance with {} handler threads&quot;</span>, <span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>thread_num</span>);
+            <span class='kw'>let</span> <span class='ident'>thread_shared</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>HandlerThreadShared</span>::<span class='ident'>new</span>(<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>thread_num</span>));
 
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>event_loops</span> <span class='op'>=</span> <span class='ident'>VecDeque</span>::<span class='ident'>new</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>senders</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
-            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='self'>self</span>.<span class='ident'>thread_num</span> {
-                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>configured</span>(<span class='self'>self</span>.<span class='ident'>event_loop_config</span>).<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
+            <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>thread_num</span> {
+                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>configured</span>(<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>event_loop_config</span>).<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
                 <span class='ident'>senders</span>.<span class='ident'>push</span>(<span class='ident'>event_loop</span>.<span class='ident'>channel</span>());
                 <span class='ident'>event_loops</span>.<span class='ident'>push_back</span>(<span class='ident'>event_loop</span>);
             }
 
-            <span class='kw'>let</span> <span class='ident'>sched</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>spawn_thread</span>();
+            <span class='kw'>let</span> <span class='ident'>sched</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>scheduler</span>.<span class='ident'>spawn_thread</span>();
             <span class='self'>self</span>.<span class='ident'>spawn_thread</span>(<span class='number'>0</span>, <span class='prelude-val'>Some</span>(<span class='ident'>f</span>), <span class='ident'>sched</span>, <span class='ident'>event_loops</span>.<span class='ident'>pop_front</span>().<span class='ident'>unwrap</span>(), <span class='ident'>senders</span>.<span class='ident'>clone</span>(), <span class='ident'>thread_shared</span>.<span class='ident'>clone</span>());
-            <span class='kw'>for</span> <span class='ident'>i</span> <span class='kw'>in</span> <span class='number'>1</span>..<span class='self'>self</span>.<span class='ident'>thread_num</span> {
-                <span class='kw'>let</span> <span class='ident'>sched</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>spawn_thread</span>();
+            <span class='kw'>for</span> <span class='ident'>i</span> <span class='kw'>in</span> <span class='number'>1</span>..<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>thread_num</span> {
+                <span class='kw'>let</span> <span class='ident'>sched</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>scheduler</span>.<span class='ident'>spawn_thread</span>();
                 <span class='self'>self</span>.<span class='ident'>spawn_thread</span>::<span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>i</span>, <span class='prelude-val'>None</span>, <span class='ident'>sched</span>, <span class='ident'>event_loops</span>.<span class='ident'>pop_front</span>().<span class='ident'>unwrap</span>(), <span class='ident'>senders</span>.<span class='ident'>clone</span>(), <span class='ident'>thread_shared</span>.<span class='ident'>clone</span>());
             }
 
@@ -4107,8 +4118,10 @@ fn main() {
               <span class='ident'>F</span> : <span class='ident'>Send</span>
     {
 
+        <span class='kw'>let</span> <span class='ident'>stack_size</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>stack_size</span>;
         <span class='kw'>let</span> <span class='ident'>join</span> <span class='op'>=</span> <span class='ident'>std</span>::<span class='ident'>thread</span>::<span class='ident'>Builder</span>::<span class='ident'>new</span>().<span class='ident'>name</span>(<span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;mioco_thread_{}&quot;</span>, <span class='ident'>thread_i</span>)).<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
-            <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>HandlerShared</span>::<span class='ident'>new</span>(<span class='ident'>senders</span>, <span class='ident'>thread_shared</span>)));
+            <span class='kw'>let</span> <span class='ident'>handler_shared</span> <span class='op'>=</span> <span class='ident'>HandlerShared</span>::<span class='ident'>new</span>(<span class='ident'>senders</span>, <span class='ident'>thread_shared</span>, <span class='ident'>stack_size</span>);
+            <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>handler_shared</span>));
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>f</span>) <span class='op'>=</span> <span class='ident'>f</span> {
                 <span class='kw'>let</span> <span class='ident'>coroutine_rc</span> <span class='op'>=</span> <span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>(), <span class='ident'>f</span>);
                 <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>{ <span class='ident'>rc</span>: <span class='ident'>coroutine_rc</span> };
@@ -4352,9 +4365,10 @@ fn main() {
 
 <span class='doccomment'>/// Mioco builder</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Config</span> {
-    <span class='ident'>thread_num</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
-    <span class='ident'>scheduler</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;&gt;</span>,
+    <span class='ident'>thread_num</span> : <span class='ident'>usize</span>,
+    <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
     <span class='ident'>event_loop_config</span> : <span class='ident'>EventLoopConfig</span>,
+    <span class='ident'>stack_size</span> : <span class='ident'>usize</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Config</span> {
@@ -4365,9 +4379,10 @@ fn main() {
     <span class='doccomment'>/// See `start` and `start_threads` for convenience wrappers.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>Config</span> {
-            <span class='ident'>thread_num</span>: <span class='prelude-val'>None</span>,
-            <span class='ident'>scheduler</span>: <span class='prelude-val'>None</span>,
+            <span class='ident'>thread_num</span>: <span class='ident'>num_cpus</span>::<span class='ident'>get</span>(),
+            <span class='ident'>scheduler</span>: <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>FifoScheduler</span>::<span class='ident'>new</span>()),
             <span class='ident'>event_loop_config</span>: <span class='ident'>Default</span>::<span class='ident'>default</span>(),
+            <span class='ident'>stack_size</span>: <span class='number'>2</span> <span class='op'>*</span> <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>1024</span>,
         }
     }
 
@@ -4375,7 +4390,7 @@ fn main() {
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Default is numer of CPUs in the system.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_thread_num</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>thread_num</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
-        <span class='self'>self</span>.<span class='ident'>thread_num</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>thread_num</span>);
+        <span class='self'>self</span>.<span class='ident'>thread_num</span> <span class='op'>=</span> <span class='ident'>thread_num</span>;
         <span class='self'>self</span>
     }
 
@@ -4385,7 +4400,22 @@ fn main() {
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Default is `FifoScheduler`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
-        <span class='self'>self</span>.<span class='ident'>scheduler</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>scheduler</span>);
+        <span class='self'>self</span>.<span class='ident'>scheduler</span> <span class='op'>=</span> <span class='ident'>scheduler</span>;
+        <span class='self'>self</span>
+    }
+
+    <span class='doccomment'>/// Set stack size in bytes.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Default is 2MB.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Should be a power of 2.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Stack size includes a protection page. Setting too small stack will</span>
+    <span class='doccomment'>/// lead to SEGFAULTs. See [context-rs stack.rs](https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs)</span>
+    <span class='doccomment'>/// for implementation details. The sane minimum seems to be 128KiB,</span>
+    <span class='doccomment'>/// which is two 64KB pages.</span>
+    <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>set_stack_size</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>stack_size</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+        <span class='self'>self</span>.<span class='ident'>stack_size</span> <span class='op'>=</span> <span class='ident'>stack_size</span>;
         <span class='self'>self</span>
     }
 

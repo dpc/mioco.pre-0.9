@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-10681' class='srclink' href='../src/mioco/lib.rs.html#2133-2137' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-10681' class='srclink' href='../src/mioco/lib.rs.html#2131-2136' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Config {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco builder</p>
@@ -65,6 +65,17 @@
 <p>See <code>Scheduler</code> trait.</p>
 
 <p>Default is <code>FifoScheduler</code>.</p>
+</div><h4 id='method.set_stack_size' class='method'><code>unsafe fn <a href='#method.set_stack_size' class='fnname'>set_stack_size</a>(&amp;mut self, stack_size: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Set stack size in bytes.</p>
+
+<p>Default is 2MB.</p>
+
+<p>Should be a power of 2.</p>
+
+<p>Stack size includes a protection page. Setting too small stack will
+lead to SEGFAULTs. See <a href="https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs">context-rs stack.rs</a>
+for implementation details. The sane minimum seems to be 128KiB,
+which is two 64KB pages.</p>
 </div><h4 id='method.even_loop' class='method'><code>fn <a href='#method.even_loop' class='fnname'>even_loop</a>(&amp;mut self) -&gt; &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoopConfig.html' title='mio::event_loop::EventLoopConfig'>EventLoopConfig</a></code></h4>
 <div class='docblock'><p>Configure <code>mio::EvenLoop</code> for all the threads</p>
 </div></div></section>
