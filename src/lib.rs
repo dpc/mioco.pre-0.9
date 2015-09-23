@@ -272,6 +272,7 @@ where T : mio::Evented+Reflect+'static {
 /// of retrying on recoverable errors.
 fn sender_retry<M : Send>(sender : &mio::Sender<M>, msg : M) {
     let mut msg = Some(msg);
+    let mut warning_printed = false;
     loop {
         match sender.send(msg.take().expect("sender_retry")) {
             Ok(()) => break,
@@ -281,7 +282,10 @@ fn sender_retry<M : Send>(sender : &mio::Sender<M>, msg : M) {
                 msg = Some(retry_msg);
             },
         }
-        trace!("send_retry: retry");
+        if !warning_printed {
+            warning_printed = true;
+            warn!("send_retry: retry; consider increasing `EventLoopConfig::notify_capacity`");
+        }
         thread::yield_now();
     }
 }
