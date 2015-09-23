@@ -30,14 +30,8 @@ mio = "0.4.*"
 num_cpus = "*"
 libc = "*"
 
+# Until: https://github.com/contain-rs/bit-vec/pull/21 is not published
+bit-vec = { git = "https://github.com/contain-rs/bit-vec.git" }
 
 # Until: https://github.com/zonyitoo/context-rs/issues/6
-#context = "*"
-[dependencies.context]
-git = "https://github.com/dpc/context-rs.git"
-
-
-# Until: https://github.com/contain-rs/bit-vec/pull/21 is not published
-#bit-vec = "0.4.*"
-[dependencies.bit-vec]
-git = "https://github.com/contain-rs/bit-vec.git"
+context = { git = "https://github.com/dpc/context-rs.git" }

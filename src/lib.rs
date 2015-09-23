@@ -60,7 +60,7 @@ use std::raw::TraitObject;
 
 use std::boxed::FnBox;
 
-use mio::{TryRead, TryWrite, Token, EventLoop, EventSet};
+use mio::{TryRead, TryWrite, Token, EventLoop, EventSet, EventLoopConfig};
 use mio::udp::{UdpSocket};
 use std::net::SocketAddr;
 use std::any::Any;
@@ -1759,6 +1759,7 @@ pub struct Mioco {
     join_handles : Vec<thread::JoinHandle<()>>,
     scheduler : Box<Scheduler + 'static>,
     thread_num : usize,
+    event_loop_config : EventLoopConfig,
 }
 
 impl Mioco {
@@ -1773,12 +1774,14 @@ impl Mioco {
         let Config {
             thread_num,
             scheduler,
+            event_loop_config,
         } = config;
 
         Mioco {
             join_handles: Vec::new(),
             scheduler: scheduler.unwrap_or_else(|| Box::new(FifoScheduler::new())),
             thread_num: thread_num.unwrap_or_else(|| num_cpus::get()),
+            event_loop_config: event_loop_config,
          }
     }
 
@@ -1800,7 +1803,7 @@ impl Mioco {
             let mut event_loops = VecDeque::new();
             let mut senders = Vec::new();
             for _ in 0..self.thread_num {
-                let event_loop = EventLoop::new().expect("new EventLoop");
+                let event_loop = EventLoop::configured(self.event_loop_config).expect("new EventLoop");
                 senders.push(event_loop.channel());
                 event_loops.push_back(event_loop);
             }
@@ -2077,6 +2080,7 @@ pub fn start_threads<F>(thread_num : usize, f : F)
 pub struct Config {
     thread_num : Option<usize>,
     scheduler : Option<Box<Scheduler + 'static>>,
+    event_loop_config : EventLoopConfig,
 }
 
 impl Config {
@@ -2089,6 +2093,7 @@ impl Config {
         Config {
             thread_num: None,
             scheduler: None,
+            event_loop_config: Default::default(),
         }
     }
 
@@ -2108,6 +2113,11 @@ impl Config {
     pub fn set_scheduler(&mut self, scheduler : Box<Scheduler + 'static>) -> &mut Self {
         self.scheduler = Some(scheduler);
         self
+    }
+
+    /// Configure `mio::EvenLoop` for all the threads
+    pub fn even_loop(&mut self) -> &mut EventLoopConfig {
+        &mut self.event_loop_config
     }
 }
 
