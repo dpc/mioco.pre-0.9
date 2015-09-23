@@ -1,4 +1,4 @@
-use super::{start_threads};
+use super::{start_threads, Config, Mioco};
 
 use std;
 use std::io::{Read, Write};
@@ -412,7 +412,6 @@ fn exit_notifier_simple_panic() {
     }
 }
 
-
 #[test]
 fn exit_notifier_wrap_after_finish() {
     for &threads in THREADS_N.iter() {
@@ -452,3 +451,27 @@ fn exit_notifier_wrap_after_finish() {
         assert!(*finished_ok.lock().unwrap());
     }
 }
+
+#[test]
+fn tiny_stacks() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_copy = finished_ok.clone();
+        let mut config = Config::new();
+
+        config.set_thread_num(threads);
+        unsafe { config.set_stack_size(1024 * 128); }
+
+        let mut mioco = Mioco::new_configured(config);
+
+        mioco.start(move |_| {
+            let mut lock = finished_copy.lock().unwrap();
+            *lock = true;
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+

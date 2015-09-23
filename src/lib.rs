@@ -677,6 +677,8 @@ impl Coroutine {
     fn spawn<F>(handler_shared : RcHandlerShared, f : F) -> RcCoroutine
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static {
         trace!("Coroutine: spawning");
+        let stack_size = handler_shared.borrow().stack_size;
+
         let id = handler_shared.borrow_mut().coroutines.insert_with(|id| {
             let id = CoroutineId(id.as_usize());
 
@@ -695,7 +697,7 @@ impl Coroutine {
                 shared: Rc::new(RefCell::new(shared)),
                 io: Vec::with_capacity(4),
                 children_to_start: Vec::new(),
-                stack: Stack::new(1024 * 1024),
+                stack: Stack::new(stack_size),
                 coroutine_func: Some(Box::new(f)),
             };
 
@@ -1546,15 +1548,19 @@ struct HandlerShared {
 
     /// Shared between threads
     thread_shared : ArcHandlerThreadShared,
+
+    /// Default stack size
+    stack_size : usize,
 }
 
 impl HandlerShared {
-    fn new(senders : Vec<MioSender>, thread_shared : ArcHandlerThreadShared) -> Self {
+    fn new(senders : Vec<MioSender>, thread_shared : ArcHandlerThreadShared, stack_size : usize) -> Self {
         HandlerShared {
             coroutines: Slab::new(32 * 1024),
             thread_shared: thread_shared,
             context: Context::empty(),
             senders: senders,
+            stack_size : stack_size,
         }
     }
 
@@ -1761,9 +1767,7 @@ impl mio::Handler for Handler {
 /// Main mioco structure.
 pub struct Mioco {
     join_handles : Vec<thread::JoinHandle<()>>,
-    scheduler : Box<Scheduler + 'static>,
-    thread_num : usize,
-    event_loop_config : EventLoopConfig,
+    config : Config,
 }
 
 impl Mioco {
@@ -1775,17 +1779,9 @@ impl Mioco {
     /// Create new `Mioco` instance
     pub fn new_configured(config : Config) -> Self
     {
-        let Config {
-            thread_num,
-            scheduler,
-            event_loop_config,
-        } = config;
-
         Mioco {
             join_handles: Vec::new(),
-            scheduler: scheduler.unwrap_or_else(|| Box::new(FifoScheduler::new())),
-            thread_num: thread_num.unwrap_or_else(|| num_cpus::get()),
-            event_loop_config: event_loop_config,
+            config: config,
          }
     }
 
@@ -1801,21 +1797,21 @@ impl Mioco {
         F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
         F : Send
         {
-            info!("Starting mioco instance with {} handler threads", self.thread_num);
-            let thread_shared = Arc::new(HandlerThreadShared::new(self.thread_num));
+            info!("Starting mioco instance with {} handler threads", self.config.thread_num);
+            let thread_shared = Arc::new(HandlerThreadShared::new(self.config.thread_num));
 
             let mut event_loops = VecDeque::new();
             let mut senders = Vec::new();
-            for _ in 0..self.thread_num {
-                let event_loop = EventLoop::configured(self.event_loop_config).expect("new EventLoop");
+            for _ in 0..self.config.thread_num {
+                let event_loop = EventLoop::configured(self.config.event_loop_config).expect("new EventLoop");
                 senders.push(event_loop.channel());
                 event_loops.push_back(event_loop);
             }
 
-            let sched = self.scheduler.spawn_thread();
+            let sched = self.config.scheduler.spawn_thread();
             self.spawn_thread(0, Some(f), sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
-            for i in 1..self.thread_num {
-                let sched = self.scheduler.spawn_thread();
+            for i in 1..self.config.thread_num {
+                let sched = self.config.scheduler.spawn_thread();
                 self.spawn_thread::<F>(i, None, sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
             }
 
@@ -1837,8 +1833,10 @@ impl Mioco {
               F : Send
     {
 
+        let stack_size = self.config.stack_size;
         let join = std::thread::Builder::new().name(format!("mioco_thread_{}", thread_i)).spawn(move || {
-            let shared = Rc::new(RefCell::new(HandlerShared::new(senders, thread_shared)));
+            let handler_shared = HandlerShared::new(senders, thread_shared, stack_size);
+            let shared = Rc::new(RefCell::new(handler_shared));
             if let Some(f) = f {
                 let coroutine_rc = Coroutine::spawn(shared.clone(), f);
                 let coroutine_ctrl = CoroutineControl{ rc: coroutine_rc };
@@ -2082,9 +2080,10 @@ pub fn start_threads<F>(thread_num : usize, f : F)
 
 /// Mioco builder
 pub struct Config {
-    thread_num : Option<usize>,
-    scheduler : Option<Box<Scheduler + 'static>>,
+    thread_num : usize,
+    scheduler : Box<Scheduler + 'static>,
     event_loop_config : EventLoopConfig,
+    stack_size : usize,
 }
 
 impl Config {
@@ -2095,9 +2094,10 @@ impl Config {
     /// See `start` and `start_threads` for convenience wrappers.
     pub fn new() -> Self {
         Config {
-            thread_num: None,
-            scheduler: None,
+            thread_num: num_cpus::get(),
+            scheduler: Box::new(FifoScheduler::new()),
             event_loop_config: Default::default(),
+            stack_size: 2 * 1024 * 1024,
         }
     }
 
@@ -2105,7 +2105,7 @@ impl Config {
     ///
     /// Default is numer of CPUs in the system.
     pub fn set_thread_num(&mut self, thread_num : usize) -> &mut Self {
-        self.thread_num = Some(thread_num);
+        self.thread_num = thread_num;
         self
     }
 
@@ -2115,7 +2115,22 @@ impl Config {
     ///
     /// Default is `FifoScheduler`.
     pub fn set_scheduler(&mut self, scheduler : Box<Scheduler + 'static>) -> &mut Self {
-        self.scheduler = Some(scheduler);
+        self.scheduler = scheduler;
+        self
+    }
+
+    /// Set stack size in bytes.
+    ///
+    /// Default is 2MB.
+    ///
+    /// Should be a power of 2.
+    ///
+    /// Stack size includes a protection page. Setting too small stack will
+    /// lead to SEGFAULTs. See [context-rs stack.rs](https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs)
+    /// for implementation details. The sane minimum seems to be 128KiB,
+    /// which is two 64KB pages.
+    pub unsafe fn set_stack_size(&mut self, stack_size : usize) -> &mut Self {
+        self.stack_size = stack_size;
         self
     }
 
