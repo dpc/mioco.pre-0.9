@@ -45,21 +45,21 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-8585' class='srclink' href='../src/mioco/lib.rs.html#1655-1677' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-8586' class='srclink' href='../src/mioco/lib.rs.html#1660-1682' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait SchedulerThread: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> {
-    fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
-    fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
+    fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
+    fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
 
-    fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;) { ... }
+    fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;) { ... }
 }</pre><div class='docblock'><p>Per-thread Scheduler</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.new' class='method stab '><code>fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine was spawned.</p>
+        <h3 id='tymethod.new' class='method stab '><code>fn <a href='#tymethod.new' class='fnname'>new</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine was spawned.</p>
 
 <p>New Coroutine was spawned. This can be used to run it immediately
 (or not), or migrate it to different thread immediately.</p>
-</div><h3 id='tymethod.ready' class='method stab '><code>fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine became ready.</p>
+</div><h3 id='tymethod.ready' class='method stab '><code>fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>)</code></h3><div class='docblock'><p>A Coroutine became ready.</p>
 
 <p><code>coroutines_num</code> is a control reference to the Coroutine that became
 ready (to be resumed). It can be resumed immediately, or stored
@@ -67,7 +67,7 @@ somewhere to be resumed later.</p>
 </div></div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.tick' class='method stab '><code>fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></h3><div class='docblock'><p>A mio&#39;s tick have complete.</p>
+        <h3 id='method.tick' class='method stab '><code>fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></h3><div class='docblock'><p>A mio&#39;s tick have complete.</p>
 
 <p>This means all pending events have been processed and all Coroutines blocked on them
 already signaled with <code>Scheduler::ready()</code>.</p>

@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["stack","This module is copied from `libstd/sys/common/stack.rs`."]]});

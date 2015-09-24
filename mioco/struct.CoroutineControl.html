@@ -45,17 +45,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2701' class='srclink' href='../src/mioco/lib.rs.html#509-511' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2702' class='srclink' href='../src/mioco/lib.rs.html#514-516' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CoroutineControl {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine control block</p>
 
 <p>Through this interface Coroutine can be resumed and migrated.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(&amp;self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, scheduler: &amp;mut <a class='trait' href='../mioco/trait.SchedulerThread.html' title='mioco::SchedulerThread'>SchedulerThread</a> + 'static)</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(&amp;self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, scheduler: &amp;mut <a class='trait' href='../mioco/trait.SchedulerThread.html' title='mioco::SchedulerThread'>SchedulerThread</a> + 'static)</code></h4>
 <div class='docblock'><p>Resume Coroutine</p>
 
 <p>Panics if Coroutine is not in Ready state.</p>
-</div><h4 id='method.migrate' class='method'><code>fn <a href='#method.migrate' class='fnname'>migrate</a>(self, event_loop: &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoop.html' title='mio::event_loop::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, thread_id: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></h4>
+</div><h4 id='method.migrate' class='method'><code>fn <a href='#method.migrate' class='fnname'>migrate</a>(self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, thread_id: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></h4>
 <div class='docblock'><p>Migrate to a different thread</p>
 
 <p>Move this Coroutine to be executed on a <code>SchedulerThread</code> for a

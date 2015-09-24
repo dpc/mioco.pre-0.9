@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Coroutine","A coroutine is nothing more than a (register context, stack) pair."],["Handle","Handle of a Coroutine"]]});
