@@ -1,11 +1,10 @@
-extern crate mio;
 extern crate mioco;
 extern crate env_logger;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::{Read, Write};
-use mio::tcp::{TcpSocket};
+use mioco::mio::tcp::{TcpSocket};
 
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
 
@@ -48,7 +47,7 @@ fn main() {
                         try!(conn.write_all(&mut buf[0..size]));
                     } else {
                         conn.with_raw_mut(|conn| {
-                            conn.shutdown(mio::tcp::Shutdown::Both).unwrap();
+                            conn.shutdown(mioco::mio::tcp::Shutdown::Both).unwrap();
                         });
                     }
                 }

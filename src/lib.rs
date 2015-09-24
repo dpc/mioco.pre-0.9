@@ -42,7 +42,7 @@
 
 extern crate libc;
 extern crate spin;
-extern crate mio;
+extern crate mio as mio_orig;
 extern crate context;
 extern crate nix;
 #[macro_use]
@@ -50,6 +50,12 @@ extern crate log;
 extern crate bit_vec;
 extern crate time;
 extern crate num_cpus;
+
+
+/// Re-export of all `mio` symbols.
+///
+/// Use that instead this to access plain-`mio` types.
+pub use mio_orig as mio;
 
 use std::cell::RefCell;
 use std::rc::{Rc};

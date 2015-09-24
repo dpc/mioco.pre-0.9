@@ -1,11 +1,10 @@
-extern crate mio;
 extern crate mioco;
 extern crate env_logger;
 
 use std::net::{SocketAddr, SocketAddrV4};
-use mio::buf::{MutSliceBuf, SliceBuf};
-use mio::udp::{UdpSocket};
-use mio::Ipv4Addr;
+use mioco::mio::buf::{MutSliceBuf, SliceBuf};
+use mioco::mio::udp::{UdpSocket};
+use mioco::mio::Ipv4Addr;
 
 const START_PORT : u16 = 60000;
 const END_PORT   : u16 = 65535;

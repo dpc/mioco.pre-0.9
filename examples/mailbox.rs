@@ -1,11 +1,10 @@
-extern crate mio;
 extern crate mioco;
 extern crate env_logger;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::{self, Read, Write, BufRead};
-use mio::tcp::{TcpSocket};
+use mioco::mio::tcp::{TcpSocket};
 use mioco::Mioco;
 use std::thread;
 
