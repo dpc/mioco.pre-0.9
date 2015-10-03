@@ -45,23 +45,29 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2198' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2205' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
-<p>Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</p>
+<p>Scalable, coroutine-based, asynchronous IO handling library for Rust
+ programming language.</p>
 
-<p>Using <code>mioco</code> you can handle scalable, asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using set of synchronous-IO
- handling functions. Based on asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a> events <code>mioco</code> will cooperatively schedule your
- handlers.</p>
+<p>Using <code>mioco</code> you can handle asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using
+ set of synchronous-IO handling functions. Based on <a href="https://github.com/carllerche/mio"><code>mio</code></a> events
+ <code>mioco</code> will cooperatively schedule your handlers.</p>
 
 <p>You can think of <code>mioco</code> as of <em>Node.js for Rust</em> or <em><a href="https://en.wikipedia.org/wiki/Green_threads">green threads</a> on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a></em>.</p>
 
+<p>Mioco is a library building on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a>. Mio API is
+ re-exported as <a href="../mio/index.html"><code>mioco::mio</code></a>.</p>
+
 <p># <a name="features"></a> Features:</p>
 
-<pre><code class="language-norust"> * all `mio` types can be used (see `MiocoHandle::wrap()`);
+<pre><code class="language-norust"> * multithreading support; (see `Config::set_thread_num()`)
+ * user-provided scheduling; (see `Config::set_scheduler()`);
+ * support for all native `mio` types (see `MiocoHandle::wrap()`);
  * timers (see `MiocoHandle::timer()`);
  * mailboxes (see `mailbox()`);
- * coroutine exit notification (see `CoroutineHandle`).
+ * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
 </code></pre>
 
 <p># <a name="example"/></a> Example:</p>

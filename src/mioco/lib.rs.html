@@ -2238,27 +2238,40 @@
 <span id="2196">2196</span>
 <span id="2197">2197</span>
 <span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
 
 <span class='doccomment'>//! # Mioco</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).</span>
+<span class='doccomment'>//! Scalable, coroutine-based, asynchronous IO handling library for Rust</span>
+<span class='doccomment'>//! programming language.</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Using `mioco` you can handle scalable, asynchronous [`mio`][mio]-based IO, using set of synchronous-IO</span>
-<span class='doccomment'>//! handling functions. Based on asynchronous [`mio`][mio] events `mioco` will cooperatively schedule your</span>
-<span class='doccomment'>//! handlers.</span>
+<span class='doccomment'>//! Using `mioco` you can handle asynchronous [`mio`][mio]-based IO, using</span>
+<span class='doccomment'>//! set of synchronous-IO handling functions. Based on [`mio`][mio] events</span>
+<span class='doccomment'>//! `mioco` will cooperatively schedule your handlers.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Mioco is a library building on top of [`mio`][mio]. Mio API is</span>
+<span class='doccomment'>//! re-exported as [`mioco::mio`][mio-api].</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # &lt;a name=&quot;features&quot;&gt;&lt;/a&gt; Features:</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! ```norust</span>
-<span class='doccomment'>//! * all `mio` types can be used (see `MiocoHandle::wrap()`);</span>
+<span class='doccomment'>//! * multithreading support; (see `Config::set_thread_num()`)</span>
+<span class='doccomment'>//! * user-provided scheduling; (see `Config::set_scheduler()`);</span>
+<span class='doccomment'>//! * support for all native `mio` types (see `MiocoHandle::wrap()`);</span>
 <span class='doccomment'>//! * timers (see `MiocoHandle::timer()`);</span>
 <span class='doccomment'>//! * mailboxes (see `mailbox()`);</span>
-<span class='doccomment'>//! * coroutine exit notification (see `CoroutineHandle`).</span>
+<span class='doccomment'>//! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # &lt;a name=&quot;example&quot;/&gt;&lt;/a&gt; Example:</span>
@@ -2320,6 +2333,7 @@ fn main() {
 */</span>
 <span class='doccomment'>//! [green threads]: https://en.wikipedia.org/wiki/Green_threads</span>
 <span class='doccomment'>//! [mio]: https://github.com/carllerche/mio</span>
+<span class='doccomment'>//! [mio-api]: ../mio/index.html</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>test</span>, <span class='ident'>feature</span>(<span class='ident'>convert</span>))]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>reflect_marker</span>)]</span>
