@@ -2245,6 +2245,14 @@
 <span id="2203">2203</span>
 <span id="2204">2204</span>
 <span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2260,7 +2268,7 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Mioco is a library building on top of [`mio`][mio]. Mio API is</span>
+<span class='doccomment'>//! `Mioco` is a library building on top of [`mio`][mio]. Mio API is</span>
 <span class='doccomment'>//! re-exported as [`mioco::mio`][mio-api].</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # &lt;a name=&quot;features&quot;&gt;&lt;/a&gt; Features:</span>
@@ -2450,7 +2458,7 @@ fn main() {
     }
 }
 
-<span class='doccomment'>/// Value returned by coroutine or panic</span>
+<span class='doccomment'>/// Coroutine exit status (value returned or panic)</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>ExitStatus</span> {
     <span class='doccomment'>/// Coroutine panicked</span>
@@ -2918,7 +2926,7 @@ fn main() {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): {} children spawned&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>(), <span class='ident'>children</span>.<span class='ident'>len</span>());
         <span class='kw'>for</span> <span class='ident'>coroutine</span> <span class='kw'>in</span> <span class='ident'>children</span>.<span class='ident'>drain</span>(..) {
             <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span> { <span class='ident'>rc</span>: <span class='ident'>coroutine</span> };
-            <span class='ident'>scheduler</span>.<span class='ident'>new</span>(<span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
+            <span class='ident'>scheduler</span>.<span class='ident'>spawned</span>(<span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
         }
 
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
@@ -3913,23 +3921,27 @@ fn main() {
 
 <span class='doccomment'>/// Per-thread Scheduler</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>SchedulerThread</span> : <span class='ident'>Send</span> {
-    <span class='doccomment'>/// A Coroutine was spawned.</span>
+    <span class='doccomment'>/// New coroutine was spawned.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// New Coroutine was spawned. This can be used to run it immediately</span>
-    <span class='doccomment'>/// (or not), or migrate it to different thread immediately.</span>
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>);
+    <span class='doccomment'>/// This can be used to run it immediately (see</span>
+    <span class='doccomment'>/// `CoroutineControl::resume()`), save it to be started later, or</span>
+    <span class='doccomment'>/// migrate it to different thread immediately (see</span>
+    <span class='doccomment'>/// `CoroutineControl::migrate()`).</span>
+    <span class='kw'>fn</span> <span class='ident'>spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>);
 
     <span class='doccomment'>/// A Coroutine became ready.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// `coroutines_num` is a control reference to the Coroutine that became</span>
+    <span class='doccomment'>/// `coroutine_ctrl` is a control reference to the Coroutine that became</span>
     <span class='doccomment'>/// ready (to be resumed). It can be resumed immediately, or stored</span>
     <span class='doccomment'>/// somewhere to be resumed later.</span>
     <span class='kw'>fn</span> <span class='ident'>ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>);
 
-    <span class='doccomment'>/// A mio&#39;s tick have complete.</span>
+    <span class='doccomment'>/// Mio&#39;s tick have completed.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This means all pending events have been processed and all Coroutines blocked on them</span>
-    <span class='doccomment'>/// already signaled with `Scheduler::ready()`.</span>
+    <span class='doccomment'>/// Mio signals events in batches, after which a `tick` is signaled.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// All events events have been processed and all unblocked coroutines</span>
+    <span class='doccomment'>/// signaled with `SchedulerThread::ready()`.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// After returning from this function, `mioco` will let mio process a</span>
     <span class='doccomment'>/// new batch of events.</span>
@@ -3982,7 +3994,7 @@ fn main() {
 }
 
 <span class='kw'>impl</span> <span class='ident'>SchedulerThread</span> <span class='kw'>for</span> <span class='ident'>FifoSchedulerThread</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>) {
+    <span class='kw'>fn</span> <span class='ident'>spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>) {
         <span class='kw'>let</span> <span class='ident'>thread_i</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>thread_next_i</span>();
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Migrating newly spawn Coroutine to thread {}&quot;</span>, <span class='ident'>thread_i</span>);
         <span class='ident'>coroutine_ctrl</span>.<span class='ident'>migrate</span>(<span class='ident'>event_loop</span>, <span class='ident'>thread_i</span>);
@@ -4149,7 +4161,7 @@ fn main() {
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>f</span>) <span class='op'>=</span> <span class='ident'>f</span> {
                 <span class='kw'>let</span> <span class='ident'>coroutine_rc</span> <span class='op'>=</span> <span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>(), <span class='ident'>f</span>);
                 <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>{ <span class='ident'>rc</span>: <span class='ident'>coroutine_rc</span> };
-                <span class='ident'>scheduler</span>.<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
+                <span class='ident'>scheduler</span>.<span class='ident'>spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
                 <span class='comment'>// Mark started only after first coroutine is spawned so that</span>
                 <span class='comment'>// threads don&#39;t start, detect no coroutines, and exit prematurely</span>
                 <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>signal_start_all</span>();
@@ -4412,7 +4424,7 @@ fn main() {
 
     <span class='doccomment'>/// Set numer of threads to run mioco with</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Default is numer of CPUs in the system.</span>
+    <span class='doccomment'>/// Default is equal to a numer of CPUs in the system.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_thread_num</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>thread_num</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>thread_num</span> <span class='op'>=</span> <span class='ident'>thread_num</span>;
         <span class='self'>self</span>
@@ -4422,7 +4434,11 @@ fn main() {
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See `Scheduler` trait.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Default is `FifoScheduler`.</span>
+    <span class='doccomment'>/// Default is a simple FIFO-scheduler that spreads all the new</span>
+    <span class='doccomment'>/// coroutines between all threads in round-robin fashion, and runs them</span>
+    <span class='doccomment'>/// in FIFO manner.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// See private `FifoSchedule` source for details.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>scheduler</span> : <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>scheduler</span> <span class='op'>=</span> <span class='ident'>scheduler</span>;
         <span class='self'>self</span>
