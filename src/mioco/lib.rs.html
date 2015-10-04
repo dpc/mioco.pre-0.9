@@ -2253,6 +2253,7 @@
 <span id="2211">2211</span>
 <span id="2212">2212</span>
 <span id="2213">2213</span>
+<span id="2214">2214</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -4389,7 +4390,8 @@ fn main() {
     <span class='ident'>Mioco</span>::<span class='ident'>new</span>().<span class='ident'>start</span>(<span class='ident'>f</span>);
 }
 
-<span class='doccomment'>/// Shorthand for creating new `Mioco` instance and starting it right away.</span>
+<span class='doccomment'>/// Shorthand for creating new `Mioco` instance with a fixed number of</span>
+<span class='doccomment'>/// threads and starting it right away.</span>
 <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>start_threads</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>thread_num</span> : <span class='ident'>usize</span>, <span class='ident'>f</span> : <span class='ident'>F</span>)
     <span class='kw'>where</span> <span class='ident'>F</span> : <span class='ident'>FnOnce</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>MiocoHandle</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
           <span class='ident'>F</span> : <span class='ident'>Send</span>
