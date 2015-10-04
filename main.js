@@ -386,6 +386,9 @@
                 if ((aaa.item.ty === TY_PRIMITIVE) && (bbb.item.ty !== TY_PRIMITIVE)) {
                     return -1;
                 }
+                if ((bbb.item.ty === TY_PRIMITIVE) && (aaa.item.ty !== TY_PRIMITIVE)) {
+                    return 1;
+                }
 
                 // sort by description (no description goes later)
                 a = (aaa.item.desc === '');
@@ -572,6 +575,10 @@
                         displayPath = item.path + '::';
                         href = rootPath + item.path.replace(/::/g, '/') +
                                '/index.html';
+                    } else if (type === "primitive") {
+                        displayPath = "";
+                        href = rootPath + item.path.replace(/::/g, '/') +
+                               '/' + type + '.' + name + '.html';
                     } else if (item.parent !== undefined) {
                         var myparent = item.parent;
                         var anchor = '#' + type + '.' + name;
@@ -715,6 +722,15 @@
         }
 
         function startSearch() {
+
+            $(".search-input").on("keyup",function() {
+                if ($(this).val().length === 0) {
+                    window.history.replaceState("", "std - Rust", "?search=");
+                    $('#main.content').removeClass('hidden');
+                    $('#search.content').addClass('hidden');
+                }
+            });
+
             var keyUpTimeout;
             $('.do-search').on('click', search);
             $('.search-input').on('keyup', function() {

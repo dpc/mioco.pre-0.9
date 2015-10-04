@@ -45,13 +45,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2702' class='srclink' href='../src/mioco/lib.rs.html#521-523' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-409' class='srclink' href='../src/mioco/lib.rs.html#668-673' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CoroutineControl {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine control block</p>
 
 <p>Through this interface Coroutine can be resumed and migrated.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(&amp;self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, scheduler: &amp;mut <a class='trait' href='../mioco/trait.SchedulerThread.html' title='mioco::SchedulerThread'>SchedulerThread</a> + 'static)</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, scheduler: &amp;mut <a class='trait' href='../mioco/trait.SchedulerThread.html' title='mioco::SchedulerThread'>SchedulerThread</a> + 'static)</code></h4>
 <div class='docblock'><p>Resume Coroutine</p>
 
 <p>Panics if Coroutine is not in Ready state.</p>
@@ -62,7 +62,8 @@
 given <code>thread_id</code>.</p>
 
 <p>Will panic if <code>thread_id</code> is not valid.</p>
-</div></div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#method.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.0/src/sys/ioctl/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.1/src/sys/ioctl/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -155,6 +155,33 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Provide helpers for making ioctl system calls</span>
 <span class='doccomment'>//!</span>
@@ -188,13 +215,62 @@
 <span class='doccomment'>//! What does this module support?</span>
 <span class='doccomment'>//! ===============================</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! This library provides the `ioctl!` macro, for binding `ioctl`s. It also tries</span>
-<span class='doccomment'>//! to bind every `ioctl` supported by the system with said macro, but</span>
-<span class='doccomment'>//! some `ioctl`s requires some amount of manual work (usually by</span>
-<span class='doccomment'>//! providing `struct` declaration) that this library does not support yet.</span>
+<span class='doccomment'>//! This library provides the `ioctl!` macro, for binding `ioctl`s.</span>
+<span class='doccomment'>//! Here&#39;s a few examples of how that can work for SPI under Linux</span>
+<span class='doccomment'>//! from [rust-spidev](https://github.com/posborne/rust-spidev).</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! Additionally, in `etc`, there are scripts for scraping system headers for</span>
-<span class='doccomment'>//! `ioctl` definitions, and generating calls to `ioctl!` corresponding to them.</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! #[macro_use] extern crate nix;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! #[allow(non_camel_case_types)]</span>
+<span class='doccomment'>//! pub struct spi_ioc_transfer {</span>
+<span class='doccomment'>//!     pub tx_buf: u64,</span>
+<span class='doccomment'>//!     pub rx_buf: u64,</span>
+<span class='doccomment'>//!     pub len: u32,</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//!     // optional overrides</span>
+<span class='doccomment'>//!     pub speed_hz: u32,</span>
+<span class='doccomment'>//!     pub delay_usecs: u16,</span>
+<span class='doccomment'>//!     pub bits_per_word: u8,</span>
+<span class='doccomment'>//!     pub cs_change: u8,</span>
+<span class='doccomment'>//!     pub pad: u32,</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! #[cfg(linux)]</span>
+<span class='doccomment'>//! mod ioctl {</span>
+<span class='doccomment'>//!     use super::*;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//!     const SPI_IOC_MAGIC: u8 = &#39;k&#39; as u8;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_TRANSFER: u8 = 0;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_MODE: u8 = 1;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_LSB_FIRST: u8 = 2;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_BITS_PER_WORD: u8 = 3;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_MAX_SPEED_HZ: u8 = 4;</span>
+<span class='doccomment'>//!     const SPI_IOC_NR_MODE32: u8 = 5;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//!     ioctl!(read  get_mode_u8 with SPI_IOC_MAGIC, SPI_IOC_NR_MODE; u8);</span>
+<span class='doccomment'>//!     ioctl!(read  get_mode_u32 with SPI_IOC_MAGIC, SPI_IOC_NR_MODE; u32);</span>
+<span class='doccomment'>//!     ioctl!(write set_mode_u8 with SPI_IOC_MAGIC, SPI_IOC_NR_MODE; u8);</span>
+<span class='doccomment'>//!     ioctl!(write set_mode_u32 with SPI_IOC_MAGIC, SPI_IOC_NR_MODE32; u32);</span>
+<span class='doccomment'>//!     ioctl!(read  get_lsb_first with SPI_IOC_MAGIC, SPI_IOC_NR_LSB_FIRST; u8);</span>
+<span class='doccomment'>//!     ioctl!(write set_lsb_first with SPI_IOC_MAGIC, SPI_IOC_NR_LSB_FIRST; u8);</span>
+<span class='doccomment'>//!     ioctl!(read  get_bits_per_word with SPI_IOC_MAGIC, SPI_IOC_NR_BITS_PER_WORD; u8);</span>
+<span class='doccomment'>//!     ioctl!(write set_bits_per_word with SPI_IOC_MAGIC, SPI_IOC_NR_BITS_PER_WORD; u8);</span>
+<span class='doccomment'>//!     ioctl!(read  get_max_speed_hz with SPI_IOC_MAGIC, SPI_IOC_NR_MAX_SPEED_HZ; u32);</span>
+<span class='doccomment'>//!     ioctl!(write set_max_speed_hz with SPI_IOC_MAGIC, SPI_IOC_NR_MAX_SPEED_HZ; u32);</span>
+<span class='doccomment'>//!     ioctl!(write spidev_transfer with SPI_IOC_MAGIC, SPI_IOC_NR_TRANSFER; spi_ioc_transfer);</span>
+<span class='doccomment'>//!     ioctl!(write buf spidev_transfer_buf with SPI_IOC_MAGIC, SPI_IOC_NR_TRANSFER; spi_ioc_transfer);</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // doctest workaround</span>
+<span class='doccomment'>//! fn main() {}</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Spidev uses the `_IOC` macros that are encouraged (as far as</span>
+<span class='doccomment'>//! `ioctl` can be encouraged at all) for newer drivers.  Many</span>
+<span class='doccomment'>//! drivers, however, just use magic numbers with no attached</span>
+<span class='doccomment'>//! semantics.  For those, the `ioctl!(bad ...)` variant should be</span>
+<span class='doccomment'>//! used (the &quot;bad&quot; terminology is from the Linux kernel).</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! How do I get the magic numbers?</span>
 <span class='doccomment'>//! ===============================</span>
@@ -208,28 +284,6 @@
 <span class='doccomment'>//! Most `ioctl`s have no or little documentation. You&#39;ll need to scrounge through</span>
 <span class='doccomment'>//! the source to figure out what they do and how they should be used.</span>
 <span class='doccomment'>//!</span>
-<span class='doccomment'>//! # Interface Overview</span>
-<span class='doccomment'>//!</span>
-<span class='doccomment'>//! This ioctl module seeks to tame the ioctl beast by providing a set of safer (although not safe)</span>
-<span class='doccomment'>//! functions implementing the most common ioctl access patterns.</span>
-<span class='doccomment'>//!</span>
-<span class='doccomment'>//! The most common access patterns for ioctls are as follows:</span>
-<span class='doccomment'>//!</span>
-<span class='doccomment'>//! 1. `read`: A pointer is provided to the kernel which is populated</span>
-<span class='doccomment'>//!    with a value containing the &quot;result&quot; of the operation.  The</span>
-<span class='doccomment'>//!    result may be an integer or structure.  The kernel may also</span>
-<span class='doccomment'>//!    read values from the provided pointer (usually a structure).</span>
-<span class='doccomment'>//! 2. `write`: A pointer is provided to the kernel containing values</span>
-<span class='doccomment'>//!    that the kernel will read in order to perform the operation.</span>
-<span class='doccomment'>//! 3. `execute`: The operation is passed to the kernel but no</span>
-<span class='doccomment'>//!    additional pointer is passed.  The operation is enough</span>
-<span class='doccomment'>//!    and it either succeeds or results in an error.</span>
-<span class='doccomment'>//!</span>
-<span class='doccomment'>//! Where appropriate, versions of these interface function are provided</span>
-<span class='doccomment'>//! taking either refernces or pointers.  The pointer versions are</span>
-<span class='doccomment'>//! necessary for cases (notably slices) where a reference cannot</span>
-<span class='doccomment'>//! be generically cast to a pointer.</span>
-
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;android&quot;</span>))]</span>
 <span class='attribute'>#[<span class='ident'>path</span> <span class='op'>=</span> <span class='string'>&quot;platform/linux.rs&quot;</span>]</span>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>

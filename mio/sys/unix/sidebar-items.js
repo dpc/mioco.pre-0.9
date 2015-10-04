@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Socket",""]]});
+initSidebarItems({"struct":[["Io",""],["Selector",""]],"trait":[["Socket",""]]});

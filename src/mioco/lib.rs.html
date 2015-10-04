@@ -2254,6 +2254,84 @@
 <span id="2212">2212</span>
 <span id="2213">2213</span>
 <span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2352,6 +2430,9 @@ fn main() {
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>fnbox</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>warn</span>(<span class='ident'>missing_docs</span>)]</span>
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>env_logger</span>;
+
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>spin</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>mio</span> <span class='kw'>as</span> <span class='ident'>mio_orig</span>;
@@ -2362,7 +2443,6 @@ fn main() {
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>bit_vec</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>time</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>num_cpus</span>;
-
 
 <span class='doccomment'>/// Re-export of all `mio` symbols.</span>
 <span class='doccomment'>///</span>
@@ -2464,6 +2544,8 @@ fn main() {
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>ExitStatus</span> {
     <span class='doccomment'>/// Coroutine panicked</span>
     <span class='ident'>Panic</span>,
+    <span class='doccomment'>/// Killed externally</span>
+    <span class='ident'>Killed</span>,
     <span class='doccomment'>/// Coroutine returned some value</span>
     <span class='ident'>Exit</span>(<span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span>)
 }
@@ -2772,26 +2854,23 @@ fn main() {
     <span class='ident'>Token</span>((<span class='ident'>co_id</span>.<span class='ident'>as_usize</span>() <span class='op'>&lt;&lt;</span> <span class='ident'>EVENT_SOURCE_TOKEN_SHIFT</span>) <span class='op'>|</span> <span class='ident'>io_id</span>.<span class='ident'>as_usize</span>())
 }
 
-<span class='doccomment'>/// Coroutine control block</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// Through this interface Coroutine can be resumed and migrated.</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>CoroutineControl</span> {
+<span class='doccomment'>/// Event delivery point, kept in Handler slab.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
+<span class='kw'>struct</span> <span class='ident'>CoroutineSlabHandle</span> {
     <span class='ident'>rc</span> : <span class='ident'>RcCoroutine</span>,
 }
 
-<span class='kw'>impl</span> <span class='ident'>CoroutineControl</span> {
+<span class='kw'>impl</span> <span class='ident'>CoroutineSlabHandle</span> {
     <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>rc</span> : <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='ident'>CoroutineControl</span> {
-            <span class='ident'>rc</span>: <span class='ident'>rc</span>
+        <span class='ident'>CoroutineSlabHandle</span> {
+            <span class='ident'>rc</span>: <span class='ident'>rc</span>,
         }
     }
 
-    <span class='doccomment'>/// Private Clone to prevent any references after `migrate()`.</span>
-    <span class='kw'>fn</span> <span class='ident'>clone_priv</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='ident'>CoroutineControl</span> {
-            <span class='ident'>rc</span>: <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>clone</span>(),
-        }
+    <span class='kw'>fn</span> <span class='ident'>to_coroutine_control</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>CoroutineControl</span> {
+        <span class='ident'>CoroutineControl</span>::<span class='ident'>new</span>(<span class='self'>self</span>.<span class='ident'>rc</span>)
     }
+
     <span class='doccomment'>/// Deliver an event to a Coroutine</span>
     <span class='kw'>fn</span> <span class='ident'>event</span>(
         <span class='kw-2'>&amp;</span><span class='self'>self</span>,
@@ -2885,25 +2964,6 @@ fn main() {
         }
     }
 
-    <span class='doccomment'>/// Resume Coroutine</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Panics if Coroutine is not in Ready state.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>resume</span>(
-        <span class='kw-2'>&amp;</span><span class='self'>self</span>,
-        <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
-        <span class='ident'>scheduler</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> (<span class='ident'>SchedulerThread</span><span class='op'>+</span><span class='lifetime'>&#39;static</span>),
-        ) {
-        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): resume&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>());
-        <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow</span>().<span class='ident'>shared</span>.<span class='ident'>clone</span>();
-        <span class='kw'>let</span> <span class='ident'>is_ready</span> <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span>.<span class='ident'>is_ready</span>();
-        <span class='kw'>if</span> <span class='ident'>is_ready</span> {
-            <span class='ident'>coroutine_jump_in</span>(<span class='kw-2'>&amp;</span><span class='ident'>shared</span>);
-            <span class='self'>self</span>.<span class='ident'>after_resume</span>(<span class='ident'>event_loop</span>, <span class='ident'>scheduler</span>);
-        } <span class='kw'>else</span> {
-            <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Tried to resume Coroutine that is not ready&quot;</span>);
-        }
-    }
-
     <span class='kw'>fn</span> <span class='ident'>id</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>CoroutineId</span> {
         <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow</span>();
         <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>();
@@ -2926,11 +2986,78 @@ fn main() {
 
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): {} children spawned&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>(), <span class='ident'>children</span>.<span class='ident'>len</span>());
         <span class='kw'>for</span> <span class='ident'>coroutine</span> <span class='kw'>in</span> <span class='ident'>children</span>.<span class='ident'>drain</span>(..) {
-            <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span> { <span class='ident'>rc</span>: <span class='ident'>coroutine</span> };
+            <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>::<span class='ident'>new</span>(<span class='ident'>coroutine</span>);
             <span class='ident'>scheduler</span>.<span class='ident'>spawned</span>(<span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
         }
 
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>);
+    }
+
+}
+
+
+
+<span class='doccomment'>/// Coroutine control block</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Through this interface Coroutine can be resumed and migrated.</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>CoroutineControl</span> {
+    <span class='doccomment'>/// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop</span>
+    <span class='doccomment'>/// trait will kill the Coroutine</span>
+    <span class='ident'>handled</span> : <span class='ident'>bool</span>,
+    <span class='ident'>rc</span> : <span class='ident'>RcCoroutine</span>,
+}
+
+<span class='kw'>impl</span> <span class='ident'>Drop</span> <span class='kw'>for</span> <span class='ident'>CoroutineControl</span> {
+    <span class='kw'>fn</span> <span class='ident'>drop</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
+        <span class='kw'>if</span> <span class='op'>!</span><span class='self'>self</span>.<span class='ident'>handled</span> {
+            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): kill&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>());
+            <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> {
+                <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>shared</span>;
+                <span class='ident'>shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>);
+                <span class='ident'>shared</span>.<span class='ident'>clone</span>()
+            };
+            <span class='ident'>coroutine_jump_in</span>(<span class='kw-2'>&amp;</span><span class='ident'>shared</span>);
+        }
+    }
+}
+
+<span class='kw'>impl</span> <span class='ident'>CoroutineControl</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>rc</span> : <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+        <span class='ident'>CoroutineControl</span> {
+            <span class='ident'>handled</span>: <span class='boolval'>false</span>,
+            <span class='ident'>rc</span>: <span class='ident'>rc</span>,
+        }
+    }
+
+    <span class='comment'>// TODO: Eliminate this needles clone()</span>
+    <span class='kw'>fn</span> <span class='ident'>to_slab_handle</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>CoroutineSlabHandle</span> {
+        <span class='ident'>CoroutineSlabHandle</span>::<span class='ident'>new</span>(<span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>clone</span>())
+    }
+
+    <span class='doccomment'>/// Resume Coroutine</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Panics if Coroutine is not in Ready state.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>resume</span>(
+        <span class='kw-2'>mut</span> <span class='self'>self</span>,
+        <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+        <span class='ident'>scheduler</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> (<span class='ident'>SchedulerThread</span><span class='op'>+</span><span class='lifetime'>&#39;static</span>),
+        ) {
+        <span class='self'>self</span>.<span class='ident'>handled</span> <span class='op'>=</span> <span class='boolval'>true</span>;
+        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): resume&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>());
+        <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow</span>().<span class='ident'>shared</span>.<span class='ident'>clone</span>();
+        <span class='kw'>let</span> <span class='ident'>is_ready</span> <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span>.<span class='ident'>is_ready</span>();
+        <span class='kw'>if</span> <span class='ident'>is_ready</span> {
+            <span class='ident'>coroutine_jump_in</span>(<span class='kw-2'>&amp;</span><span class='ident'>shared</span>);
+            <span class='self'>self</span>.<span class='ident'>to_slab_handle</span>().<span class='ident'>after_resume</span>(<span class='ident'>event_loop</span>, <span class='ident'>scheduler</span>);
+        } <span class='kw'>else</span> {
+            <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Tried to resume Coroutine that is not ready&quot;</span>);
+        }
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>id</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>CoroutineId</span> {
+        <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow</span>();
+        <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>();
+        <span class='ident'>shared</span>.<span class='ident'>id</span>
     }
 
     <span class='doccomment'>/// Migrate to a different thread</span>
@@ -2940,10 +3067,11 @@ fn main() {
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Will panic if `thread_id` is not valid.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>migrate</span>(
-        <span class='self'>self</span>,
+        <span class='kw-2'>mut</span> <span class='self'>self</span>,
         <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
         <span class='ident'>thread_id</span> : <span class='ident'>usize</span>,
         ) {
+        <span class='self'>self</span>.<span class='ident'>handled</span> <span class='op'>=</span> <span class='boolval'>true</span>;
         <span class='kw'>let</span> <span class='ident'>sender</span> <span class='op'>=</span> {
             <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): migrate to thread {}&quot;</span>, <span class='self'>self</span>.<span class='ident'>id</span>().<span class='ident'>as_usize</span>(), <span class='ident'>thread_id</span>);
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>();
@@ -2962,7 +3090,7 @@ fn main() {
         };
 
         <span class='comment'>// TODO: Spin on failure</span>
-        <span class='ident'>sender_retry</span>(<span class='kw-2'>&amp;</span><span class='ident'>sender</span>, <span class='ident'>Migration</span>(<span class='self'>self</span>.<span class='ident'>rc</span>));
+        <span class='ident'>sender_retry</span>(<span class='kw-2'>&amp;</span><span class='ident'>sender</span>, <span class='ident'>Migration</span>(<span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>clone</span>()));
     }
 
 
@@ -2984,7 +3112,7 @@ fn main() {
 
             <span class='ident'>co_shared</span>.<span class='ident'>handler_shared</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>handler_shared</span>);
 
-            <span class='self'>self</span>.<span class='ident'>clone_priv</span>()
+            <span class='ident'>CoroutineSlabHandle</span>::<span class='ident'>new</span>(<span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>clone</span>())
         }).<span class='ident'>expect</span>(<span class='string'>&quot;Run out of slab for coroutines&quot;</span>);
     }
 }
@@ -3019,7 +3147,7 @@ fn main() {
                 <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>f</span>)),
             };
 
-            <span class='ident'>CoroutineControl</span>::<span class='ident'>new</span>(<span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>coroutine</span>)))
+            <span class='ident'>CoroutineSlabHandle</span>::<span class='ident'>new</span>(<span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>coroutine</span>)))
         }).<span class='ident'>expect</span>(<span class='string'>&quot;Run out of slab for coroutines&quot;</span>);
         <span class='ident'>handler_shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>coroutines_inc</span>();
 
@@ -3051,6 +3179,10 @@ fn main() {
                             <span class='ident'>timer</span>: <span class='prelude-val'>None</span>,
                         };
 
+                        <span class='kw'>if</span> <span class='kw'>let</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>) <span class='op'>=</span> <span class='ident'>mioco_handle</span>.<span class='ident'>coroutine</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span> {
+                            <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Killed externally&quot;</span>);
+                        }
+
                         <span class='comment'>// TODO: Weird syntax...</span>
                         <span class='ident'>f</span>.<span class='ident'>call_box</span>((<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mioco_handle</span>, ))
                     }
@@ -3081,10 +3213,16 @@ fn main() {
                     },
                     <span class='prelude-val'>Err</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> {
                         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): panicked: {:?}&quot;</span>, <span class='ident'>id</span>.<span class='ident'>as_usize</span>(), <span class='ident'>cause</span>.<span class='ident'>downcast</span>::<span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>str</span><span class='op'>&gt;</span>());
-                        <span class='ident'>co_shared</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>);
-                        <span class='ident'>co_shared</span>.<span class='ident'>exit_notificators</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(
-                            <span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>)
-                            ).<span class='ident'>count</span>();
+                        <span class='kw'>if</span> <span class='kw'>let</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>) <span class='op'>=</span> <span class='ident'>co_shared</span>.<span class='ident'>state</span> {
+                            <span class='ident'>co_shared</span>.<span class='ident'>exit_notificators</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(
+                                <span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>)
+                                ).<span class='ident'>count</span>();
+                        } <span class='kw'>else</span> {
+                            <span class='ident'>co_shared</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>);
+                            <span class='ident'>co_shared</span>.<span class='ident'>exit_notificators</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(
+                                <span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>)
+                                ).<span class='ident'>count</span>();
+                        }
                     }
                 }
 
@@ -3204,10 +3342,16 @@ fn main() {
 
 <span class='doccomment'>/// Resume coroutine execution, jumping into it</span>
 <span class='kw'>fn</span> <span class='ident'>coroutine_jump_in</span>(<span class='ident'>coroutine_shared</span> : <span class='kw-2'>&amp;</span><span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='ident'>CoroutineShared</span><span class='op'>&gt;</span>) {
-    <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>coroutine_shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span>.<span class='ident'>is_ready</span>() {
-        <span class='kw'>return</span>
+    {
+        <span class='kw'>let</span> <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>coroutine_shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span>;
+        <span class='kw'>match</span> <span class='op'>*</span><span class='ident'>state</span> {
+            <span class='ident'>State</span>::<span class='ident'>Ready</span> <span class='op'>=&gt;</span> {
+                <span class='op'>*</span><span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Running</span>;
+            },
+            <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>) <span class='op'>=&gt;</span> {} ,
+            <span class='kw-2'>ref</span> <span class='ident'>state</span> <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;coroutine_jump_in: wrong state {:?}&quot;</span>, <span class='ident'>state</span>),
+        }
     }
-    <span class='ident'>coroutine_shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Running</span>;
 
     <span class='comment'>// We know that we&#39;re holding at least one Rc to the Coroutine,</span>
     <span class='comment'>// and noone else is holding a reference as we can do `.borrow_mut()`</span>
@@ -3375,6 +3519,9 @@ fn main() {
         {
             <span class='kw'>let</span> <span class='ident'>inn</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>inn</span>.<span class='ident'>borrow_mut</span>();
             <span class='kw'>let</span> <span class='ident'>co_shared</span> <span class='op'>=</span> <span class='ident'>inn</span>.<span class='ident'>coroutine_shared</span>.<span class='ident'>borrow_mut</span>();
+            <span class='kw'>if</span> <span class='kw'>let</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>) <span class='op'>=</span> <span class='ident'>co_shared</span>.<span class='ident'>state</span> {
+                <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Killed externally&quot;</span>)
+            }
             <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): resumed due to event {:?}&quot;</span>, <span class='ident'>co_shared</span>.<span class='ident'>id</span>.<span class='ident'>as_usize</span>(), <span class='ident'>co_shared</span>.<span class='ident'>last_event</span>);
             <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>rw</span>.<span class='ident'>has_read</span>() <span class='op'>||</span> <span class='ident'>co_shared</span>.<span class='ident'>last_event</span>.<span class='ident'>has_write</span>());
             <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>rw</span>.<span class='ident'>has_write</span>() <span class='op'>||</span> <span class='ident'>co_shared</span>.<span class='ident'>last_event</span>.<span class='ident'>has_read</span>());
@@ -3693,6 +3840,9 @@ fn main() {
         <span class='ident'>shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>BlockedOn</span>(<span class='ident'>rw</span>);
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): blocked on {:?}&quot;</span>, <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>id</span>.<span class='ident'>as_usize</span>(), <span class='ident'>rw</span>);
         <span class='ident'>coroutine_jump_out</span>(<span class='kw-2'>&amp;</span><span class='ident'>shared</span>);
+        <span class='kw'>if</span> <span class='kw'>let</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>) <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span> {
+            <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Killed externally&quot;</span>)
+        }
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Coroutine({}): resumed due to event {:?}&quot;</span>, <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>id</span>.<span class='ident'>as_usize</span>(), <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>);
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span>.<span class='ident'>is_running</span>());
         <span class='kw'>let</span> <span class='ident'>e</span> <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>last_event</span>;
@@ -3856,7 +4006,7 @@ fn main() {
 <span class='kw'>struct</span> <span class='ident'>HandlerShared</span> {
     <span class='doccomment'>/// Slab allocator</span>
     <span class='doccomment'>/// TODO: dynamically growing slab would be better; or a fast hashmap?</span>
-    <span class='ident'>coroutines</span> : <span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>CoroutineControl</span><span class='op'>&gt;</span>,
+    <span class='ident'>coroutines</span> : <span class='ident'>Slab</span><span class='op'>&lt;</span><span class='ident'>CoroutineSlabHandle</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Context saved when jumping into coroutine</span>
     <span class='ident'>context</span> : <span class='ident'>Context</span>,
@@ -3928,6 +4078,9 @@ fn main() {
     <span class='doccomment'>/// `CoroutineControl::resume()`), save it to be started later, or</span>
     <span class='doccomment'>/// migrate it to different thread immediately (see</span>
     <span class='doccomment'>/// `CoroutineControl::migrate()`).</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Dropping `coroutine_ctrl` means the corresponding coroutine will be</span>
+    <span class='doccomment'>/// killed.</span>
     <span class='kw'>fn</span> <span class='ident'>spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>);
 
     <span class='doccomment'>/// A Coroutine became ready.</span>
@@ -3935,6 +4088,9 @@ fn main() {
     <span class='doccomment'>/// `coroutine_ctrl` is a control reference to the Coroutine that became</span>
     <span class='doccomment'>/// ready (to be resumed). It can be resumed immediately, or stored</span>
     <span class='doccomment'>/// somewhere to be resumed later.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Dropping `coroutine_ctrl` means the corresponding coroutine will be</span>
+    <span class='doccomment'>/// killed.</span>
     <span class='kw'>fn</span> <span class='ident'>ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>);
 
     <span class='doccomment'>/// Mio&#39;s tick have completed.</span>
@@ -4055,7 +4211,7 @@ fn main() {
         <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> {
             <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>();
             <span class='kw'>match</span> <span class='ident'>shared</span>.<span class='ident'>coroutines</span>.<span class='ident'>get</span>(<span class='ident'>Token</span>(<span class='ident'>co_id</span>.<span class='ident'>as_usize</span>())).<span class='ident'>as_ref</span>() {
-                <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='ident'>co</span>) <span class='op'>=&gt;</span> <span class='ident'>co</span>.<span class='ident'>clone_priv</span>(),
+                <span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='ident'>co</span>) <span class='op'>=&gt;</span> <span class='ident'>co</span>.<span class='ident'>clone</span>(),
                 <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> {
                     <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Handler::ready() ignored&quot;</span>);
                     <span class='kw'>return</span>
@@ -4063,7 +4219,7 @@ fn main() {
             }
         };
         <span class='kw'>if</span> <span class='ident'>co</span>.<span class='ident'>event</span>(<span class='ident'>event_loop</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='self'>self</span>.<span class='ident'>scheduler</span>, <span class='ident'>token</span>, <span class='ident'>events</span>) {
-            <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>co</span>);
+            <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>co</span>.<span class='ident'>to_coroutine_control</span>());
         }
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Handler::ready({:?}): finished&quot;</span>, <span class='ident'>token</span>);
     }
@@ -4072,7 +4228,7 @@ fn main() {
         <span class='kw'>match</span> <span class='ident'>msg</span> {
             <span class='ident'>MailboxMsg</span>(<span class='ident'>token</span>) <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>()),
             <span class='ident'>Migration</span>(<span class='ident'>coroutine</span>) <span class='op'>=&gt;</span> {
-                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span> { <span class='ident'>rc</span>: <span class='ident'>coroutine</span> };
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>::<span class='ident'>new</span>(<span class='ident'>coroutine</span>);
                 <span class='ident'>co</span>.<span class='ident'>reattach_to</span>(<span class='self'>self</span>);
                 <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>co</span>);
             },
@@ -4161,7 +4317,7 @@ fn main() {
             <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>handler_shared</span>));
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>f</span>) <span class='op'>=</span> <span class='ident'>f</span> {
                 <span class='kw'>let</span> <span class='ident'>coroutine_rc</span> <span class='op'>=</span> <span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>(), <span class='ident'>f</span>);
-                <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>{ <span class='ident'>rc</span>: <span class='ident'>coroutine_rc</span> };
+                <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='ident'>CoroutineControl</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_rc</span>);
                 <span class='ident'>scheduler</span>.<span class='ident'>spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>, <span class='ident'>coroutine_ctrl</span>);
                 <span class='comment'>// Mark started only after first coroutine is spawned so that</span>
                 <span class='comment'>// threads don&#39;t start, detect no coroutines, and exit prematurely</span>

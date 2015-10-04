@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.0/src/fcntl.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.1/src/fcntl.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>fcntl.rs.html -- source</title>
@@ -334,6 +334,44 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Error</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>NixPath</span>};
 <span class='kw'>use</span> <span class='ident'>errno</span>::<span class='ident'>Errno</span>;
@@ -387,7 +425,7 @@
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SEAL_WRITE</span>:    <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>8</span>;
     }
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
     <span class='kw'>mod</span> <span class='ident'>os</span> {
         <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_short</span>, <span class='ident'>off_t</span>, <span class='ident'>pid_t</span>};
 
@@ -405,7 +443,10 @@
         }
 
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_DUPFD</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0</span>;
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>))]</span>
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_DUPFD_CLOEXEC</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>67</span>;
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)]</span>
+        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_DUPFD_CLOEXEC</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>17</span>;
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_GETFD</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>1</span>;
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_SETFD</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>2</span>;
         <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_GETFL</span>:         <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>3</span>;
@@ -620,6 +661,41 @@
             <span class='kw'>const</span> <span class='ident'>O_DIRECT</span>    <span class='op'>=</span> <span class='number'>0x0010000</span>,
             <span class='kw'>const</span> <span class='ident'>O_EXEC</span>      <span class='op'>=</span> <span class='number'>0x0040000</span>,
             <span class='kw'>const</span> <span class='ident'>O_TTY_INIT</span>  <span class='op'>=</span> <span class='number'>0x0080000</span>
+        }
+    );
+
+    <span class='macro'>bitflags</span><span class='macro'>!</span>(
+        <span class='ident'>flags</span> <span class='ident'>FdFlag</span>: <span class='ident'>c_int</span> {
+            <span class='kw'>const</span> <span class='ident'>FD_CLOEXEC</span> <span class='op'>=</span> <span class='number'>1</span>
+        }
+    );
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)]</span>
+<span class='kw'>mod</span> <span class='ident'>consts</span> {
+    <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
+
+    <span class='macro'>bitflags</span><span class='macro'>!</span>(
+        <span class='ident'>flags</span> <span class='ident'>OFlag</span>: <span class='ident'>c_int</span> {
+            <span class='kw'>const</span> <span class='ident'>O_ACCMODE</span>   <span class='op'>=</span> <span class='number'>0x0000003</span>,
+            <span class='kw'>const</span> <span class='ident'>O_RDONLY</span>    <span class='op'>=</span> <span class='number'>0x0000000</span>,
+            <span class='kw'>const</span> <span class='ident'>O_WRONLY</span>    <span class='op'>=</span> <span class='number'>0x0000001</span>,
+            <span class='kw'>const</span> <span class='ident'>O_RDWR</span>      <span class='op'>=</span> <span class='number'>0x0000002</span>,
+            <span class='kw'>const</span> <span class='ident'>O_CREAT</span>     <span class='op'>=</span> <span class='number'>0x0000200</span>,
+            <span class='kw'>const</span> <span class='ident'>O_EXCL</span>      <span class='op'>=</span> <span class='number'>0x0000800</span>,
+            <span class='kw'>const</span> <span class='ident'>O_NOCTTY</span>    <span class='op'>=</span> <span class='number'>0x0008000</span>,
+            <span class='kw'>const</span> <span class='ident'>O_TRUNC</span>     <span class='op'>=</span> <span class='number'>0x0000400</span>,
+            <span class='kw'>const</span> <span class='ident'>O_APPEND</span>    <span class='op'>=</span> <span class='number'>0x0000008</span>,
+            <span class='kw'>const</span> <span class='ident'>O_NONBLOCK</span>  <span class='op'>=</span> <span class='number'>0x0000004</span>,
+            <span class='kw'>const</span> <span class='ident'>O_DIRECTORY</span> <span class='op'>=</span> <span class='number'>0x8000000</span>, <span class='comment'>// different from FreeBSD!</span>
+            <span class='kw'>const</span> <span class='ident'>O_NOFOLLOW</span>  <span class='op'>=</span> <span class='number'>0x0000100</span>,
+            <span class='kw'>const</span> <span class='ident'>O_CLOEXEC</span>   <span class='op'>=</span> <span class='number'>0x0020000</span>, <span class='comment'>// different from FreeBSD!</span>
+            <span class='kw'>const</span> <span class='ident'>O_SYNC</span>      <span class='op'>=</span> <span class='number'>0x0000080</span>,
+            <span class='kw'>const</span> <span class='ident'>O_NDELAY</span>    <span class='op'>=</span> <span class='ident'>O_NONBLOCK</span>.<span class='ident'>bits</span>,
+            <span class='kw'>const</span> <span class='ident'>O_FSYNC</span>     <span class='op'>=</span> <span class='ident'>O_SYNC</span>.<span class='ident'>bits</span>,
+            <span class='kw'>const</span> <span class='ident'>O_SHLOCK</span>    <span class='op'>=</span> <span class='number'>0x0000010</span>, <span class='comment'>// different from FreeBSD!</span>
+            <span class='kw'>const</span> <span class='ident'>O_EXLOCK</span>    <span class='op'>=</span> <span class='number'>0x0000020</span>,
+            <span class='kw'>const</span> <span class='ident'>O_DIRECT</span>    <span class='op'>=</span> <span class='number'>0x0010000</span>,
         }
     );
 

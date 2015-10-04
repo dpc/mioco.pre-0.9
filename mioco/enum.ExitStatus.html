@@ -45,13 +45,15 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-614' class='srclink' href='../src/mioco/lib.rs.html#207-212' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-116' class='srclink' href='../src/mioco/lib.rs.html#209-216' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum ExitStatus {
     Panic,
+    Killed,
     Exit(<a class='struct' href='https://doc.rust-lang.org/nightly/alloc/arc/struct.Arc.html' title='alloc::arc::Arc'>Arc</a>&lt;<a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;&gt;),
 }</pre><div class='docblock'><p>Coroutine exit status (value returned or panic)</p>
 </div><h2 class='variants'>Variants</h2>
 <table><tr><td id='variant.Panic'><code>Panic</code></td><td><div class='docblock'><p>Coroutine panicked</p>
+</div></td></tr><tr><td id='variant.Killed'><code>Killed</code></td><td><div class='docblock'><p>Killed externally</p>
 </div></td></tr><tr><td id='variant.Exit'><code>Exit</code></td><td><div class='docblock'><p>Coroutine returned some value</p>
 </div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='enum' href='../mioco/enum.ExitStatus.html' title='mioco::ExitStatus'>ExitStatus</a></code></h3><div class='impl-items'><h4 id='method.is_panic' class='method'><code>fn <a href='#method.is_panic' class='fnname'>is_panic</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is the <code>ExitStatus</code> a <code>Panic</code>?</p>
