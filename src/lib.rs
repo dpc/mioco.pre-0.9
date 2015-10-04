@@ -3,21 +3,27 @@
 
 //! # Mioco
 //!
-//! Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines).
+//! Scalable, coroutine-based, asynchronous IO handling library for Rust
+//! programming language.
 //!
-//! Using `mioco` you can handle scalable, asynchronous [`mio`][mio]-based IO, using set of synchronous-IO
-//! handling functions. Based on asynchronous [`mio`][mio] events `mioco` will cooperatively schedule your
-//! handlers.
+//! Using `mioco` you can handle asynchronous [`mio`][mio]-based IO, using
+//! set of synchronous-IO handling functions. Based on [`mio`][mio] events
+//! `mioco` will cooperatively schedule your handlers.
 //!
 //! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.
+//!
+//! `Mioco` is a library building on top of [`mio`][mio]. Mio API is
+//! re-exported as [`mioco::mio`][mio-api].
 //!
 //! # <a name="features"></a> Features:
 //!
 //! ```norust
-//! * all `mio` types can be used (see `MiocoHandle::wrap()`);
+//! * multithreading support; (see `Config::set_thread_num()`)
+//! * user-provided scheduling; (see `Config::set_scheduler()`);
+//! * support for all native `mio` types (see `MiocoHandle::wrap()`);
 //! * timers (see `MiocoHandle::timer()`);
 //! * mailboxes (see `mailbox()`);
-//! * coroutine exit notification (see `CoroutineHandle`).
+//! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
 //! ```
 //!
 //! # <a name="example"/></a> Example:
@@ -31,6 +37,7 @@
 */
 //! [green threads]: https://en.wikipedia.org/wiki/Green_threads
 //! [mio]: https://github.com/carllerche/mio
+//! [mio-api]: ../mio/index.html
 
 #![cfg_attr(test, feature(convert))]
 #![feature(reflect_marker)]
@@ -147,7 +154,7 @@ impl Event {
     }
 }
 
-/// Value returned by coroutine or panic
+/// Coroutine exit status (value returned or panic)
 #[derive(Clone, Debug)]
 pub enum ExitStatus {
     /// Coroutine panicked
@@ -615,7 +622,7 @@ impl CoroutineControl {
         trace!("Coroutine({}): {} children spawned", self.id().as_usize(), children.len());
         for coroutine in children.drain(..) {
             let coroutine_ctrl = CoroutineControl { rc: coroutine };
-            scheduler.new(event_loop, coroutine_ctrl);
+            scheduler.spawned(event_loop, coroutine_ctrl);
         }
 
         self.rc.borrow_mut().reregister(event_loop);
@@ -1610,23 +1617,27 @@ pub trait Scheduler {
 
 /// Per-thread Scheduler
 pub trait SchedulerThread : Send {
-    /// A Coroutine was spawned.
+    /// New coroutine was spawned.
     ///
-    /// New Coroutine was spawned. This can be used to run it immediately
-    /// (or not), or migrate it to different thread immediately.
-    fn new(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
+    /// This can be used to run it immediately (see
+    /// `CoroutineControl::resume()`), save it to be started later, or
+    /// migrate it to different thread immediately (see
+    /// `CoroutineControl::migrate()`).
+    fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
 
     /// A Coroutine became ready.
     ///
-    /// `coroutines_num` is a control reference to the Coroutine that became
+    /// `coroutine_ctrl` is a control reference to the Coroutine that became
     /// ready (to be resumed). It can be resumed immediately, or stored
     /// somewhere to be resumed later.
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
 
-    /// A mio's tick have complete.
+    /// Mio's tick have completed.
     ///
-    /// This means all pending events have been processed and all Coroutines blocked on them
-    /// already signaled with `Scheduler::ready()`.
+    /// Mio signals events in batches, after which a `tick` is signaled.
+    ///
+    /// All events events have been processed and all unblocked coroutines
+    /// signaled with `SchedulerThread::ready()`.
     ///
     /// After returning from this function, `mioco` will let mio process a
     /// new batch of events.
@@ -1679,7 +1690,7 @@ impl FifoSchedulerThread {
 }
 
 impl SchedulerThread for FifoSchedulerThread {
-    fn new(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+    fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
         let thread_i = self.thread_next_i();
         trace!("Migrating newly spawn Coroutine to thread {}", thread_i);
         coroutine_ctrl.migrate(event_loop, thread_i);
@@ -1846,7 +1857,7 @@ impl Mioco {
             if let Some(f) = f {
                 let coroutine_rc = Coroutine::spawn(shared.clone(), f);
                 let coroutine_ctrl = CoroutineControl{ rc: coroutine_rc };
-                scheduler.new(&mut event_loop, coroutine_ctrl);
+                scheduler.spawned(&mut event_loop, coroutine_ctrl);
                 // Mark started only after first coroutine is spawned so that
                 // threads don't start, detect no coroutines, and exit prematurely
                 shared.borrow().signal_start_all();
@@ -2074,7 +2085,8 @@ pub fn start<F>(f : F)
     Mioco::new().start(f);
 }
 
-/// Shorthand for creating new `Mioco` instance and starting it right away.
+/// Shorthand for creating new `Mioco` instance with a fixed number of
+/// threads and starting it right away.
 pub fn start_threads<F>(thread_num : usize, f : F)
     where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
           F : Send
@@ -2109,7 +2121,7 @@ impl Config {
 
     /// Set numer of threads to run mioco with
     ///
-    /// Default is numer of CPUs in the system.
+    /// Default is equal to a numer of CPUs in the system.
     pub fn set_thread_num(&mut self, thread_num : usize) -> &mut Self {
         self.thread_num = thread_num;
         self
@@ -2119,7 +2131,11 @@ impl Config {
     ///
     /// See `Scheduler` trait.
     ///
-    /// Default is `FifoScheduler`.
+    /// Default is a simple FIFO-scheduler that spreads all the new
+    /// coroutines between all threads in round-robin fashion, and runs them
+    /// in FIFO manner.
+    ///
+    /// See private `FifoSchedule` source for details.
     pub fn set_scheduler(&mut self, scheduler : Box<Scheduler + 'static>) -> &mut Self {
         self.scheduler = scheduler;
         self

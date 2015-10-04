@@ -17,7 +17,7 @@
 
 ## Introduction
 
-Scalable, asynchronous IO handling using coroutines (aka MIO COroutines).
+Scalable, coroutine-based, asynchronous IO handling library for Rust programming language.
 
 Using `mioco` you can handle [`mio`][mio]-based IO, using set of synchronous-IO
 handling functions. Based on asynchronous [`mio`][mio] events `mioco` will
