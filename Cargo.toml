@@ -23,7 +23,6 @@ path = "src/lib.rs"
 [dependencies]
 nix = "*"
 log = "*"
-env_logger = "*"
 spin = "*"
 time = "*"
 mio = "0.4.*"
@@ -35,3 +34,6 @@ bit-vec = { git = "https://github.com/contain-rs/bit-vec.git" }
 
 # Until: https://github.com/zonyitoo/context-rs/issues/6
 context = { git = "https://github.com/dpc/context-rs.git" }
+
+[dev-dependencies]
+env_logger = "*"

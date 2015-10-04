@@ -1,12 +1,10 @@
-use super::{start_threads, Config, Mioco};
+use super::*;
 
 use std;
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
 use time::{SteadyTime, Duration};
-
-use mio;
 
 const THREADS_N : [usize; 4] = [1, 2, 5, 21];
 
@@ -475,3 +473,86 @@ fn tiny_stacks() {
     }
 }
 
+#[test]
+fn scheduler_kill_on_initial_drop() {
+    struct TestScheduler;
+    struct TestSchedulerThread;
+
+    impl Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+            Box::new(TestSchedulerThread)
+        }
+    }
+
+    impl SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+            // drop
+        }
+
+        fn ready(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+            // drop
+        }
+    }
+
+    let mut config = Config::new();
+    config.set_scheduler(Box::new(TestScheduler));
+
+    let mut mioco = Mioco::new_configured(config);
+
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    mioco.start(move |_| {
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+        Ok(())
+    });
+
+    assert!(!*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn scheduler_kill_on_drop() {
+    struct TestScheduler;
+    struct TestSchedulerThread;
+
+    impl Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+            Box::new(TestSchedulerThread)
+        }
+    }
+
+    impl SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+            coroutine_ctrl.resume(event_loop, self);
+        }
+
+        fn ready(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+            // drop
+        }
+    }
+
+    let mut config = Config::new();
+    config.set_scheduler(Box::new(TestScheduler));
+
+    let mut mioco = Mioco::new_configured(config);
+
+    let started_ok = Arc::new(Mutex::new(false));
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let started_copy = started_ok.clone();
+    let finished_copy = finished_ok.clone();
+    mioco.start(move |mioco| {
+        {
+            let mut lock = started_copy.lock().unwrap();
+            *lock = true;
+        }
+        mioco.sleep(1000);
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+        Ok(())
+    });
+
+    assert!(*started_ok.lock().unwrap());
+    assert!(!*finished_ok.lock().unwrap());
+}

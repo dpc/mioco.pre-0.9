@@ -37,7 +37,7 @@
 */
 //! [green threads]: https://en.wikipedia.org/wiki/Green_threads
 //! [mio]: https://github.com/carllerche/mio
-//! [mio-api]: ../mio/index.html
+//! [mio-api]: ./mioco/mio/index.html
 
 #![cfg_attr(test, feature(convert))]
 #![feature(reflect_marker)]
@@ -46,6 +46,9 @@
 #![feature(drain)]
 #![feature(fnbox)]
 #![warn(missing_docs)]
+
+#[cfg(test)]
+extern crate env_logger;
 
 extern crate libc;
 extern crate spin;
@@ -57,7 +60,6 @@ extern crate log;
 extern crate bit_vec;
 extern crate time;
 extern crate num_cpus;
-
 
 /// Re-export of all `mio` symbols.
 ///
@@ -159,6 +161,8 @@ impl Event {
 pub enum ExitStatus {
     /// Coroutine panicked
     Panic,
+    /// Killed externally
+    Killed,
     /// Coroutine returned some value
     Exit(Arc<io::Result<()>>)
 }
@@ -467,26 +471,23 @@ fn token_from_ids(co_id : CoroutineId, io_id : EventSourceId) -> Token {
     Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_SHIFT) | io_id.as_usize())
 }
 
-/// Coroutine control block
-///
-/// Through this interface Coroutine can be resumed and migrated.
-pub struct CoroutineControl {
+/// Event delivery point, kept in Handler slab.
+#[derive(Clone)]
+struct CoroutineSlabHandle {
     rc : RcCoroutine,
 }
 
-impl CoroutineControl {
+impl CoroutineSlabHandle {
     fn new(rc : RcCoroutine) -> Self {
-        CoroutineControl {
-            rc: rc
+        CoroutineSlabHandle {
+            rc: rc,
         }
     }
 
-    /// Private Clone to prevent any references after `migrate()`.
-    fn clone_priv(&self) -> Self {
-        CoroutineControl {
-            rc: self.rc.clone(),
-        }
+    fn to_coroutine_control(self) -> CoroutineControl {
+        CoroutineControl::new(self.rc)
     }
+
     /// Deliver an event to a Coroutine
     fn event(
         &self,
@@ -580,25 +581,6 @@ impl CoroutineControl {
         }
     }
 
-    /// Resume Coroutine
-    ///
-    /// Panics if Coroutine is not in Ready state.
-    pub fn resume(
-        &self,
-        event_loop : &mut EventLoop<Handler>,
-        scheduler : &mut (SchedulerThread+'static),
-        ) {
-        trace!("Coroutine({}): resume", self.id().as_usize());
-        let shared = self.rc.borrow().shared.clone();
-        let is_ready = shared.borrow().state.is_ready();
-        if is_ready {
-            coroutine_jump_in(&shared);
-            self.after_resume(event_loop, scheduler);
-        } else {
-            panic!("Tried to resume Coroutine that is not ready");
-        }
-    }
-
     fn id(&self) -> CoroutineId {
         let coroutine = self.rc.borrow();
         let shared = coroutine.shared.borrow();
@@ -621,11 +603,78 @@ impl CoroutineControl {
 
         trace!("Coroutine({}): {} children spawned", self.id().as_usize(), children.len());
         for coroutine in children.drain(..) {
-            let coroutine_ctrl = CoroutineControl { rc: coroutine };
+            let coroutine_ctrl = CoroutineControl::new(coroutine);
             scheduler.spawned(event_loop, coroutine_ctrl);
         }
 
         self.rc.borrow_mut().reregister(event_loop);
+    }
+
+}
+
+
+
+/// Coroutine control block
+///
+/// Through this interface Coroutine can be resumed and migrated.
+pub struct CoroutineControl {
+    /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
+    /// trait will kill the Coroutine
+    handled : bool,
+    rc : RcCoroutine,
+}
+
+impl Drop for CoroutineControl {
+    fn drop(&mut self) {
+        if !self.handled {
+            trace!("Coroutine({}): kill", self.id().as_usize());
+            let shared = {
+                let shared = &self.rc.borrow_mut().shared;
+                shared.borrow_mut().state = State::Finished(ExitStatus::Killed);
+                shared.clone()
+            };
+            coroutine_jump_in(&shared);
+        }
+    }
+}
+
+impl CoroutineControl {
+    fn new(rc : RcCoroutine) -> Self {
+        CoroutineControl {
+            handled: false,
+            rc: rc,
+        }
+    }
+
+    // TODO: Eliminate this needles clone()
+    fn to_slab_handle(&self) -> CoroutineSlabHandle {
+        CoroutineSlabHandle::new(self.rc.clone())
+    }
+
+    /// Resume Coroutine
+    ///
+    /// Panics if Coroutine is not in Ready state.
+    pub fn resume(
+        mut self,
+        event_loop : &mut EventLoop<Handler>,
+        scheduler : &mut (SchedulerThread+'static),
+        ) {
+        self.handled = true;
+        trace!("Coroutine({}): resume", self.id().as_usize());
+        let shared = self.rc.borrow().shared.clone();
+        let is_ready = shared.borrow().state.is_ready();
+        if is_ready {
+            coroutine_jump_in(&shared);
+            self.to_slab_handle().after_resume(event_loop, scheduler);
+        } else {
+            panic!("Tried to resume Coroutine that is not ready");
+        }
+    }
+
+    fn id(&self) -> CoroutineId {
+        let coroutine = self.rc.borrow();
+        let shared = coroutine.shared.borrow();
+        shared.id
     }
 
     /// Migrate to a different thread
@@ -635,10 +684,11 @@ impl CoroutineControl {
     ///
     /// Will panic if `thread_id` is not valid.
     pub fn migrate(
-        self,
+        mut self,
         event_loop : &mut EventLoop<Handler>,
         thread_id : usize,
         ) {
+        self.handled = true;
         let sender = {
             trace!("Coroutine({}): migrate to thread {}", self.id().as_usize(), thread_id);
             let mut co = self.rc.borrow_mut();
@@ -657,7 +707,7 @@ impl CoroutineControl {
         };
 
         // TODO: Spin on failure
-        sender_retry(&sender, Migration(self.rc));
+        sender_retry(&sender, Migration(self.rc.clone()));
     }
 
 
@@ -679,7 +729,7 @@ impl CoroutineControl {
 
             co_shared.handler_shared = Some(handler_shared);
 
-            self.clone_priv()
+            CoroutineSlabHandle::new(self.rc.clone())
         }).expect("Run out of slab for coroutines");
     }
 }
@@ -714,7 +764,7 @@ impl Coroutine {
                 coroutine_func: Some(Box::new(f)),
             };
 
-            CoroutineControl::new(Rc::new(RefCell::new(coroutine)))
+            CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
         }).expect("Run out of slab for coroutines");
         handler_shared.borrow_mut().coroutines_inc();
 
@@ -746,6 +796,10 @@ impl Coroutine {
                             timer: None,
                         };
 
+                        if let State::Finished(ExitStatus::Killed) = mioco_handle.coroutine.shared.borrow().state {
+                            panic!("Killed externally");
+                        }
+
                         // TODO: Weird syntax...
                         f.call_box((&mut mioco_handle, ))
                     }
@@ -776,10 +830,16 @@ impl Coroutine {
                     },
                     Err(cause) => {
                         trace!("Coroutine({}): panicked: {:?}", id.as_usize(), cause.downcast::<&str>());
-                        co_shared.state = State::Finished(ExitStatus::Panic);
-                        co_shared.exit_notificators.iter().map(
-                            |end| end.send(ExitStatus::Panic)
-                            ).count();
+                        if let State::Finished(ExitStatus::Killed) = co_shared.state {
+                            co_shared.exit_notificators.iter().map(
+                                |end| end.send(ExitStatus::Killed)
+                                ).count();
+                        } else {
+                            co_shared.state = State::Finished(ExitStatus::Panic);
+                            co_shared.exit_notificators.iter().map(
+                                |end| end.send(ExitStatus::Panic)
+                                ).count();
+                        }
                     }
                 }
 
@@ -899,10 +959,16 @@ impl Coroutine {
 
 /// Resume coroutine execution, jumping into it
 fn coroutine_jump_in(coroutine_shared : &RefCell<CoroutineShared>) {
-    if !coroutine_shared.borrow().state.is_ready() {
-        return
+    {
+        let ref mut state = coroutine_shared.borrow_mut().state;
+        match *state {
+            State::Ready => {
+                *state = State::Running;
+            },
+            State::Finished(ExitStatus::Killed) => {} ,
+            ref state => panic!("coroutine_jump_in: wrong state {:?}", state),
+        }
     }
-    coroutine_shared.borrow_mut().state = State::Running;
 
     // We know that we're holding at least one Rc to the Coroutine,
     // and noone else is holding a reference as we can do `.borrow_mut()`
@@ -1070,6 +1136,9 @@ where T : Reflect+'static {
         {
             let inn = self.inn.borrow_mut();
             let co_shared = inn.coroutine_shared.borrow_mut();
+            if let State::Finished(ExitStatus::Killed) = co_shared.state {
+                panic!("Killed externally")
+            }
             trace!("Coroutine({}): resumed due to event {:?}", co_shared.id.as_usize(), co_shared.last_event);
             debug_assert!(rw.has_read() || co_shared.last_event.has_write());
             debug_assert!(rw.has_write() || co_shared.last_event.has_read());
@@ -1388,6 +1457,9 @@ impl<'a> MiocoHandle<'a> {
         shared.borrow_mut().state = State::BlockedOn(rw);
         trace!("Coroutine({}): blocked on {:?}", shared.borrow().id.as_usize(), rw);
         coroutine_jump_out(&shared);
+        if let State::Finished(ExitStatus::Killed) = shared.borrow().state {
+            panic!("Killed externally")
+        }
         trace!("Coroutine({}): resumed due to event {:?}", shared.borrow().id.as_usize(), shared.borrow().last_event);
         debug_assert!(shared.borrow().state.is_running());
         let e = shared.borrow().last_event;
@@ -1551,7 +1623,7 @@ impl HandlerThreadShared {
 struct HandlerShared {
     /// Slab allocator
     /// TODO: dynamically growing slab would be better; or a fast hashmap?
-    coroutines : Slab<CoroutineControl>,
+    coroutines : Slab<CoroutineSlabHandle>,
 
     /// Context saved when jumping into coroutine
     context : Context,
@@ -1623,6 +1695,9 @@ pub trait SchedulerThread : Send {
     /// `CoroutineControl::resume()`), save it to be started later, or
     /// migrate it to different thread immediately (see
     /// `CoroutineControl::migrate()`).
+    ///
+    /// Dropping `coroutine_ctrl` means the corresponding coroutine will be
+    /// killed.
     fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
 
     /// A Coroutine became ready.
@@ -1630,6 +1705,9 @@ pub trait SchedulerThread : Send {
     /// `coroutine_ctrl` is a control reference to the Coroutine that became
     /// ready (to be resumed). It can be resumed immediately, or stored
     /// somewhere to be resumed later.
+    ///
+    /// Dropping `coroutine_ctrl` means the corresponding coroutine will be
+    /// killed.
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl);
 
     /// Mio's tick have completed.
@@ -1750,7 +1828,7 @@ impl mio::Handler for Handler {
         let co = {
             let shared = self.shared.borrow();
             match shared.coroutines.get(Token(co_id.as_usize())).as_ref() {
-                Some(&co) => co.clone_priv(),
+                Some(&co) => co.clone(),
                 None => {
                     trace!("Handler::ready() ignored");
                     return
@@ -1758,7 +1836,7 @@ impl mio::Handler for Handler {
             }
         };
         if co.event(event_loop, &mut *self.scheduler, token, events) {
-            self.scheduler.ready(event_loop, co);
+            self.scheduler.ready(event_loop, co.to_coroutine_control());
         }
         trace!("Handler::ready({:?}): finished", token);
     }
@@ -1767,7 +1845,7 @@ impl mio::Handler for Handler {
         match msg {
             MailboxMsg(token) => self.ready(event_loop, token, EventSet::readable()),
             Migration(coroutine) => {
-                let mut co = CoroutineControl { rc: coroutine };
+                let mut co = CoroutineControl::new(coroutine);
                 co.reattach_to(self);
                 self.scheduler.ready(event_loop, co);
             },
@@ -1856,7 +1934,7 @@ impl Mioco {
             let shared = Rc::new(RefCell::new(handler_shared));
             if let Some(f) = f {
                 let coroutine_rc = Coroutine::spawn(shared.clone(), f);
-                let coroutine_ctrl = CoroutineControl{ rc: coroutine_rc };
+                let coroutine_ctrl = CoroutineControl::new(coroutine_rc);
                 scheduler.spawned(&mut event_loop, coroutine_ctrl);
                 // Mark started only after first coroutine is spawned so that
                 // threads don't start, detect no coroutines, and exit prematurely
