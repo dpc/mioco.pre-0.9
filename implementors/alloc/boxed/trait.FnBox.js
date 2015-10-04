@@ -1,5 +1,5 @@
 (function() {var implementors = {};
-implementors['log'] = [];implementors['regex_syntax'] = [];implementors['mio'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];
+implementors['log'] = [];implementors['regex_syntax'] = [];implementors['mio'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];implementors['mioco'] = [];
 
             if (window.register_implementors) {
                 window.register_implementors(implementors);
