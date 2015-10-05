@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-807' class='srclink' href='../src/mioco/lib.rs.html#1363-1366' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-838' class='srclink' href='../src/mioco/lib.rs.html#1426-1429' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle&lt;'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance handle</p>
@@ -69,6 +69,17 @@ to perform IO.</p>
 when it&#39;s timeout (see <code>set_timer()</code> ) expire.</p>
 </div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, time_ms: <a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
 <div class='docblock'><p>Block coroutine for a given time</p>
+</div><h4 id='method.yield_now' class='method'><code>fn <a href='#method.yield_now' class='fnname'>yield_now</a>(&amp;mut self)</code></h4>
+<div class='docblock'><p>Yield coroutine execution</p>
+
+<p>Coroutine can yield execution without blocking on anything
+particular to allow scheduler to run other coroutines before
+resuming execution of the current one.</p>
+
+<p>For this to be effective, custom scheduler must be implemented.
+See <code>trait Scheduler</code>.</p>
+
+<p>Note: named <code>yield_now</code> as <code>yield</code> is reserved word.</p>
 </div><h4 id='method.select' class='method'><code>fn <a href='#method.select' class='fnname'>select</a>(&amp;mut self) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till an event is ready</p>
 
