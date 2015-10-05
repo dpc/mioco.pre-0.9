@@ -524,7 +524,7 @@ fn scheduler_kill_on_drop() {
 
     impl SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
-            coroutine_ctrl.resume(event_loop, self);
+            coroutine_ctrl.resume(event_loop);
         }
 
         fn ready(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
@@ -559,12 +559,35 @@ fn scheduler_kill_on_drop() {
 
 #[test]
 fn simple_yield() {
+    struct TestScheduler;
+    struct TestSchedulerThread;
+
+    impl Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+            Box::new(TestSchedulerThread)
+        }
+    }
+
+    impl SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+            assert!(!coroutine_ctrl.is_yielding());
+            coroutine_ctrl.resume(event_loop);
+        }
+
+        fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+            assert!(coroutine_ctrl.is_yielding());
+            coroutine_ctrl.resume(event_loop);
+        }
+    }
+
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
+
         let mut config = Config::new();
 
+        config.set_scheduler(Box::new(TestScheduler));
         config.set_thread_num(threads);
 
         let mut mioco = Mioco::new_configured(config);

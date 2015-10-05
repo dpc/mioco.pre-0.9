@@ -518,7 +518,6 @@ impl CoroutineSlabHandle {
     fn event(
         &self,
         event_loop : &mut EventLoop<Handler>,
-        scheduler : &mut (SchedulerThread+'static),
         token : Token,
         events : EventSet,
         ) -> bool {
@@ -603,7 +602,7 @@ impl CoroutineSlabHandle {
         } else if should_reregister {
             trace!("Coroutine({}): event ignored (reregister)", self.id().as_usize());
             // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
-            self.after_resume(event_loop, scheduler);
+            self.after_resume(event_loop);
             false
         } else {
             trace!("Coroutine({}): event ignored (no reregister)", self.id().as_usize());
@@ -621,35 +620,45 @@ impl CoroutineSlabHandle {
     fn after_resume(
         &self,
         event_loop: &mut EventLoop<Handler>,
-        scheduler : &mut (SchedulerThread+'static),
         ) {
         // Take care of newly spawned child-coroutines: start them now
-        let mut children = Vec::new();
-
         debug_assert!(!self.rc.borrow().state().is_running());
 
-        std::mem::swap(&mut children, &mut self.rc.borrow_mut().children_to_start);
+        self.rc.borrow_mut().reregister(event_loop);
 
-        trace!("Coroutine({}): {} children spawned", self.id().as_usize(), children.len());
-        for coroutine in children.drain(..) {
-            let coroutine_ctrl = CoroutineControl::new(coroutine);
-            scheduler.spawned(event_loop, coroutine_ctrl);
+        {
+
+            let Coroutine {
+                ref shared,
+                ref mut children_to_start,
+                ..
+            } = *self.rc.borrow_mut();
+
+            trace!("Coroutine({}): {} children spawned", shared.borrow().id.as_usize(), children_to_start.len());
+
+            let handler_shared = &shared.borrow().handler_shared;
+            let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
+
+            for coroutine in children_to_start.drain(..) {
+                let coroutine_ctrl = CoroutineControl::new(coroutine);
+                handler_shared.spawned.push(coroutine_ctrl);
+            }
         }
 
-        self.rc.borrow_mut().reregister(event_loop);
         let state = self.rc.borrow().state();
         if let State::BlockedOn(rw) = state {
             if rw.has_none() {
-                {
-                    let shared = &self.rc.borrow().shared;
-                    shared.borrow_mut().state = State::Ready;
-                }
-                let coroutine_ctrl = CoroutineControl::new(self.rc.clone());
-                scheduler.ready(event_loop, coroutine_ctrl);
+                let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
+                coroutine_ctrl.set_is_yielding();
+                let shared = &self.rc.borrow().shared;
+                shared.borrow_mut().state = State::Ready;
+                let handler_shared = &shared.borrow().handler_shared;
+                let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
+
+                handler_shared.ready.push(coroutine_ctrl);
             }
         }
     }
-
 }
 
 
@@ -661,6 +670,7 @@ pub struct CoroutineControl {
     /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
     /// trait will kill the Coroutine
     handled : bool,
+    is_yielding : bool,
     rc : RcCoroutine,
 }
 
@@ -681,6 +691,7 @@ impl Drop for CoroutineControl {
 impl CoroutineControl {
     fn new(rc : RcCoroutine) -> Self {
         CoroutineControl {
+            is_yielding: false,
             handled: false,
             rc: rc,
         }
@@ -697,7 +708,6 @@ impl CoroutineControl {
     pub fn resume(
         mut self,
         event_loop : &mut EventLoop<Handler>,
-        scheduler : &mut (SchedulerThread+'static),
         ) {
         self.handled = true;
         trace!("Coroutine({}): resume", self.id().as_usize());
@@ -705,7 +715,7 @@ impl CoroutineControl {
         let is_ready = shared.borrow().state.is_ready();
         if is_ready {
             coroutine_jump_in(&shared);
-            self.to_slab_handle().after_resume(event_loop, scheduler);
+            self.to_slab_handle().after_resume(event_loop);
         } else {
             panic!("Tried to resume Coroutine that is not ready");
         }
@@ -771,6 +781,16 @@ impl CoroutineControl {
 
             CoroutineSlabHandle::new(self.rc.clone())
         }).expect("Run out of slab for coroutines");
+    }
+
+    fn set_is_yielding(&mut self) {
+        self.is_yielding = true
+    }
+
+
+    /// Is this Coroutine ready after `yield_now()`?
+    pub fn is_yielding(&self) -> bool {
+        self.is_yielding
     }
 }
 
@@ -1697,6 +1717,12 @@ struct HandlerShared {
 
     /// Default stack size
     stack_size : usize,
+
+    /// Newly spawned Coroutines
+    spawned : Vec<CoroutineControl>,
+
+    /// Coroutines that were made ready
+    ready : Vec<CoroutineControl>,
 }
 
 impl HandlerShared {
@@ -1706,7 +1732,9 @@ impl HandlerShared {
             thread_shared: thread_shared,
             context: Context::empty(),
             senders: senders,
-            stack_size : stack_size,
+            stack_size: stack_size,
+            spawned: Vec::new(),
+            ready: Vec::new(),
         }
     }
 
@@ -1836,7 +1864,7 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
-        coroutine_ctrl.resume(event_loop, self);
+        coroutine_ctrl.resume(event_loop);
     }
 
     fn tick(&mut self, _: &mut mio::EventLoop<Handler>) {}
@@ -1856,6 +1884,37 @@ impl Handler {
         Handler {
             shared: shared,
             scheduler: scheduler,
+        }
+    }
+
+    /// To prevent recursion, all the newly spawned or newly made
+    /// ready Coroutines are delivered to scheduler here.
+    fn deliver_to_scheduler(&mut self, event_loop : &mut EventLoop<Self>) {
+        let Handler {
+            ref shared,
+            ref mut scheduler,
+        } = *self;
+
+        loop {
+            let mut spawned = Vec::new();
+            let mut ready = Vec::new();
+            {
+                let mut shared = shared.borrow_mut();
+
+                if shared.spawned.len() == 0 && shared.ready.len() == 0 {
+                    break;
+                }
+                std::mem::swap(&mut spawned, &mut shared.spawned);
+                std::mem::swap(&mut ready, &mut shared.ready);
+            }
+
+            for spawned in spawned.drain(..) {
+                scheduler.spawned(event_loop, spawned);
+            }
+
+            for ready in ready.drain(..) {
+                scheduler.ready(event_loop, ready);
+            }
         }
     }
 }
@@ -1896,9 +1955,12 @@ impl mio::Handler for Handler {
                 },
             }
         };
-        if co.event(event_loop, &mut *self.scheduler, token, events) {
+        if co.event(event_loop, token, events) {
             self.scheduler.ready(event_loop, co.to_coroutine_control());
         }
+
+        self.deliver_to_scheduler(event_loop);
+
         trace!("Handler::ready({:?}): finished", token);
     }
 
@@ -1909,6 +1971,7 @@ impl mio::Handler for Handler {
                 let mut co = CoroutineControl::new(coroutine);
                 co.reattach_to(self);
                 self.scheduler.ready(event_loop, co);
+                self.deliver_to_scheduler(event_loop);
             },
         }
     }
@@ -2004,6 +2067,7 @@ impl Mioco {
             let mut handler = Handler::new(shared, scheduler);
 
             handler.shared.borrow().wait_for_start_all();
+            handler.deliver_to_scheduler(&mut event_loop);
             event_loop.run(&mut handler).unwrap();
         });
 
