@@ -796,9 +796,7 @@ impl Coroutine {
                             timer: None,
                         };
 
-                        if let State::Finished(ExitStatus::Killed) = mioco_handle.coroutine.shared.borrow().state {
-                            panic!("Killed externally");
-                        }
+                        entry_point(&mioco_handle.coroutine.shared);
 
                         // TODO: Weird syntax...
                         f.call_box((&mut mioco_handle, ))
@@ -989,6 +987,13 @@ fn coroutine_jump_in(coroutine_shared : &RefCell<CoroutineShared>) {
     Context::swap(unsafe {&mut *context_out}, unsafe {&*context_in});
 }
 
+/// Coroutine entry point checks
+fn entry_point(coroutine_shared : &RefCell<CoroutineShared>) {
+    if let State::Finished(ExitStatus::Killed) = coroutine_shared.borrow().state {
+        panic!("Killed externally")
+    }
+}
+
 /// Block coroutine execution, jumping out of it
 fn coroutine_jump_out(coroutine_shared : &RefCell<CoroutineShared>) {
     debug_assert!(coroutine_shared.borrow().state.is_blocked());
@@ -1135,10 +1140,8 @@ where T : Reflect+'static {
         coroutine_jump_out(&co_shared_ref);
         {
             let inn = self.inn.borrow_mut();
+            entry_point(&inn.coroutine_shared);
             let co_shared = inn.coroutine_shared.borrow_mut();
-            if let State::Finished(ExitStatus::Killed) = co_shared.state {
-                panic!("Killed externally")
-            }
             trace!("Coroutine({}): resumed due to event {:?}", co_shared.id.as_usize(), co_shared.last_event);
             debug_assert!(rw.has_read() || co_shared.last_event.has_write());
             debug_assert!(rw.has_write() || co_shared.last_event.has_read());
