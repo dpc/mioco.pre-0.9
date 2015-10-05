@@ -105,28 +105,54 @@ type ArcHandlerThreadShared = Arc<HandlerThreadShared>;
 
 /// Read/Write/Both
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-enum RW {
-    /// Read
-    Read,
-    /// Write
-    Write,
-    /// Any / Both (depends on context)
-    Both,
+struct RW {
+    read : bool,
+    write : bool,
 }
 
 impl RW {
-    fn has_read(&self) -> bool {
-        match *self {
-            RW::Read | RW::Both => true,
-            RW::Write => false,
+    fn read() -> Self {
+        RW {
+            read: true,
+            write: false,
         }
     }
 
-    fn has_write(&self) -> bool {
-        match *self {
-            RW::Write | RW::Both => true,
-            RW::Read => false,
+    fn write() -> Self {
+        RW {
+            read: false,
+            write: true,
         }
+    }
+
+    fn both() -> Self {
+        RW {
+            read: true,
+            write: true,
+        }
+    }
+
+    fn none() -> Self {
+        RW {
+            read: false,
+            write: false,
+        }
+    }
+
+    fn as_tuple(&self) -> (bool, bool) {
+        (self.read, self.write)
+    }
+
+    fn has_read(&self) -> bool {
+        self.read
+    }
+
+    fn has_none(&self) -> bool {
+        !self.read && !self.write
+    }
+
+    fn has_write(&self) -> bool {
+        self.write
     }
 }
 
@@ -521,16 +547,20 @@ impl CoroutineSlabHandle {
                     debug!("spurious event for event source coroutine is not blocked on");
                     (false, false)
                 } else {
-                    match rw {
-                        RW::Read if !events.is_readable() && !events.is_hup() => {
+                    match rw.as_tuple() {
+                        (false, false) => {
+                            debug!("spurious event for coroutine blocked on nothing");
+                            (false, false)
+                        },
+                        (true, false) if !events.is_readable() && !events.is_hup() => {
                             debug!("spurious not read event for coroutine blocked on read");
                             (false, false)
                         },
-                        RW::Write if !events.is_writable() => {
+                        (false, true) if !events.is_writable() => {
                             debug!("spurious not write event for coroutine blocked on write");
                             (false, false)
                         },
-                        RW::Both if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
+                        (true, true) if !events.is_readable() && !events.is_hup() && !events.is_writable() => {
                             debug!("spurious unknown type event for coroutine blocked on read/write");
                             (false, false)
                         },
@@ -556,9 +586,9 @@ impl CoroutineSlabHandle {
             trace!("Coroutine({}): set to ready", self.id().as_usize());
             // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
             let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
-                (true, true) => RW::Both,
-                (true, false) => RW::Read,
-                (false, true) => RW::Write,
+                (true, true) => RW::both(),
+                (true, false) => RW::read(),
+                (false, true) => RW::write(),
                 (false, false) => panic!(),
             };
 
@@ -597,7 +627,6 @@ impl CoroutineSlabHandle {
         let mut children = Vec::new();
 
         debug_assert!(!self.rc.borrow().state().is_running());
-        debug_assert!(!self.rc.borrow().state().is_ready());
 
         std::mem::swap(&mut children, &mut self.rc.borrow_mut().children_to_start);
 
@@ -608,6 +637,17 @@ impl CoroutineSlabHandle {
         }
 
         self.rc.borrow_mut().reregister(event_loop);
+        let state = self.rc.borrow().state();
+        if let State::BlockedOn(rw) = state {
+            if rw.has_none() {
+                {
+                    let shared = &self.rc.borrow().shared;
+                    shared.borrow_mut().state = State::Ready;
+                }
+                let coroutine_ctrl = CoroutineControl::new(self.rc.clone());
+                scheduler.ready(event_loop, coroutine_ctrl);
+            }
+        }
     }
 
 }
@@ -748,7 +788,7 @@ impl Coroutine {
             let shared = CoroutineShared {
                 state: State::Ready,
                 id: id,
-                last_event: Event{ rw: RW::Read, id: EventSourceId(0)},
+                last_event: Event{ rw: RW::read(), id: EventSourceId(0)},
                 context: Context::empty(),
                 handler_shared: Some(handler_shared.clone()),
                 blocked_on: Default::default(),
@@ -1176,7 +1216,7 @@ where T : mio::TryAccept+Reflect+'static {
 
             match res {
                 Ok(None) => {
-                    self.block_on(RW::Read)
+                    self.block_on(RW::read())
                 },
                 Ok(Some(r))  => {
                     return Ok(r);
@@ -1203,7 +1243,7 @@ where T : TryRead+Reflect+'static {
 
             match res {
                 Ok(None) => {
-                    self.block_on(RW::Read)
+                    self.block_on(RW::read())
                 },
                 Ok(Some(r))  => {
                     return Ok(r);
@@ -1233,7 +1273,7 @@ where T : TryWrite+Reflect+'static {
 
             match res {
                 Ok(None) => {
-                    self.block_on(RW::Write)
+                    self.block_on(RW::write())
                 },
                 Ok(Some(r)) => {
                     return Ok(r);
@@ -1274,7 +1314,7 @@ impl EventSource<UdpSocket> {
 
             match res {
                 Ok(None) => {
-                    self.block_on(RW::Read)
+                    self.block_on(RW::read())
                 },
                 Ok(Some(r))  => {
                     return Ok(r);
@@ -1298,7 +1338,7 @@ impl EventSource<UdpSocket> {
 
             match res {
                 Ok(None) => {
-                    self.block_on(RW::Write)
+                    self.block_on(RW::write())
                 },
                 Ok(Some(r)) => {
                     return Ok(r);
@@ -1460,13 +1500,31 @@ impl<'a> MiocoHandle<'a> {
         shared.borrow_mut().state = State::BlockedOn(rw);
         trace!("Coroutine({}): blocked on {:?}", shared.borrow().id.as_usize(), rw);
         coroutine_jump_out(&shared);
-        if let State::Finished(ExitStatus::Killed) = shared.borrow().state {
-            panic!("Killed externally")
-        }
+        entry_point(&shared);
         trace!("Coroutine({}): resumed due to event {:?}", shared.borrow().id.as_usize(), shared.borrow().last_event);
         debug_assert!(shared.borrow().state.is_running());
         let e = shared.borrow().last_event;
         e
+    }
+
+    /// Yield coroutine execution
+    ///
+    /// Coroutine can yield execution without blocking on anything
+    /// particular to allow scheduler to run other coroutines before
+    /// resuming execution of the current one.
+    ///
+    /// For this to be effective, custom scheduler must be implemented.
+    /// See `trait Scheduler`.
+    ///
+    /// Note: named `yield_now` as `yield` is reserved word.
+    pub fn yield_now(&mut self) {
+        let shared = &self.coroutine.shared;
+        shared.borrow_mut().state = State::BlockedOn(RW::none());
+        trace!("Coroutine({}): yield", shared.borrow().id.as_usize());
+        coroutine_jump_out(&shared);
+        entry_point(&shared);
+        trace!("Coroutine({}): resumed after yield ", shared.borrow().id.as_usize());
+        debug_assert!(shared.borrow().state.is_running());
     }
 
     /// Wait till an event is ready
@@ -1492,7 +1550,7 @@ impl<'a> MiocoHandle<'a> {
 
             select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
-        self.select_impl(RW::Both)
+        self.select_impl(RW::both())
     }
 
     /// Wait till a read event is ready
@@ -1513,7 +1571,7 @@ impl<'a> MiocoHandle<'a> {
 
             select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
-        self.select_impl(RW::Read)
+        self.select_impl(RW::read())
     }
 
     /// Wait till a read event is ready.
@@ -1534,7 +1592,7 @@ impl<'a> MiocoHandle<'a> {
 
             select_impl_set_mask_rc_handles(&**io, blocked_on);
         }
-        self.select_impl(RW::Write)
+        self.select_impl(RW::write())
     }
 
     /// Wait till any event is ready on a set of Handles.
@@ -1557,7 +1615,7 @@ impl<'a> MiocoHandle<'a> {
             select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
-        self.select_impl(RW::Both)
+        self.select_impl(RW::both())
     }
 
     /// Wait till write event is ready on a set of Handles.
@@ -1578,7 +1636,7 @@ impl<'a> MiocoHandle<'a> {
             select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
-        self.select_impl(RW::Write)
+        self.select_impl(RW::write())
     }
 
     /// Wait till read event is ready on a set of Handles.
@@ -1599,7 +1657,7 @@ impl<'a> MiocoHandle<'a> {
             select_impl_set_mask_from_ids(ids, blocked_on);
         }
 
-        self.select_impl(RW::Read)
+        self.select_impl(RW::read())
     }
 }
 
@@ -2068,7 +2126,7 @@ where T : Reflect+'static {
                 return t
             }
 
-            self.block_on(RW::Read)
+            self.block_on(RW::read())
         }
     }
 
@@ -2116,7 +2174,7 @@ impl EventSource<Timer> {
                 return t;
             }
 
-            self.block_on(RW::Read);
+            self.block_on(RW::read());
         }
     }
 

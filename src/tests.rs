@@ -556,3 +556,30 @@ fn scheduler_kill_on_drop() {
     assert!(*started_ok.lock().unwrap());
     assert!(!*finished_ok.lock().unwrap());
 }
+
+#[test]
+fn simple_yield() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_copy = finished_ok.clone();
+        let mut config = Config::new();
+
+        config.set_thread_num(threads);
+
+        let mut mioco = Mioco::new_configured(config);
+
+        mioco.start(move |mioco| {
+            // long enough to test recursion exhausting stack
+            // small enough to finish in sane time
+            for _ in 0..10000 {
+                mioco.yield_now();
+            }
+            let mut lock = finished_copy.lock().unwrap();
+            *lock = true;
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
