@@ -15,7 +15,7 @@ $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
 ALL_TARGETS += build test $(EXAMPLES)
 endif
 
-EXAMPLES = echo echoplus mailbox echo_udp
+EXAMPLES = $(shell cd examples; ls *.rs | sed -e 's/.rs$$//g' )
 
 all: $(ALL_TARGETS)
 
