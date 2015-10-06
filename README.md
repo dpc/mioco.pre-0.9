@@ -65,8 +65,32 @@ For daily work:
 
 * [colerr][colerr] - colorize stderr;
 
-Send PR
+Send PR or drop a link on gitter.
+
 # Benchmarks
+
+## HTTP Server
+
+Around **7 million requests per second** using trivial code. It can perform.
+
+```
+% wrk -t8 -c100 -d10s http://localhost:5555
+Running 10s test @ http://localhost:5555
+  8 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.94s     1.04s    3.19s    62.78%
+    Req/Sec   659.38k   523.27k    3.22M    58.59%
+  68646374 requests in 10.01s, 3.39GB read
+  Socket errors: connect 0, read 0, write 0, timeout 263
+Requests/sec: 6855668.81
+Transfer/sec:    346.52MB
+```
+
+See [`cheating-http-server.rs`](/examples/cheating-http-server.rs).
+
+## TCP Echo Server
+
+**TODO:** SMP support was added. Rerun the tests. `bench2` is around 370k/s now.
 
 Beware: This is very naive comparison! I tried to run it fairly,
 but I might have missed something. Also no effort was spent on optimizing
@@ -99,4 +123,3 @@ Benchmarks used:
 Machine used:
 
 * i7-3770K CPU @ 3.50GHz, 32GB DDR3 1800Mhz, some basic overclocking, Fedora 21;
-
