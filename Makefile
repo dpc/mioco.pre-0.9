@@ -1,6 +1,10 @@
 PKG_NAME=mioco
 DOCS_DEFAULT_MODULE=mioco
+ifeq (, $(shell which cargo-check 2> /dev/null))
 DEFAULT_TARGET=build
+else
+DEFAULT_TARGET=check
+endif
 
 default: $(DEFAULT_TARGET)
 
@@ -21,6 +25,10 @@ all: $(ALL_TARGETS)
 
 .PHONY: run test build doc clean
 run test build clean:
+	cargo $@ $(CARGO_FLAGS)
+
+check:
+	$(info Running check; use `make build` to actually build)
 	cargo $@ $(CARGO_FLAGS)
 
 .PHONY: bench
