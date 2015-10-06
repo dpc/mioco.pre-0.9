@@ -38,7 +38,7 @@ fn main() {
                     mioco.spawn(move |mioco| {
                         let mut conn = mioco.wrap(conn);
                         loop {
-                            let _ = try!(conn.write(&RESPONSE.as_bytes()));
+                            let _ = try!(conn.write_all(&RESPONSE.as_bytes()));
                         }
                     });
                 }
