@@ -50,6 +50,7 @@
 #[cfg(test)]
 extern crate env_logger;
 
+extern crate thread_scoped;
 extern crate libc;
 extern crate spin;
 extern crate mio as mio_orig;
@@ -854,6 +855,7 @@ impl Coroutine {
                         let mut mioco_handle = MiocoHandle {
                             coroutine: coroutine,
                             timer: None,
+                            sync_mailbox: None,
                         };
 
                         entry_point(&mioco_handle.coroutine.shared);
@@ -1377,6 +1379,7 @@ impl EventSource<UdpSocket> {
 pub struct MiocoHandle<'a> {
     coroutine : &'a mut Coroutine,
     timer : Option<EventSource<Timer>>,
+    sync_mailbox: Option<(MailboxOuterEnd<()>, EventSource<MailboxInnerEnd<()>>)>,
 }
 
 fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
@@ -1443,6 +1446,44 @@ impl<'a> MiocoHandle<'a> {
             self.coroutine.children_to_start.push(coroutine_ref);
 
             ret
+        }
+
+    /// Execute a block of synchronous operations
+    ///
+    /// This will execute a block of synchronous operations without blocking
+    /// cooperative coroutine scheduling. This is done by offloading the
+    /// synchronous operations to a separate thread, a notifying the
+    /// coroutine when the result is available.
+    ///
+    /// TODO: find some wise people to confirm if this is sound
+    /// TODO: use threadpool to prevent potential system starvation?
+    pub fn sync<'b, F, R>(&mut self, f : F) -> R
+        where F : FnMut() -> R + 'b {
+
+            struct FakeSend<F>(F);
+
+            unsafe impl<F> Send for FakeSend<F> { };
+
+            let f = FakeSend(f);
+
+            if self.sync_mailbox.is_none() {
+                let (send, recv) = mailbox();
+                let recv = self.wrap(recv);
+                self.sync_mailbox = Some((send, recv));
+            }
+
+            let &(ref mail_send, ref mail_recv) = self.sync_mailbox.as_ref().unwrap();
+            let join = unsafe {thread_scoped::scoped(move || {
+                let FakeSend(mut f) = f;
+                let res = f();
+                mail_send.send(());
+                FakeSend(res)
+            })};
+
+            mail_recv.read();
+
+            let FakeSend(res) = join.join();
+            res
         }
 
     /// Register `mio`'s native io type to be used within `mioco` coroutine

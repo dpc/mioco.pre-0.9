@@ -28,6 +28,7 @@ time = "*"
 mio = "0.4.*"
 num_cpus = "*"
 libc = "*"
+thread-scoped = "*"
 
 # Until: https://github.com/contain-rs/bit-vec/pull/21 is not published
 bit-vec = { git = "https://github.com/contain-rs/bit-vec.git" }

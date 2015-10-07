@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex};
 
 use time::{SteadyTime, Duration};
 
+use std::thread;
+
 const THREADS_N : [usize; 4] = [1, 2, 5, 21];
 
 #[test]
@@ -473,6 +475,70 @@ fn tiny_stacks() {
     }
 }
 
+#[test]
+fn basic_sync() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(true));
+
+        let finished_copy = finished_ok.clone();
+
+        start_threads(threads, move |mioco| {
+            let res = mioco.sync(|| {
+                thread::sleep_ms(1000);
+                let mut lock = finished_copy.lock().unwrap();
+                assert_eq!(*lock, true);
+                *lock = false;
+                3u8
+            });
+
+            assert_eq!(res, 3u8);
+            let mut lock = finished_copy.lock().unwrap();
+            assert_eq!(*lock, false);
+            *lock = true;
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+#[test]
+fn sync_takes_time() {
+    for &threads in THREADS_N.iter() {
+        let starting_time = SteadyTime::now();
+
+        start_threads(threads, move |mioco| {
+            mioco.sync(|| {
+                thread::sleep_ms(500);
+            });
+            Ok(())
+        });
+
+        assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+    }
+}
+
+#[test]
+fn basic_sync_in_loop() {
+    for &threads in THREADS_N.iter() {
+        start_threads(threads, move |mioco| {
+            let mut counter = 0i32;
+            for i in 0..10000 {
+                let res = mioco.sync(|| {
+                    if i & 0xf == 0 { // cut the wait
+                        thread::sleep_ms(1);
+                    }
+                    counter += 1;
+                    i
+                });
+                assert_eq!(res, i);
+            }
+
+            assert_eq!(counter, 10000);
+            Ok(())
+        });
+    }
+}
 #[test]
 fn scheduler_kill_on_initial_drop() {
     struct TestScheduler;
