@@ -16,7 +16,7 @@ CARGO_FLAGS += --release
 ALL_TARGETS += build test bench $(EXAMPLES)
 else
 $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
-ALL_TARGETS += build test $(EXAMPLES)
+ALL_TARGETS += build $(EXAMPLES) test
 endif
 
 EXAMPLES = $(shell cd examples; ls *.rs | sed -e 's/.rs$$//g' )
