@@ -29,7 +29,7 @@ fn main() {
     println!("Starting \"cheating\" http server on {:?}", sock.local_addr().unwrap());
 
     mioco::start(move |mioco| {
-        for _ in 0..8 {
+        for _ in 0..mioco.thread_num() {
             let sock = try!(sock.try_clone());
             mioco.spawn(move |mioco| {
                 let sock = mioco.wrap(sock);

@@ -1492,6 +1492,17 @@ impl<'a> MiocoHandle<'a> {
         handle
     }
 
+    /// Get number of threads of the Mioco instance that coroutine is
+    /// running in.
+    ///
+    /// This is useful for load balancing: spawning as many coroutines as
+    /// there is handling threads that can run them.
+    pub fn thread_num(&self) -> usize {
+        let coroutine_shared = self.coroutine.shared.borrow();
+        let handler_shared = coroutine_shared.handler_shared.as_ref().unwrap().borrow();
+        handler_shared.thread_num()
+    }
+
     /// Get mutable reference to a timer source io for this coroutine
     ///
     /// Each coroutine has one internal Timer source, that will become readable
@@ -1764,6 +1775,13 @@ impl HandlerShared {
         let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::Relaxed);
         debug_assert!(prev > 0);
     }
+
+    /// Get number of threads
+    fn thread_num(&self) -> usize {
+        self.thread_shared.thread_num.load(Ordering::Relaxed)
+    }
+
+
 }
 
 /// Coroutine Scheduler
