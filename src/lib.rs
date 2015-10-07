@@ -907,8 +907,7 @@ impl Coroutine {
                 }
             };
 
-            let mut dummy = Context::empty();
-            Context::swap(&mut dummy, ctx);
+            Context::load(ctx);
 
             unreachable!();
         }
