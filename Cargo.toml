@@ -29,12 +29,9 @@ mio = "0.4.*"
 num_cpus = "*"
 libc = "*"
 thread-scoped = "*"
-
-# Until: https://github.com/contain-rs/bit-vec/pull/21 is not published
-bit-vec = { git = "https://github.com/contain-rs/bit-vec.git" }
-
-# Until: https://github.com/zonyitoo/context-rs/issues/6
-context = { git = "https://github.com/dpc/context-rs.git" }
+bit-vec = "*"
+context = { git = "https://github.com/zonyitoo/context-rs.git" }
+# context = "*"
 
 [dev-dependencies]
 env_logger = "*"

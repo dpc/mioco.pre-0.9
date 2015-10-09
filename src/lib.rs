@@ -24,6 +24,7 @@
 //! * timers (see `MiocoHandle::timer()`);
 //! * mailboxes (see `mailbox()`);
 //! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
+//! * synchronous operations support (see `MiocoHandle::sync()`).
 //! ```
 //!
 //! # <a name="example"/></a> Example:
@@ -926,9 +927,10 @@ impl Coroutine {
                 ..
             } = *shared.borrow_mut();
 
-            context.init_with_unboxed(
+            context.init_with(
                 init_fn,
                 coroutine_ptr as usize,
+                std::ptr::null_mut(),
                 stack,
                 );
         }
@@ -1375,7 +1377,8 @@ impl EventSource<UdpSocket> {
 
 /// Mioco instance handle
 ///
-/// Use this from withing coroutines to use Mioco-provided functionality.
+/// Every coroutine gets an instance of this struct as it's argument.
+/// Use it from within coroutines to call mioco functionality.
 pub struct MiocoHandle<'a> {
     coroutine : &'a mut Coroutine,
     timer : Option<EventSource<Timer>>,
