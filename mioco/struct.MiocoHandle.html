@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-838' class='srclink' href='../src/mioco/lib.rs.html#1426-1429' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-838' class='srclink' href='../src/mioco/lib.rs.html#1427-1431' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle&lt;'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance handle</p>
@@ -57,11 +57,27 @@
 <p><code>f</code> is routine handling connection. It must not use any real blocking-IO operations, only
 <code>mioco</code> provided types (<code>EventSource</code>) and <code>MiocoHandle</code> functions. Otherwise <code>mioco</code>
 cooperative scheduling can block on real blocking-IO which defeats using mioco.</p>
+</div><h4 id='method.sync' class='method'><code>fn <a href='#method.sync' class='fnname'>sync</a>&lt;'b, F, R&gt;(&amp;mut self, f: F) -&gt; R <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>() -&gt; R + 'b</span></code></h4>
+<div class='docblock'><p>Execute a block of synchronous operations</p>
+
+<p>This will execute a block of synchronous operations without blocking
+cooperative coroutine scheduling. This is done by offloading the
+synchronous operations to a separate thread, a notifying the
+coroutine when the result is available.</p>
+
+<p>TODO: find some wise people to confirm if this is sound
+TODO: use threadpool to prevent potential system starvation?</p>
 </div><h4 id='method.wrap' class='method'><code>fn <a href='#method.wrap' class='fnname'>wrap</a>&lt;T: 'static&gt;(&amp;mut self, io: T) -&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Register <code>mio</code>&#39;s native io type to be used within <code>mioco</code> coroutine</p>
 
 <p>Consumes the <code>io</code>, returns a mioco wrapper over it. Use this wrapped IO
 to perform IO.</p>
+</div><h4 id='method.thread_num' class='method'><code>fn <a href='#method.thread_num' class='fnname'>thread_num</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
+<div class='docblock'><p>Get number of threads of the Mioco instance that coroutine is
+running in.</p>
+
+<p>This is useful for load balancing: spawning as many coroutines as
+there is handling threads that can run them.</p>
 </div><h4 id='method.timer' class='method'><code>fn <a href='#method.timer' class='fnname'>timer</a>(&amp;mut self) -&gt; &amp;mut <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;<a class='struct' href='../mioco/struct.Timer.html' title='mioco::Timer'>Timer</a>&gt;</code></h4>
 <div class='docblock'><p>Get mutable reference to a timer source io for this coroutine</p>
 
