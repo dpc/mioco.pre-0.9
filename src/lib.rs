@@ -1811,11 +1811,11 @@ impl HandlerShared {
     }
 
     fn coroutines_inc(&self) {
-        self.thread_shared.coroutines_num.fetch_add(1, Ordering::Relaxed);
+        self.thread_shared.coroutines_num.fetch_add(1, Ordering::SeqCst);
     }
 
     fn coroutines_dec(&self) {
-        let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::Relaxed);
+        let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::SeqCst);
         debug_assert!(prev > 0);
     }
 
