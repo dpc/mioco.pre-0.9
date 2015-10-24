@@ -38,7 +38,7 @@
 */
 //! [green threads]: https://en.wikipedia.org/wiki/Green_threads
 //! [mio]: https://github.com/carllerche/mio
-//! [mio-api]: ./mioco/mio/index.html
+//! [mio-api]: ../mioco/mio/index.html
 
 #![cfg_attr(test, feature(convert))]
 #![feature(reflect_marker)]
