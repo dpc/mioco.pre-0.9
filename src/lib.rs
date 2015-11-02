@@ -671,14 +671,14 @@ impl CoroutineSlabHandle {
 pub struct CoroutineControl {
     /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
     /// trait will kill the Coroutine
-    handled : bool,
+    was_handled : bool,
     is_yielding : bool,
     rc : RcCoroutine,
 }
 
 impl Drop for CoroutineControl {
     fn drop(&mut self) {
-        if !self.handled {
+        if !self.was_handled {
             trace!("Coroutine({}): kill", self.id().as_usize());
             let shared = {
                 let shared = &self.rc.borrow_mut().shared;
@@ -694,7 +694,7 @@ impl CoroutineControl {
     fn new(rc : RcCoroutine) -> Self {
         CoroutineControl {
             is_yielding: false,
-            handled: false,
+            was_handled: false,
             rc: rc,
         }
     }
@@ -711,7 +711,7 @@ impl CoroutineControl {
         mut self,
         event_loop : &mut EventLoop<Handler>,
         ) {
-        self.handled = true;
+        self.was_handled = true;
         trace!("Coroutine({}): resume", self.id().as_usize());
         let shared = self.rc.borrow().shared.clone();
         let is_ready = shared.borrow().state.is_ready();
@@ -740,7 +740,7 @@ impl CoroutineControl {
         event_loop : &mut EventLoop<Handler>,
         thread_id : usize,
         ) {
-        self.handled = true;
+        self.was_handled = true;
         let sender = {
             trace!("Coroutine({}): migrate to thread {}", self.id().as_usize(), thread_id);
             let mut co = self.rc.borrow_mut();
@@ -845,7 +845,7 @@ impl Coroutine {
 
                 let res = thread::catch_panic(
                     move|| {
-                        let coroutine: &mut Coroutine = unsafe { transmute(arg) };
+                        let coroutine : &mut Coroutine = unsafe { transmute(arg) };
                         trace!("Coroutine({}): started", {
                             let shared = coroutine.shared.borrow();
                             shared.id.as_usize()
@@ -866,7 +866,7 @@ impl Coroutine {
                     }
                     );
 
-                let coroutine: &mut Coroutine = unsafe { transmute(arg) };
+                let coroutine : &mut Coroutine = unsafe { transmute(arg) };
                 coroutine.io.clear();
                 let mut co_shared = coroutine.shared.borrow_mut();
 
