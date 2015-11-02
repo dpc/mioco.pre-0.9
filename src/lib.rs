@@ -46,6 +46,7 @@
 #![feature(raw)]
 #![feature(drain)]
 #![feature(fnbox)]
+#![feature(rc_would_unwrap)]
 #![warn(missing_docs)]
 
 #[cfg(test)]
@@ -758,8 +759,14 @@ impl CoroutineControl {
             handler_shared.senders[thread_id].clone()
         };
 
+        let rc = self.rc.clone();
+
+        drop(self);
+
+        assert!(Rc::would_unwrap(&rc));
+
         // TODO: Spin on failure
-        sender_retry(&sender, Migration(self.rc.clone()));
+        sender_retry(&sender, Migration(rc));
     }
 
 
@@ -2028,8 +2035,9 @@ impl mio::Handler for Handler {
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
         match msg {
             MailboxMsg(token) => self.ready(event_loop, token, EventSet::readable()),
-            Migration(coroutine) => {
-                let mut co = CoroutineControl::new(coroutine);
+            Migration(rc_coroutine) => {
+                assert!(Rc::would_unwrap(&rc_coroutine));
+                let mut co = CoroutineControl::new(rc_coroutine);
                 co.reattach_to(self);
                 self.scheduler.ready(event_loop, co);
                 self.deliver_to_scheduler(event_loop);
