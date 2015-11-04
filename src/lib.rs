@@ -847,7 +847,7 @@ impl Coroutine {
             coroutine_ptr
         };
 
-        extern "C" fn init_fn(arg: usize, _: *mut libc::c_void) -> ! {
+        extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx : &Context = {
 
                 let res = thread::catch_panic(

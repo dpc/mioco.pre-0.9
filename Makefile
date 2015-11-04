@@ -19,7 +19,7 @@ $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
 ALL_TARGETS += build $(EXAMPLES) test
 endif
 
-EXAMPLES = $(shell cd examples; ls *.rs | sed -e 's/.rs$$//g' )
+EXAMPLES = $(shell cd examples 2>/dev/null && ls *.rs 2>/dev/null | sed -e 's/.rs$$//g' )
 
 all: $(ALL_TARGETS)
 

@@ -27,11 +27,10 @@ spin = "*"
 time = "*"
 mio = "0.4.*"
 num_cpus = "*"
-libc = "*"
+libc = "^0.1.10"
 thread-scoped = "*"
 bit-vec = "*"
-context = { git = "https://github.com/zonyitoo/context-rs.git" }
-# context = "*"
+context = "*"
 
 [dev-dependencies]
 env_logger = "*"
