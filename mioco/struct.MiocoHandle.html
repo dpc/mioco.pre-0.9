@@ -45,13 +45,14 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-838' class='srclink' href='../src/mioco/lib.rs.html#1427-1431' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-840' class='srclink' href='../src/mioco/lib.rs.html#1437-1441' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle&lt;'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance handle</p>
 
-<p>Use this from withing coroutines to use Mioco-provided functionality.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a&gt; <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>&lt;'a&gt;</code></h3><div class='impl-items'><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(&amp;mut self, f: F) -&gt; <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
+<p>Every coroutine gets an instance of this struct as it&#39;s argument.
+Use it from within coroutines to call mioco functionality.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a&gt; <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>&lt;'a&gt;</code></h3><div class='impl-items'><h4 id='method.spawn' class='method'><code>fn <a href='#method.spawn' class='fnname'>spawn</a>&lt;F&gt;(&amp;mut self, f: F) -&gt; <a class='struct' href='../mioco/struct.CoroutineHandle.html' title='mioco::CoroutineHandle'>CoroutineHandle</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>(&amp;mut <a class='struct' href='../mioco/struct.MiocoHandle.html' title='mioco::MiocoHandle'>MiocoHandle</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
 <div class='docblock'><p>Create a <code>mioco</code> coroutine handler</p>
 
 <p><code>f</code> is routine handling connection. It must not use any real blocking-IO operations, only
@@ -72,7 +73,7 @@ TODO: use threadpool to prevent potential system starvation?</p>
 
 <p>Consumes the <code>io</code>, returns a mioco wrapper over it. Use this wrapped IO
 to perform IO.</p>
-</div><h4 id='method.thread_num' class='method'><code>fn <a href='#method.thread_num' class='fnname'>thread_num</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
+</div><h4 id='method.thread_num' class='method'><code>fn <a href='#method.thread_num' class='fnname'>thread_num</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <div class='docblock'><p>Get number of threads of the Mioco instance that coroutine is
 running in.</p>
 
@@ -83,7 +84,7 @@ there is handling threads that can run them.</p>
 
 <p>Each coroutine has one internal Timer source, that will become readable
 when it&#39;s timeout (see <code>set_timer()</code> ) expire.</p>
-</div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, time_ms: <a href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
+</div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, time_ms: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
 <div class='docblock'><p>Block coroutine for a given time</p>
 </div><h4 id='method.yield_now' class='method'><code>fn <a href='#method.yield_now' class='fnname'>yield_now</a>(&amp;mut self)</code></h4>
 <div class='docblock'><p>Yield coroutine execution</p>
@@ -113,16 +114,16 @@ See <code>EventSource::id()</code>.</p>
 <div class='docblock'><p>Wait till a read event is ready.</p>
 
 <p>See <code>MiocoHandle::select</code>.</p>
-</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, ids: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
+</div><h4 id='method.select_from' class='method'><code>fn <a href='#method.select_from' class='fnname'>select_from</a>(&amp;mut self, ids: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till any event is ready on a set of Handles.</p>
 
 <p>See <code>EventSource::id()</code>.
 See <code>MiocoHandle::select()</code>.</p>
-</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, ids: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
+</div><h4 id='method.select_write_from' class='method'><code>fn <a href='#method.select_write_from' class='fnname'>select_write_from</a>(&amp;mut self, ids: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till write event is ready on a set of Handles.</p>
 
 <p>See <code>MiocoHandle::select_from</code>.</p>
-</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, ids: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
+</div><h4 id='method.select_read_from' class='method'><code>fn <a href='#method.select_read_from' class='fnname'>select_read_from</a>(&amp;mut self, ids: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='struct' href='../mioco/struct.Event.html' title='mioco::Event'>Event</a></code></h4>
 <div class='docblock'><p>Wait till read event is ready on a set of Handles.</p>
 
 <p>See <code>MiocoHandle::select_from</code>.</p>

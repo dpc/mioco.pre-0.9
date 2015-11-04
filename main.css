@@ -415,9 +415,12 @@ a {
 .content span.mod, .content a.mod, block a.current.mod { color: #4d76ae; }
 .content span.enum, .content a.enum, .block a.current.enum { color: #5e9766; }
 .content span.struct, .content a.struct, .block a.current.struct { color: #e53700; }
-.content span.fn, .content a.fn, .block a.current.fn { color: #8c6067; }
-.content span.method, .content a.method, .block a.current.method { color: #8c6067; }
-.content span.tymethod, .content a.tymethod, .block a.current.tymethod { color: #8c6067; }
+.content a.primitive { color: #39a7bf; }
+.content a.type { color: #e57300; }
+.content a.macro { color: #068000; }
+.content span.fn, .content a.fn, .block a.current.fn,
+.content span.method, .content a.method, .block a.current.method,
+.content span.tymethod, .content a.tymethod, .block a.current.tymethod,
 .content .fnname { color: #8c6067; }
 .block a.current.crate { font-weight: 500; }
 
@@ -559,14 +562,17 @@ pre.rust .lifetime { color: #B76514; }
 
 .rusttest { display: none; }
 pre.rust { position: relative; }
-.test-arrow {
+a.test-arrow {
     display: inline-block;
     position: absolute;
-    top: 0;
-    right: 10px;
-    font-size: 150%;
-    -webkit-transform: scaleX(-1);
-    transform: scaleX(-1);
+
+    background-color: #4e8bca;
+    color: #f5f5f5;
+    padding: 5px 10px 5px 10px;
+    border-radius: 5px;
+    font-size: 130%;
+    top: 5px;
+    right: 5px;
 }
 
 .methods .section-header {

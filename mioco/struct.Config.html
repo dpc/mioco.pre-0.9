@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1285' class='srclink' href='../src/mioco/lib.rs.html#2409-2414' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1288' class='srclink' href='../src/mioco/lib.rs.html#2420-2425' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Config {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco builder</p>
@@ -55,7 +55,7 @@
 <p>Use it to configure mioco instance</p>
 
 <p>See <code>start</code> and <code>start_threads</code> for convenience wrappers.</p>
-</div><h4 id='method.set_thread_num' class='method'><code>fn <a href='#method.set_thread_num' class='fnname'>set_thread_num</a>(&amp;mut self, thread_num: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut Self</code></h4>
+</div><h4 id='method.set_thread_num' class='method'><code>fn <a href='#method.set_thread_num' class='fnname'>set_thread_num</a>(&amp;mut self, thread_num: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut Self</code></h4>
 <div class='docblock'><p>Set numer of threads to run mioco with</p>
 
 <p>Default is equal to a numer of CPUs in the system.</p>
@@ -69,7 +69,7 @@ coroutines between all threads in round-robin fashion, and runs them
 in FIFO manner.</p>
 
 <p>See private <code>FifoSchedule</code> source for details.</p>
-</div><h4 id='method.set_stack_size' class='method'><code>unsafe fn <a href='#method.set_stack_size' class='fnname'>set_stack_size</a>(&amp;mut self, stack_size: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut Self</code></h4>
+</div><h4 id='method.set_stack_size' class='method'><code>unsafe fn <a href='#method.set_stack_size' class='fnname'>set_stack_size</a>(&amp;mut self, stack_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut Self</code></h4>
 <div class='docblock'><p>Set stack size in bytes.</p>
 
 <p>Default is 2MB.</p>

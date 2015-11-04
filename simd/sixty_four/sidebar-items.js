@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["bool64fx2","A SIMD boolean vector for length-2 vectors of 64-bit floats."],["bool64ix2","A SIMD boolean vector for length-2 vectors of 64-bit integers."],["f64x2","A SIMD vector of 2 `f64`s."],["i64x2","A SIMD vector of 2 `i64`s."],["u64x2","A SIMD vector of 2 `u64`s."]]});

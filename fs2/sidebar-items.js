@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["lock_contended_error","Returns the error that a call to a try lock method on a contended file will return."]],"trait":[["FileExt","Extension trait for `File` providing duplication and locking methods."]]});

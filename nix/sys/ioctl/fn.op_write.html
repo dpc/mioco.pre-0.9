@@ -46,7 +46,7 @@
                 [<span class='inner'>&#x2212;</span>]
             </a>
         </span><a id='src-1750' class='srclink' href='../../../src/nix/sys/ioctl.rs.html#156-158' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn op_write(ioctl_type: <a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>, nr: <a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>, size: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='type' href='../../../nix/sys/ioctl/type.ioctl_op_t.html' title='nix::sys::ioctl::ioctl_op_t'>ioctl_op_t</a></pre><div class='docblock'><p>Build an op indicating that the data pointer contains data
+<pre class='rust fn'>pub fn op_write(ioctl_type: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>, nr: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>, size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='type' href='../../../nix/sys/ioctl/type.ioctl_op_t.html' title='nix::sys::ioctl::ioctl_op_t'>ioctl_op_t</a></pre><div class='docblock'><p>Build an op indicating that the data pointer contains data
 to be consumed by the kernel (and not written to).</p>
 
 <p>This provides the same functionality as the Linux <code>_IOW</code> macro.</p>

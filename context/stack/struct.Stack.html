@@ -45,19 +45,19 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-159' class='srclink' href='../../src/context/stack.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-137' class='srclink' href='../../src/context/stack.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Stack {
     // some fields omitted
 }</pre><div class='docblock'><p>A task&#39;s stack. The name &quot;Stack&quot; is a vestige of segmented stacks.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(size: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h4>
 <div class='docblock'><p>Allocate a new stack of <code>size</code>. If size = 0, this will fail. Use
 <code>dummy_stack</code> if you want a zero-sized stack.</p>
 </div><h4 id='method.dummy_stack' class='method'><code>unsafe fn <a href='#method.dummy_stack' class='fnname'>dummy_stack</a>() -&gt; <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h4>
 <div class='docblock'><p>Create a 0-length stack which starts (and ends) at 0.</p>
-</div><h4 id='method.guard' class='method'><code>fn <a href='#method.guard' class='fnname'>guard</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
-<h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
+</div><h4 id='method.guard' class='method'><code>fn <a href='#method.guard' class='fnname'>guard</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
+<h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
 <div class='docblock'><p>Point to the low end of the allocated stack</p>
-</div><h4 id='method.end' class='method'><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
+</div><h4 id='method.end' class='method'><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></a></code></h4>
 <div class='docblock'><p>Point one usize beyond the high end of the allocated stack</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div></section>
