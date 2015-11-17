@@ -63,6 +63,7 @@ extern crate log;
 extern crate bit_vec;
 extern crate time;
 extern crate num_cpus;
+extern crate slab;
 
 /// Re-export of all `mio` symbols.
 ///
@@ -83,13 +84,14 @@ use mio::udp::{UdpSocket};
 use std::net::SocketAddr;
 use std::any::Any;
 use std::marker::{PhantomData, Reflect};
-use mio::util::Slab;
 use mio::buf::{Buf, MutBuf};
 
 use std::collections::VecDeque;
 use spin::Mutex;
 use std::sync::{Arc};
 use std::sync::atomic::{AtomicUsize, Ordering};
+
+use slab::{Slab, SlabMutIter};
 
 use bit_vec::BitVec;
 
@@ -470,7 +472,7 @@ pub struct Coroutine {
     stack: Stack,
 
     /// All event sources
-    io : Vec<RcEventSourceShared>,
+    io : slab::Slab<RcEventSourceShared, usize>,
 
     /// Newly spawned `Coroutine`-es
     children_to_start : Vec<RcCoroutine>,
@@ -529,7 +531,7 @@ impl CoroutineSlabHandle {
         trace!("Coroutine({}): event", self.id().as_usize());
         let (should_resume, should_reregister) = {
             let coroutine = self.rc.borrow();
-            let io = coroutine.io[io_id.as_usize()].clone();
+            let io = coroutine.io.get(io_id.as_usize()).unwrap().clone();
 
             if events.is_hup() {
                 io.borrow_mut().hup(event_loop, token);
@@ -827,7 +829,7 @@ impl Coroutine {
 
             let coroutine = Coroutine {
                 shared: Rc::new(RefCell::new(shared)),
-                io: Vec::with_capacity(4),
+                io: Slab::new(8),
                 children_to_start: Vec::new(),
                 stack: Stack::new(stack_size),
                 coroutine_func: Some(Box::new(f)),
@@ -959,9 +961,8 @@ impl Coroutine {
     }
 
     fn deregister_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for i in 0..self.io.len() {
-            let mut io = self.io[i].borrow_mut();
-            io.deregister(event_loop);
+        for io in self.io.iter() {
+            io.borrow_mut().deregister(event_loop);
         }
     }
 
@@ -1402,13 +1403,13 @@ fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVe
     }
 }
 
-fn select_impl_set_mask_rc_handles(handles : &[Rc<RefCell<EventSourceShared>>], blocked_on: &mut BitVec<usize>) {
-    {
-        // TODO: https://github.com/contain-rs/bit-vec/pulls
-        blocked_on.clear();
-        for io in handles {
-            blocked_on.set(io.borrow().id.as_usize(), true);
-        }
+fn select_impl_set_mask_rc_handles<'a>(
+    handles : SlabMutIter<'a, Rc<RefCell<EventSourceShared>>, usize>, blocked_on: &mut BitVec<usize>
+    ) {
+    // TODO: https://github.com/contain-rs/bit-vec/pulls
+    blocked_on.clear();
+    for io in handles {
+        blocked_on.set(io.borrow().id.as_usize(), true);
     }
 }
 
@@ -1500,46 +1501,53 @@ impl<'a> MiocoHandle<'a> {
     ///
     /// Consumes the `io`, returns a mioco wrapper over it. Use this wrapped IO
     /// to perform IO.
-    pub fn wrap<T : 'static>(&mut self, io : T) -> EventSource<T>
+    pub fn wrap<T : 'static>(&mut self, raw_io : T) -> EventSource<T>
     where T : Evented {
-        let io_new = {
-            let co = &self.coroutine;
+        let index = {
+            let &mut Coroutine {
+                ref mut io,
+                ref shared,
+                ..
+            } = self.coroutine;
 
-            Rc::new(RefCell::new(
-                    EventSourceShared {
-                        coroutine_shared: co.shared.clone(),
-                        io: Box::new(io),
-                        peer_hup: false,
-                        id: EventSourceId(co.io.len()),
-                        registered: false,
-                    }
-                    ))
+            let co_shared = self.coroutine.shared.clone();
+
+            let index = io.insert_with(|index| {
+                let io_new = {
+                    Rc::new(RefCell::new(
+                            EventSourceShared {
+                                coroutine_shared: co_shared,
+                                io: Box::new(raw_io),
+                                peer_hup: false,
+                                id: EventSourceId(index),
+                                registered: false,
+                            }
+                            ))
+                };
+
+                let CoroutineShared {
+                    ref mut registered,
+                    ref mut blocked_on,
+                    ..
+                } = *shared.borrow_mut();
+
+                if index >= blocked_on.len() {
+                    blocked_on.push(false);
+                    registered.push(false);
+                } else {
+                    assert_eq!(blocked_on.get(index).unwrap(), false);
+                    assert_eq!(registered.get(index).unwrap(), false);
+                }
+
+                io_new
+            });
+            index
         };
 
-        let handle = EventSource {
-            inn: io_new.clone(),
+        EventSource {
+            inn: self.coroutine.io[index.unwrap()].clone(),
             _t: PhantomData,
-        };
-
-        let &mut Coroutine {
-            ref mut io,
-            ref shared,
-            ..
-        } = self.coroutine;
-
-        let CoroutineShared {
-            ref mut registered,
-            ref mut blocked_on,
-            ..
-        } = *shared.borrow_mut();
-
-        io.push(io_new.clone());
-        blocked_on.push(false);
-        registered.push(false);
-        debug_assert!(io.len() == blocked_on.len());
-        debug_assert!(io.len() == registered.len());
-
-        handle
+        }
     }
 
     /// Get number of threads of the Mioco instance that coroutine is
@@ -1619,7 +1627,7 @@ impl<'a> MiocoHandle<'a> {
     pub fn select(&mut self) -> Event {
         {
             let Coroutine {
-                ref io,
+                ref mut io,
                 ref shared,
                 ..
             } = *self.coroutine;
@@ -1629,7 +1637,7 @@ impl<'a> MiocoHandle<'a> {
                 ..
             } = *shared.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on);
+            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
         }
         self.select_impl(RW::both())
     }
@@ -1640,7 +1648,7 @@ impl<'a> MiocoHandle<'a> {
     pub fn select_read(&mut self) -> Event {
         {
             let Coroutine {
-                ref io,
+                ref mut io,
                 ref shared,
                 ..
             } = *self.coroutine;
@@ -1650,7 +1658,7 @@ impl<'a> MiocoHandle<'a> {
                 ..
             } = *shared.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on);
+            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
         }
         self.select_impl(RW::read())
     }
@@ -1661,7 +1669,7 @@ impl<'a> MiocoHandle<'a> {
     pub fn select_write(&mut self) -> Event {
         {
             let Coroutine {
-                ref io,
+                ref mut io,
                 ref shared,
                 ..
             } = *self.coroutine;
@@ -1671,7 +1679,7 @@ impl<'a> MiocoHandle<'a> {
                 ..
             } = *shared.borrow_mut();
 
-            select_impl_set_mask_rc_handles(&**io, blocked_on);
+            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
         }
         self.select_impl(RW::write())
     }
@@ -1765,7 +1773,7 @@ impl HandlerThreadShared {
 struct HandlerShared {
     /// Slab allocator
     /// TODO: dynamically growing slab would be better; or a fast hashmap?
-    coroutines : Slab<CoroutineSlabHandle>,
+    coroutines : Slab<CoroutineSlabHandle, Token>,
 
     /// Context saved when jumping into coroutine
     context : Context,
