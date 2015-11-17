@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-242' class='srclink' href='../src/memmap/lib.rs.html#372-376' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-247' class='srclink' href='../src/memmap/lib.rs.html#385-389' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MmapViewSync {
     // some fields omitted
 }</pre><div class='docblock'><p>A thread-safe view of a memory map.</p>
@@ -77,11 +77,11 @@ modification timestamp) may not be updated.</p>
 </div><h4 id='method.len' class='method'><code>fn <a href='#method.len' class='fnname'>len</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <div class='docblock'><p>Returns the length of the memory map view.</p>
 </div><h4 id='method.ptr' class='method'><code>fn <a href='#method.ptr' class='fnname'>ptr</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*const <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></a></code></h4>
-<div class='docblock'><p>Returns a pointer to the mapped mapped.</p>
+<div class='docblock'><p>Returns a shared pointer to the mapped memory.</p>
 
 <p>See <code>Mmap::as_slice</code> for invariants that must hold when dereferencing the pointer.</p>
 </div><h4 id='method.mut_ptr' class='method'><code>fn <a href='#method.mut_ptr' class='fnname'>mut_ptr</a>(&amp;mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></a></code></h4>
-<div class='docblock'><p>Returns a pointer to the mapped memory.</p>
+<div class='docblock'><p>Returns a mutable pointer to the mapped memory.</p>
 
 <p>See <code>Mmap::as_mut_slice</code> for invariants that must hold when dereferencing the pointer.</p>
 </div><h4 id='method.as_slice' class='method'><code>unsafe fn <a href='#method.as_slice' class='fnname'>as_slice</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>

@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `clock_ticks` crate.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, clock_ticks">
+    <meta name="description" content="API documentation for the Rust `timegm` fn in crate `libc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, timegm">
 
-    <title>clock_ticks - Rust</title>
+    <title>libc::timegm - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
-    
+    <link rel="shortcut icon" href="https://doc.rust-lang.org/favicon.ico">
     
 </head>
 <body class="rustdoc">
@@ -25,8 +25,8 @@
     
 
     <nav class="sidebar">
-        
-        <p class='location'></p><script>window.sidebarCurrent = {name: 'clock_ticks', ty: 'mod', relpath: '../'};</script>
+        <a href='../libc/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png' alt='' width='100'></a>
+        <p class='location'><a href='index.html'>libc</a></p><script>window.sidebarCurrent = {name: 'timegm', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -40,34 +40,13 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>clock_ticks</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content fn">
+<h1 class='fqn'><span class='in-band'><a href='index.html'>libc</a>::<wbr><a class='fn' href=''>timegm</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/clock_ticks/lib.rs.html#11-130' title='goto source code'>[src]</a></span></h1>
-<h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.precise_time_ns.html'
-                               title='clock_ticks::precise_time_ns'>precise_time_ns</a></td>
-                        <td class='docblock short'>
-                             <p>Returns the current value of a high-resolution performance counter
-in nanoseconds since an unspecified epoch.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.precise_time_s.html'
-                               title='clock_ticks::precise_time_s'>precise_time_s</a></td>
-                        <td class='docblock short'>
-                             <p>Returns the current value of a high-resolution performance counter
-in seconds since an unspecified epoch.</p>
-
-                        </td>
-                    </tr>
-                </table></section>
+        </span><a id='src-857' class='srclink' href='../src/libc/unix/mod.rs.html#560' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub unsafe extern fn timegm(tm: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut <a class='struct' href='../libc/struct.tm.html' title='libc::tm'>tm</a></a>) -&gt; <a class='type' href='../libc/type.time_t.html' title='libc::time_t'>time_t</a></pre></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -120,7 +99,7 @@ in seconds since an unspecified epoch.</p>
 
     <script>
         window.rootPath = "../";
-        window.currentCrate = "clock_ticks";
+        window.currentCrate = "libc";
         window.playgroundUrl = "";
     </script>
     <script src="../jquery.js"></script>

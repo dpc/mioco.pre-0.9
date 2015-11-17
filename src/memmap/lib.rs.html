@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/memmap-0.2.1/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/memmap-0.2.2/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -825,6 +825,17 @@
 <span id="783">783</span>
 <span id="784">784</span>
 <span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! A cross-platform Rust API for memory maps.</span>
 
@@ -850,21 +861,23 @@
 
 <span class='doccomment'>/// Memory map protection.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Determines how a memory map may be used. If the memory map is backed by a file, then the file</span>
-<span class='doccomment'>/// must have permissions corresponding to the operations the protection level allows.</span>
+<span class='doccomment'>/// Determines how a memory map may be used. If the memory map is backed by a</span>
+<span class='doccomment'>/// file, then the file must have permissions corresponding to the operations</span>
+<span class='doccomment'>/// the protection level allows.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>, <span class='ident'>Debug</span>, <span class='ident'>PartialEq</span>, <span class='ident'>Eq</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>Protection</span> {
 
     <span class='doccomment'>/// A read-only memory map. Writes to the memory map will result in a panic.</span>
     <span class='ident'>Read</span>,
 
-    <span class='doccomment'>/// A read-write memory map. Writes to the memory map will be reflected in the file after a</span>
-    <span class='doccomment'>/// call to `Mmap::flush` or after the `Mmap` is dropped.</span>
+    <span class='doccomment'>/// A read-write memory map. Writes to the memory map will be reflected in</span>
+    <span class='doccomment'>/// the file after a call to `Mmap::flush` or after the `Mmap` is dropped.</span>
     <span class='ident'>ReadWrite</span>,
 
-    <span class='doccomment'>/// A read, copy-on-write memory map. Writes to the memory map will not be carried through to</span>
-    <span class='doccomment'>/// the underlying file. It is unspecified whether changes made to the file after the memory map</span>
-    <span class='doccomment'>/// is created will be visible.</span>
+    <span class='doccomment'>/// A read, copy-on-write memory map. Writes to the memory map will not be</span>
+    <span class='doccomment'>/// carried through to the underlying file. It is unspecified whether</span>
+    <span class='doccomment'>/// changes made to the file after the memory map is created will be</span>
+    <span class='doccomment'>/// visible.</span>
     <span class='ident'>ReadCopy</span>,
 }
 
@@ -897,13 +910,14 @@
 
 <span class='doccomment'>/// A memory-mapped buffer.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// A file-backed `Mmap` buffer may be used to read or write data to a file. Use `Mmap::open(..)` to</span>
-<span class='doccomment'>/// create a file-backed memory map. An anonymous `Mmap` buffer may be used any place that an</span>
-<span class='doccomment'>/// in-memory byte buffer is needed, and gives the added features of a memory map. Use</span>
-<span class='doccomment'>/// `Mmap::anonymous(..)` to create an anonymous memory map.</span>
+<span class='doccomment'>/// A file-backed `Mmap` buffer may be used to read or write data to a file. Use</span>
+<span class='doccomment'>/// `Mmap::open(..)` to create a file-backed memory map. An anonymous `Mmap`</span>
+<span class='doccomment'>/// buffer may be used any place that an in-memory byte buffer is needed, and</span>
+<span class='doccomment'>/// gives the added features of a memory map. Use `Mmap::anonymous(..)` to</span>
+<span class='doccomment'>/// create an anonymous memory map.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Changes written to a memory-mapped file are not guaranteed to be durable until the memory map is</span>
-<span class='doccomment'>/// flushed, or it is dropped.</span>
+<span class='doccomment'>/// Changes written to a memory-mapped file are not guaranteed to be durable</span>
+<span class='doccomment'>/// until the memory map is flushed, or it is dropped.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// ```</span>
 <span class='doccomment'>/// use std::io::Write;</span>
@@ -925,8 +939,8 @@
 
     <span class='doccomment'>/// Opens a file-backed memory map.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The file must be opened with read permissions, and write permissions if the supplied</span>
-    <span class='doccomment'>/// protection is `ReadWrite`. The file must not be empty.</span>
+    <span class='doccomment'>/// The file must be opened with read permissions, and write permissions if</span>
+    <span class='doccomment'>/// the supplied protection is `ReadWrite`. The file must not be empty.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>open</span>(<span class='ident'>file</span>: <span class='kw-2'>&amp;</span><span class='ident'>File</span>, <span class='ident'>prot</span>: <span class='ident'>Protection</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Mmap</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>file</span>.<span class='ident'>metadata</span>()).<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>usize</span>;
         <span class='ident'>MmapInner</span>::<span class='ident'>open</span>(<span class='ident'>file</span>, <span class='ident'>prot</span>, <span class='number'>0</span>, <span class='ident'>len</span>).<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>inner</span><span class='op'>|</span> <span class='ident'>Mmap</span> { <span class='ident'>inner</span>: <span class='ident'>inner</span> })
@@ -944,8 +958,9 @@
 
     <span class='doccomment'>/// Opens a file-backed memory map with the specified offset and length.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The file must be opened with read permissions, and write permissions if the supplied</span>
-    <span class='doccomment'>/// protection is `ReadWrite`. The file must not be empty. The length must be greater than zero.</span>
+    <span class='doccomment'>/// The file must be opened with read permissions, and write permissions if</span>
+    <span class='doccomment'>/// the supplied protection is `ReadWrite`. The file must not be empty. The</span>
+    <span class='doccomment'>/// length must be greater than zero.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>open_with_offset</span>(<span class='ident'>file</span>: <span class='kw-2'>&amp;</span><span class='ident'>File</span>,
                             <span class='ident'>prot</span>: <span class='ident'>Protection</span>,
                             <span class='ident'>offset</span>: <span class='ident'>usize</span>,
@@ -971,9 +986,9 @@
 
     <span class='doccomment'>/// Flushes outstanding memory map modifications to disk.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a file-backed memory</span>
-    <span class='doccomment'>/// map are guaranteed to be durably stored. The file&#39;s metadata (including last modification</span>
-    <span class='doccomment'>/// timestamp) may not be updated.</span>
+    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a</span>
+    <span class='doccomment'>/// file-backed memory map are guaranteed to be durably stored. The file&#39;s</span>
+    <span class='doccomment'>/// metadata (including last modification timestamp) may not be updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span>();
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>flush</span>(<span class='number'>0</span>, <span class='ident'>len</span>)
@@ -981,9 +996,9 @@
 
     <span class='doccomment'>/// Asynchronously flushes outstanding memory map modifications to disk.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it will not wait</span>
-    <span class='doccomment'>/// for the operation to complete before returning. The file&#39;s metadata (including last</span>
-    <span class='doccomment'>/// modification timestamp) may not be updated.</span>
+    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it</span>
+    <span class='doccomment'>/// will not wait for the operation to complete before returning. The file&#39;s</span>
+    <span class='doccomment'>/// metadata (including last modification timestamp) may not be updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush_async</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span>();
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>flush_async</span>(<span class='number'>0</span>, <span class='ident'>len</span>)
@@ -993,24 +1008,27 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The offset and length must be in the bounds of the mmap.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a file-backed memory</span>
-    <span class='doccomment'>/// in the range are guaranteed to be durable stored. The file&#39;s metadata (including last</span>
-    <span class='doccomment'>/// modification timestamp) may not be updated. It is not guaranteed the only the changes in</span>
-    <span class='doccomment'>/// the specified range are flushed; other outstanding changes to the mmap may be flushed as</span>
-    <span class='doccomment'>/// well.</span>
+    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a</span>
+    <span class='doccomment'>/// file-backed memory in the range are guaranteed to be durable stored. The</span>
+    <span class='doccomment'>/// file&#39;s metadata (including last modification timestamp) may not be</span>
+    <span class='doccomment'>/// updated. It is not guaranteed the only the changes in the specified</span>
+    <span class='doccomment'>/// range are flushed; other outstanding changes to the mmap may be flushed</span>
+    <span class='doccomment'>/// as well.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush_range</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>offset</span>: <span class='ident'>usize</span>, <span class='ident'>len</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>flush</span>(<span class='ident'>offset</span>, <span class='ident'>len</span>)
     }
 
-    <span class='doccomment'>/// Asynchronously flushes outstanding memory map modifications in the range to disk.</span>
+    <span class='doccomment'>/// Asynchronously flushes outstanding memory map modifications in the range</span>
+    <span class='doccomment'>/// to disk.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The offset and length must be in the bounds of the mmap.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it will not wait</span>
-    <span class='doccomment'>/// for the operation to complete before returning. The file&#39;s metadata (including last</span>
-    <span class='doccomment'>/// modification timestamp) may not be updated. It is not guaranteed that the only changes</span>
-    <span class='doccomment'>/// flushed are those in the specified range; other outstanding changes to the mmap may be</span>
-    <span class='doccomment'>/// flushed as well.</span>
+    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it</span>
+    <span class='doccomment'>/// will not wait for the operation to complete before returning. The file&#39;s</span>
+    <span class='doccomment'>/// metadata (including last modification timestamp) may not be updated. It</span>
+    <span class='doccomment'>/// is not guaranteed that the only changes flushed are those in the</span>
+    <span class='doccomment'>/// specified range; other outstanding changes to the mmap may be flushed as</span>
+    <span class='doccomment'>/// well.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush_async_range</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>offset</span>: <span class='ident'>usize</span>, <span class='ident'>len</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>flush_async</span>(<span class='ident'>offset</span>, <span class='ident'>len</span>)
     }
@@ -1022,14 +1040,16 @@
 
     <span class='doccomment'>/// Returns a pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See `Mmap::as_slice` for invariants that must hold when dereferencing the pointer.</span>
+    <span class='doccomment'>/// See `Mmap::as_slice` for invariants that must hold when dereferencing</span>
+    <span class='doccomment'>/// the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>u8</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>ptr</span>()
     }
 
     <span class='doccomment'>/// Returns a pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See `Mmap::as_mut_slice` for invariants that must hold when dereferencing the pointer.</span>
+    <span class='doccomment'>/// See `Mmap::as_mut_slice` for invariants that must hold when</span>
+    <span class='doccomment'>/// dereferencing the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> {
         <span class='self'>self</span>.<span class='ident'>inner</span>.<span class='ident'>mut_ptr</span>()
     }
@@ -1089,7 +1109,7 @@
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>split_at</span>(<span class='self'>self</span>, <span class='ident'>offset</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>MmapView</span>, <span class='ident'>MmapView</span>)<span class='op'>&gt;</span> {
         <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>&lt;</span> <span class='ident'>offset</span> {
             <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>,
-                                      <span class='string'>&quot;mmap view split offset must be less than the view length&quot;</span>));
+                                  <span class='string'>&quot;mmap view split offset must be less than the view length&quot;</span>));
         }
         <span class='kw'>let</span> <span class='ident'>MmapView</span> { <span class='ident'>inner</span>, <span class='ident'>offset</span>: <span class='ident'>self_offset</span>, <span class='ident'>len</span>: <span class='ident'>self_len</span> } <span class='op'>=</span> <span class='self'>self</span>;
         <span class='prelude-val'>Ok</span>((<span class='ident'>MmapView</span> { <span class='ident'>inner</span>: <span class='ident'>inner</span>.<span class='ident'>clone</span>(),
@@ -1102,7 +1122,8 @@
 
     <span class='doccomment'>/// Restricts the range of the view to the provided offset and length.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The provided range must be a subset of the current range (`offset + len &lt; view.len()`).</span>
+    <span class='doccomment'>/// The provided range must be a subset of the current range</span>
+    <span class='doccomment'>/// (`offset + len &lt; view.len()`).</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>restrict</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>offset</span>: <span class='ident'>usize</span>, <span class='ident'>len</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>if</span> <span class='ident'>offset</span> <span class='op'>+</span> <span class='ident'>len</span> <span class='op'>&gt;</span> <span class='self'>self</span>.<span class='ident'>len</span> {
             <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>,
@@ -1136,20 +1157,21 @@
 
     <span class='doccomment'>/// Flushes outstanding view modifications to disk.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a file-backed memory</span>
-    <span class='doccomment'>/// map view are guaranteed to be durably stored. The file&#39;s metadata (including last</span>
-    <span class='doccomment'>/// modification timestamp) may not be updated.</span>
+    <span class='doccomment'>/// When this returns with a non-error result, all outstanding changes to a</span>
+    <span class='doccomment'>/// file-backed memory map view are guaranteed to be durably stored. The</span>
+    <span class='doccomment'>/// file&#39;s metadata (including last modification timestamp) may not be</span>
+    <span class='doccomment'>/// updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush_range</span>(<span class='self'>self</span>.<span class='ident'>offset</span>, <span class='self'>self</span>.<span class='ident'>len</span>)
     }
 
-    <span class='doccomment'>/// Asynchronously flushes outstanding memory map view modifications to disk.</span>
+    <span class='doccomment'>/// Asynchronously flushes outstanding memory map view modifications to</span>
+    <span class='doccomment'>/// disk.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it will not wait</span>
-    <span class='doccomment'>/// for the operation to complete before returning. The file&#39;s metadata (including last</span>
-    <span class='doccomment'>/// modification timestamp) may not be updated.</span>
+    <span class='doccomment'>/// This method initiates flushing modified pages to durable storage, but it</span>
+    <span class='doccomment'>/// will not wait for the operation to complete before returning. The file&#39;s</span>
+    <span class='doccomment'>/// metadata (including last modification timestamp) may not be updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush_async</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='comment'>// TODO: this should be restricted to flushing the view.</span>
         <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush_async_range</span>(<span class='self'>self</span>.<span class='ident'>offset</span>, <span class='self'>self</span>.<span class='ident'>len</span>)
     }
 
@@ -1158,16 +1180,18 @@
         <span class='self'>self</span>.<span class='ident'>len</span>
     }
 
-    <span class='doccomment'>/// Returns a pointer to the mapped mapped.</span>
+    <span class='doccomment'>/// Returns a shared pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See `Mmap::as_slice` for invariants that must hold when dereferencing the pointer.</span>
+    <span class='doccomment'>/// See `Mmap::as_slice` for invariants that must hold when dereferencing</span>
+    <span class='doccomment'>/// the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>u8</span> {
         <span class='kw'>unsafe</span> { <span class='self'>self</span>.<span class='ident'>inner</span>().<span class='ident'>ptr</span>().<span class='ident'>offset</span>(<span class='self'>self</span>.<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span>) }
     }
 
-    <span class='doccomment'>/// Returns a pointer to the mapped memory.</span>
+    <span class='doccomment'>/// Returns a mutable pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See `Mmap::as_mut_slice` for invariants that must hold when dereferencing the pointer.</span>
+    <span class='doccomment'>/// See `Mmap::as_mut_slice` for invariants that must hold when</span>
+    <span class='doccomment'>/// dereferencing the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> {
         <span class='kw'>unsafe</span> { <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>mut_ptr</span>().<span class='ident'>offset</span>(<span class='self'>self</span>.<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span>) }
     }
@@ -1260,8 +1284,7 @@
     <span class='doccomment'>/// map view are guaranteed to be durably stored. The file&#39;s metadata (including last</span>
     <span class='doccomment'>/// modification timestamp) may not be updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='comment'>// TODO: this should be restricted to flushing the view.</span>
-        <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush</span>()
+        <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush_range</span>(<span class='self'>self</span>.<span class='ident'>offset</span>, <span class='self'>self</span>.<span class='ident'>len</span>)
     }
 
     <span class='doccomment'>/// Asynchronously flushes outstanding memory map view modifications to disk.</span>
@@ -1270,8 +1293,7 @@
     <span class='doccomment'>/// for the operation to complete before returning. The file&#39;s metadata (including last</span>
     <span class='doccomment'>/// modification timestamp) may not be updated.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>flush_async</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='comment'>// TODO: this should be restricted to flushing the view.</span>
-        <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush_async</span>()
+        <span class='self'>self</span>.<span class='ident'>inner_mut</span>().<span class='ident'>flush_async_range</span>(<span class='self'>self</span>.<span class='ident'>offset</span>, <span class='self'>self</span>.<span class='ident'>len</span>)
     }
 
     <span class='doccomment'>/// Returns the length of the memory map view.</span>
@@ -1279,14 +1301,14 @@
         <span class='self'>self</span>.<span class='ident'>len</span>
     }
 
-    <span class='doccomment'>/// Returns a pointer to the mapped mapped.</span>
+    <span class='doccomment'>/// Returns a shared pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See `Mmap::as_slice` for invariants that must hold when dereferencing the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>u8</span> {
         <span class='kw'>unsafe</span> { <span class='self'>self</span>.<span class='ident'>inner</span>().<span class='ident'>ptr</span>().<span class='ident'>offset</span>(<span class='self'>self</span>.<span class='ident'>offset</span> <span class='kw'>as</span> <span class='ident'>isize</span>) }
     }
 
-    <span class='doccomment'>/// Returns a pointer to the mapped memory.</span>
+    <span class='doccomment'>/// Returns a mutable pointer to the mapped memory.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See `Mmap::as_mut_slice` for invariants that must hold when dereferencing the pointer.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> {

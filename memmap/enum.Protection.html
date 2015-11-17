@@ -45,22 +45,24 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-79' class='srclink' href='../src/memmap/lib.rs.html#28-41' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-80' class='srclink' href='../src/memmap/lib.rs.html#29-43' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum Protection {
     Read,
     ReadWrite,
     ReadCopy,
 }</pre><div class='docblock'><p>Memory map protection.</p>
 
-<p>Determines how a memory map may be used. If the memory map is backed by a file, then the file
-must have permissions corresponding to the operations the protection level allows.</p>
+<p>Determines how a memory map may be used. If the memory map is backed by a
+file, then the file must have permissions corresponding to the operations
+the protection level allows.</p>
 </div><h2 class='variants'>Variants</h2>
 <table><tr><td id='variant.Read'><code>Read</code></td><td><div class='docblock'><p>A read-only memory map. Writes to the memory map will result in a panic.</p>
-</div></td></tr><tr><td id='variant.ReadWrite'><code>ReadWrite</code></td><td><div class='docblock'><p>A read-write memory map. Writes to the memory map will be reflected in the file after a
-call to <code>Mmap::flush</code> or after the <code>Mmap</code> is dropped.</p>
-</div></td></tr><tr><td id='variant.ReadCopy'><code>ReadCopy</code></td><td><div class='docblock'><p>A read, copy-on-write memory map. Writes to the memory map will not be carried through to
-the underlying file. It is unspecified whether changes made to the file after the memory map
-is created will be visible.</p>
+</div></td></tr><tr><td id='variant.ReadWrite'><code>ReadWrite</code></td><td><div class='docblock'><p>A read-write memory map. Writes to the memory map will be reflected in
+the file after a call to <code>Mmap::flush</code> or after the <code>Mmap</code> is dropped.</p>
+</div></td></tr><tr><td id='variant.ReadCopy'><code>ReadCopy</code></td><td><div class='docblock'><p>A read, copy-on-write memory map. Writes to the memory map will not be
+carried through to the underlying file. It is unspecified whether
+changes made to the file after the memory map is created will be
+visible.</p>
 </div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='enum' href='../memmap/enum.Protection.html' title='memmap::Protection'>Protection</a></code></h3><div class='impl-items'><h4 id='method.write' class='method'><code>fn <a href='#method.write' class='fnname'>write</a>(self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns <code>true</code> if the <code>Protection</code> is writable.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='enum' href='../memmap/enum.Protection.html' title='memmap::Protection'>Protection</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='enum' href='../memmap/enum.Protection.html' title='memmap::Protection'>Protection</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../memmap/enum.Protection.html' title='memmap::Protection'>Protection</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>

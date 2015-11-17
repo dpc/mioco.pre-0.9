@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/libc-0.2.0/src/unix/notbsd/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/libc-0.2.1/src/unix/notbsd/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -418,6 +418,20 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>dox</span>::<span class='ident'>mem</span>;
 
@@ -492,6 +506,20 @@
 
     <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>fd_set</span> {
         <span class='ident'>fds_bits</span>: [::<span class='ident'>c_ulong</span>; <span class='ident'>FD_SETSIZE</span> <span class='op'>/</span> <span class='ident'>ULONG_SIZE</span>],
+    }
+
+    <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>tm</span> {
+        <span class='kw'>pub</span> <span class='ident'>tm_sec</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_min</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_hour</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_mday</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_mon</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_year</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_wday</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_yday</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_isdst</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_gmtoff</span>: ::<span class='ident'>c_long</span>,
+        <span class='kw'>pub</span> <span class='ident'>tm_zone</span>: <span class='op'>*</span><span class='kw'>const</span> ::<span class='ident'>c_char</span>,
     }
 }
 
