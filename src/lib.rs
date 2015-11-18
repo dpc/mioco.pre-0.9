@@ -74,7 +74,7 @@ use std::cell::RefCell;
 use std::rc::{Rc};
 use std::io;
 use std::thread;
-use std::mem::{transmute, size_of_val};
+use std::mem::{self, transmute, size_of_val};
 use std::raw::TraitObject;
 
 use std::boxed::FnBox;
@@ -213,6 +213,8 @@ impl ExitStatus {
 enum State {
     /// Blocked on RW
     BlockedOn(RW),
+    /// Need to unregister EventSource
+    UnregisterdEventSource(EventSourceId),
     /// Currently running
     Running,
     /// Ready to be started
@@ -250,6 +252,14 @@ impl State {
     fn is_blocked(&self) -> bool {
         match *self {
             State::BlockedOn(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Is the `State` `UnregisterdEventSource`?
+    fn is_unregister_eventsource(&self) -> bool {
+        match *self {
+            State::UnregisterdEventSource(_) => true,
             _ => false,
         }
     }
@@ -719,7 +729,21 @@ impl CoroutineControl {
         let shared = self.rc.borrow().shared.clone();
         let is_ready = shared.borrow().state.is_ready();
         if is_ready {
-            coroutine_jump_in(&shared);
+            loop {
+                coroutine_jump_in(&shared);
+                let state = shared.borrow().state.clone();
+                if let State::UnregisterdEventSource(index) = state {
+                    let io = &self.rc.borrow().io;
+                    let io = io.get(index.as_usize()).unwrap();
+                    io.borrow_mut().deregister(event_loop);
+                    let mut shared = shared.borrow_mut();
+                    shared.registered.set(index.as_usize(), false);
+                    shared.blocked_on.set(index.as_usize(), false);
+                    shared.state = State::Ready;
+                } else {
+                    break;
+                }
+            }
             self.to_slab_handle().after_resume(event_loop);
         } else {
             panic!("Tried to resume Coroutine that is not ready");
@@ -829,7 +853,7 @@ impl Coroutine {
 
             let coroutine = Coroutine {
                 shared: Rc::new(RefCell::new(shared)),
-                io: Slab::new(1024), // TODO: Need growing Slab, so cheaper to create
+                io: Slab::new(4),
                 children_to_start: Vec::new(),
                 stack: Stack::new(stack_size),
                 coroutine_func: Some(Box::new(f)),
@@ -1067,7 +1091,10 @@ fn entry_point(coroutine_shared : &RefCell<CoroutineShared>) {
 
 /// Block coroutine execution, jumping out of it
 fn coroutine_jump_out(coroutine_shared : &RefCell<CoroutineShared>) {
-    debug_assert!(coroutine_shared.borrow().state.is_blocked());
+    {
+        let state = &coroutine_shared.borrow().state;
+        debug_assert!(state.is_blocked() || state.is_unregister_eventsource());
+    }
 
     // See `resume()` for unsafe comment
     let (context_in, context_out) = {
@@ -1512,6 +1539,11 @@ impl<'a> MiocoHandle<'a> {
 
             let co_shared = self.coroutine.shared.clone();
 
+            if !io.has_remaining() {
+                let count = io.count();
+                io.grow(count);
+            }
+
             let index = io.insert_with(|index| {
                 let io_new = {
                     Rc::new(RefCell::new(
@@ -1549,6 +1581,37 @@ impl<'a> MiocoHandle<'a> {
             _t: PhantomData,
         }
     }
+
+    /// Deregister `mio`'s native io type from owning `mioco` coroutine
+    ///
+    /// Consumes the wrapped `io`, returns the original `io`.
+    ///
+    /// This function is useful, when `EventSource<T>` was used in
+    /// one coroutine, and then needs to be moved to another.
+    pub fn unwrap<T : 'static>(&mut self, io : EventSource<T>) -> T
+        where T : Evented {
+            let index = io.inn.borrow().id;
+            let registered = io.inn.borrow().registered;
+
+            if registered {
+                let shared = &self.coroutine.shared;
+                shared.borrow_mut().state = State::UnregisterdEventSource(index);
+                coroutine_jump_out(&shared);
+                debug_assert!(!io.inn.borrow().registered);
+            }
+
+            drop(io);
+            let io = self.coroutine.io.remove(index.as_usize()).unwrap();
+
+            let EventSourceShared {
+                mut io,
+                ..
+            } = Rc::try_unwrap(io).ok().unwrap().into_inner();
+
+            let raw_io = io.as_any_mut().downcast_mut::<T>().unwrap() as *mut T;
+            mem::forget(io);
+            unsafe {*Box::from_raw(raw_io) }
+        }
 
     /// Get number of threads of the Mioco instance that coroutine is
     /// running in.

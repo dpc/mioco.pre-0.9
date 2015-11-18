@@ -672,3 +672,55 @@ fn simple_yield() {
         assert!(*finished_ok.lock().unwrap());
     }
 }
+
+#[test]
+fn simple_unwrap() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_copy = finished_ok.clone();
+        start_threads(threads, move |mioco| {
+            let (reader, writer) = try!(mio::unix::pipe());
+
+            mioco.spawn(move |mioco| {
+
+                let reader = mioco.wrap(reader);
+                let reader = mioco.unwrap(reader);
+
+                mioco.spawn(move |mioco| {
+
+                    let reader = mioco.wrap(reader);
+                    mioco.select_read_from(&[reader.id()]);
+                    let reader = mioco.unwrap(reader);
+
+                    mioco.spawn(move |mioco| {
+
+                        let mut reader = mioco.wrap(reader);
+                        let mut buf = [0u8, 8];
+                        let _ = reader.read(&mut buf);
+                        let _ = mioco.unwrap(reader);
+
+                        let mut lock = finished_copy.lock().unwrap();
+                        *lock = true;
+                        Ok(())
+                    });
+                    Ok(())
+                });
+                Ok(())
+            });
+
+            let mut writer = mioco.wrap(writer);
+            for _ in 0..100 {
+                match writer.write(b"x") {
+                    Err(_) => break,
+                    Ok(_) => {},
+                }
+            }
+            Ok(())
+
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
