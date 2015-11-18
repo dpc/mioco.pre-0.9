@@ -829,7 +829,7 @@ impl Coroutine {
 
             let coroutine = Coroutine {
                 shared: Rc::new(RefCell::new(shared)),
-                io: Slab::new(8),
+                io: Slab::new(1024), // TODO: Need growing Slab, so cheaper to create
                 children_to_start: Vec::new(),
                 stack: Stack::new(stack_size),
                 coroutine_func: Some(Box::new(f)),
