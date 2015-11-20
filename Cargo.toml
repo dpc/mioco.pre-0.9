@@ -31,7 +31,7 @@ libc = "^0.1.10"
 thread-scoped = "*"
 bit-vec = "*"
 context = "*"
-slab = "*"
+slab = { git = "https://github.com/dpc/slab" }
 
 [dev-dependencies]
 env_logger = "*"
