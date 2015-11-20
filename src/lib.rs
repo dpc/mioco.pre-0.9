@@ -482,7 +482,7 @@ pub struct Coroutine {
     stack: Stack,
 
     /// All event sources
-    io : slab::Slab<RcEventSourceShared, usize>,
+    io : Slab<RcEventSourceShared, EventSourceId>,
 
     /// Newly spawned `Coroutine`-es
     children_to_start : Vec<RcCoroutine>,
@@ -541,7 +541,7 @@ impl CoroutineSlabHandle {
         trace!("Coroutine({}): event", self.id().as_usize());
         let (should_resume, should_reregister) = {
             let coroutine = self.rc.borrow();
-            let io = coroutine.io.get(io_id.as_usize()).unwrap().clone();
+            let io = coroutine.io.get(io_id).unwrap().clone();
 
             if events.is_hup() {
                 io.borrow_mut().hup(event_loop, token);
@@ -734,7 +734,7 @@ impl CoroutineControl {
                 let state = shared.borrow().state.clone();
                 if let State::UnregisterdEventSource(index) = state {
                     let io = &self.rc.borrow().io;
-                    let io = io.get(index.as_usize()).unwrap();
+                    let io = io.get(index).unwrap();
                     io.borrow_mut().deregister(event_loop);
                     let mut shared = shared.borrow_mut();
                     shared.registered.set(index.as_usize(), false);
@@ -781,7 +781,7 @@ impl CoroutineControl {
             let handler_shared = co_shared.handler_shared.take();
             debug_assert!(co_shared.handler_shared.is_none());
             let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
-            handler_shared.coroutines.remove(Token(id.as_usize())).unwrap();
+            handler_shared.coroutines.remove(id).unwrap();
             handler_shared.senders[thread_id].clone()
         };
 
@@ -805,8 +805,6 @@ impl CoroutineControl {
 
         trace!("Coroutine({}): reattach in a new thread", self.id().as_usize());
         let _id = handler.shared.borrow_mut().coroutines.insert_with(|id| {
-            let id = CoroutineId(id.as_usize());
-
             let co = self.rc.borrow();
             let mut co_shared = co.shared.borrow_mut();
 
@@ -838,8 +836,6 @@ impl Coroutine {
         let stack_size = handler_shared.borrow().stack_size;
 
         let id = handler_shared.borrow_mut().coroutines.insert_with(|id| {
-            let id = CoroutineId(id.as_usize());
-
             let shared = CoroutineShared {
                 state: State::Ready,
                 id: id,
@@ -908,7 +904,7 @@ impl Coroutine {
                 co_shared.blocked_on.clear();
                 {
                     let mut handler_shared = co_shared.handler_shared.as_ref().unwrap().borrow_mut();
-                    handler_shared.coroutines.remove(Token(id.as_usize())).unwrap();
+                    handler_shared.coroutines.remove(id).unwrap();
                     handler_shared.coroutines_dec();
                 }
 
@@ -1022,7 +1018,7 @@ impl Coroutine {
                         let bit = bit_size - 1 - lz;
                         debug_assert!(bit < bit_size);
                         block &= !(1 << bit);
-                        let mut io = io[i + bit].borrow_mut();
+                        let mut io = io[EventSourceId(i + bit)].borrow_mut();
                         if registered_block & (1 << bit) != 0 {
                             debug_assert!(blocked_on_block & (1 << bit) == 0);
                             io.unreregister(event_loop);
@@ -1207,6 +1203,15 @@ impl EventSourceId {
     }
 }
 
+impl slab::Index for EventSourceId {
+    fn as_usize(&self) -> usize {
+        self.0
+    }
+    fn from_usize(i : usize) -> Self {
+        EventSourceId(i)
+    }
+}
+
 /// Id of a Coroutine used to enumerate them
 ///
 /// It's unique within a thread
@@ -1219,6 +1224,14 @@ impl CoroutineId {
     }
 }
 
+impl slab::Index for CoroutineId {
+    fn as_usize(&self) -> usize {
+        self.0
+    }
+    fn from_usize(i : usize) -> Self {
+        CoroutineId(i)
+    }
+}
 
 impl<T> EventSource<T>
 where T : Reflect+'static {
@@ -1431,7 +1444,7 @@ fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVe
 }
 
 fn select_impl_set_mask_rc_handles<'a>(
-    handles : SlabMutIter<'a, Rc<RefCell<EventSourceShared>>, usize>, blocked_on: &mut BitVec<usize>
+    handles : SlabMutIter<'a, Rc<RefCell<EventSourceShared>>, EventSourceId>, blocked_on: &mut BitVec<usize>
     ) {
     // TODO: https://github.com/contain-rs/bit-vec/pulls
     blocked_on.clear();
@@ -1551,7 +1564,7 @@ impl<'a> MiocoHandle<'a> {
                                 coroutine_shared: co_shared,
                                 io: Box::new(raw_io),
                                 peer_hup: false,
-                                id: EventSourceId(index),
+                                id: index,
                                 registered: false,
                             }
                             ))
@@ -1563,12 +1576,13 @@ impl<'a> MiocoHandle<'a> {
                     ..
                 } = *shared.borrow_mut();
 
-                if index >= blocked_on.len() {
+                let index_usize = index.as_usize();
+                if index_usize >= blocked_on.len() {
                     blocked_on.push(false);
                     registered.push(false);
                 } else {
-                    assert_eq!(blocked_on.get(index).unwrap(), false);
-                    assert_eq!(registered.get(index).unwrap(), false);
+                    assert_eq!(blocked_on.get(index_usize).unwrap(), false);
+                    assert_eq!(registered.get(index_usize).unwrap(), false);
                 }
 
                 io_new
@@ -1601,7 +1615,7 @@ impl<'a> MiocoHandle<'a> {
             }
 
             drop(io);
-            let io = self.coroutine.io.remove(index.as_usize()).unwrap();
+            let io = self.coroutine.io.remove(index).unwrap();
 
             let EventSourceShared {
                 mut io,
@@ -1836,7 +1850,7 @@ impl HandlerThreadShared {
 struct HandlerShared {
     /// Slab allocator
     /// TODO: dynamically growing slab would be better; or a fast hashmap?
-    coroutines : Slab<CoroutineSlabHandle, Token>,
+    coroutines : slab::Slab<CoroutineSlabHandle, CoroutineId>,
 
     /// Context saved when jumping into coroutine
     context : Context,
@@ -2086,7 +2100,7 @@ impl mio::Handler for Handler {
         let (co_id, _) = token_to_ids(token);
         let co = {
             let shared = self.shared.borrow();
-            match shared.coroutines.get(Token(co_id.as_usize())).as_ref() {
+            match shared.coroutines.get(co_id).as_ref() {
                 Some(&co) => co.clone(),
                 None => {
                     trace!("Handler::ready() ignored");
