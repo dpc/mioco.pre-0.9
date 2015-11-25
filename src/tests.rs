@@ -1,6 +1,5 @@
 use super::*;
 
-use std;
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
