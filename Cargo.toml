@@ -35,3 +35,4 @@ slab = { git = "https://github.com/dpc/slab" }
 
 [dev-dependencies]
 env_logger = "*"
+httparse = "*"
