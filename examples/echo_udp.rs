@@ -2,7 +2,6 @@ extern crate mioco;
 extern crate env_logger;
 
 use std::net::{SocketAddr, SocketAddrV4};
-use mioco::mio::buf::{MutSliceBuf, SliceBuf};
 use mioco::mio::udp::{UdpSocket};
 use mioco::mio::Ipv4Addr;
 
@@ -26,8 +25,8 @@ fn main() {
 
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let addr = try!(sock.read(&mut MutSliceBuf::wrap(&mut buf)));
-                    try!(sock.write(&mut SliceBuf::wrap(&buf), &addr));
+                    let (len, addr) = try!(sock.read(&mut buf));
+                    try!(sock.write(&mut buf[0..len], &addr));
                 }
             });
         }

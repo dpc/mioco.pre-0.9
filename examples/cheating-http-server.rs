@@ -4,7 +4,7 @@ extern crate env_logger;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::Write;
-use mioco::mio::tcp::{TcpSocket};
+use mioco::mio::tcp::TcpListener;
 
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
 
@@ -22,19 +22,17 @@ fn main() {
     env_logger::init().unwrap();
     let addr = listend_addr();
 
-    let sock = TcpSocket::v4().unwrap();
-    sock.bind(&addr).unwrap();
-    let sock = sock.listen(1024).unwrap();
+    let listener = TcpListener::bind(&addr).unwrap();
 
-    println!("Starting \"cheating\" http server on {:?}", sock.local_addr().unwrap());
+    println!("Starting \"cheating\" http server on {:?}", listener.local_addr().unwrap());
 
     mioco::start(move |mioco| {
         for _ in 0..mioco.thread_num() {
-            let sock = try!(sock.try_clone());
+            let listener = try!(listener.try_clone());
             mioco.spawn(move |mioco| {
-                let sock = mioco.wrap(sock);
+                let listener = mioco.wrap(listener);
                 loop {
-                    let conn = try!(sock.accept());
+                    let conn = try!(listener.accept());
                     mioco.spawn(move |mioco| {
                         let mut conn = mioco.wrap(conn);
                         loop {

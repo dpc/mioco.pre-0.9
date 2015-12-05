@@ -84,7 +84,6 @@ use mio::udp::{UdpSocket};
 use std::net::SocketAddr;
 use std::any::Any;
 use std::marker::{PhantomData, Reflect};
-use mio::buf::{Buf, MutBuf};
 
 use std::collections::VecDeque;
 use spin::Mutex;
@@ -302,7 +301,7 @@ where T : mio::Evented+Reflect+'static {
 
     fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
         trace!("Evented({}): register", token.as_usize());
-        event_loop.register_opt(
+        event_loop.register(
             self, token,
             interest,
             mio::PollOpt::edge(),
@@ -1374,12 +1373,12 @@ where T : TryWrite+Reflect+'static {
 
 impl EventSource<UdpSocket> {
     /// Try to read without blocking
-    pub fn try_read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<Option<SocketAddr>> {
+    pub fn try_read(&mut self, buf: &mut [u8]) -> std::io::Result<Option<(usize, SocketAddr)>> {
         self.io().recv_from(buf)
     }
 
     /// Block on read
-    pub fn read<B: MutBuf>(&mut self, buf: &mut B) -> std::io::Result<SocketAddr> {
+    pub fn read(&mut self, buf: &mut [u8]) -> std::io::Result<(usize, SocketAddr)> {
         loop {
             let res = self.io().recv_from(buf);
 
@@ -1398,12 +1397,12 @@ impl EventSource<UdpSocket> {
     }
 
     /// Try to read without blocking
-    pub fn try_write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<Option<()>> {
+    pub fn try_write(&mut self, buf: &mut [u8], target : &SocketAddr) -> std::io::Result<Option<(usize)>> {
         self.io().send_to(buf, target)
     }
 
     /// Block on write
-    pub fn write<B: Buf>(&mut self, buf: &mut B, target : &SocketAddr) -> std::io::Result<()> {
+    pub fn write(&mut self, buf: &[u8], target : &SocketAddr) -> std::io::Result<(usize)> {
         loop {
             let res = self.io().send_to(buf, target);
 
@@ -2181,7 +2180,7 @@ impl Mioco {
             let mut event_loops = VecDeque::new();
             let mut senders = Vec::new();
             for _ in 0..self.config.thread_num {
-                let event_loop = EventLoop::configured(self.config.event_loop_config).expect("new EventLoop");
+                let event_loop = EventLoop::configured(self.config.event_loop_config.clone()).expect("new EventLoop");
                 senders.push(event_loop.channel());
                 event_loops.push_back(event_loop);
             }
