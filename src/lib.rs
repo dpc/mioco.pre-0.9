@@ -1653,6 +1653,11 @@ impl<'a> MiocoHandle<'a> {
     }
 
     /// Block coroutine for a given time
+    ///
+    /// Warning: The precision of this call (and other `timer()` like
+    /// functionality) is limited by `mio` event loop settings. Any small
+    /// value of `time_ms` will effectively be rounded up to
+    /// `mio::EventLoop::timer_tick_ms()`.
     pub fn sleep(&mut self, time_ms : i64) {
         let prev_timeout = self.timer().get_timeout_absolute();
         self.timer().set_timeout(time_ms);
