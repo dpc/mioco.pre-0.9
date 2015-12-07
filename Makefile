@@ -10,13 +10,13 @@ default: $(DEFAULT_TARGET)
 
 # Mostly generic part goes below
 
+ALL_TARGETS += build $(EXAMPLES) test doc
 ifneq ($(RELEASE),)
 $(info RELEASE BUILD)
 CARGO_FLAGS += --release
-ALL_TARGETS += build test bench $(EXAMPLES)
+ALL_TARGETS += bench
 else
 $(info DEBUG BUILD; use `RELEASE=true make [args]` for release build)
-ALL_TARGETS += build $(EXAMPLES) test
 endif
 
 EXAMPLES = $(shell cd examples 2>/dev/null && ls *.rs 2>/dev/null | sed -e 's/.rs$$//g' )
