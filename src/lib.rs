@@ -2182,32 +2182,43 @@ impl Mioco {
             }
 
             let sched = self.config.scheduler.spawn_thread();
-            self.spawn_thread(0, Some(f), sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
+            let first_event_loop = event_loops.pop_front().unwrap();
+
             for i in 1..self.config.thread_num {
                 let sched = self.config.scheduler.spawn_thread();
-                self.spawn_thread::<F>(i, None, sched, event_loops.pop_front().unwrap(), senders.clone(), thread_shared.clone());
+
+                let stack_size = self.config.stack_size;
+                let event_loop = event_loops.pop_front().unwrap();
+                let senders = senders.clone();
+                let thread_shared = thread_shared.clone();
+                let join = std::thread::Builder::new().name(format!("mioco_thread_{}", i)).spawn(move || {
+                    Mioco::thread_loop::<F>(None, sched, event_loop, senders, thread_shared, stack_size);
+                });
+
+                match join {
+                    Ok(join) => self.join_handles.push(join),
+                    Err(err) => panic!("Couldn't spawn thread: {}", err),
+                }
             }
+
+            Mioco::thread_loop(Some(f), sched, first_event_loop, senders, thread_shared, self.config.stack_size);
 
             for join in self.join_handles.drain(..) {
                 let _ = join.join(); // TODO: Do something with it
             }
         }
 
-    fn spawn_thread<F>(
-        &mut self,
-        thread_i : usize,
+    fn thread_loop<F>(
         f : Option<F>,
         mut scheduler : Box<SchedulerThread+'static>,
         mut event_loop : EventLoop<Handler>,
         senders : Vec<MioSender>,
         thread_shared : ArcHandlerThreadShared,
+        stack_size: usize,
         )
         where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
               F : Send
     {
-
-        let stack_size = self.config.stack_size;
-        let join = std::thread::Builder::new().name(format!("mioco_thread_{}", thread_i)).spawn(move || {
             let handler_shared = HandlerShared::new(senders, thread_shared, stack_size);
             let shared = Rc::new(RefCell::new(handler_shared));
             if let Some(f) = f {
@@ -2223,12 +2234,6 @@ impl Mioco {
             handler.shared.borrow().wait_for_start_all();
             handler.deliver_to_scheduler(&mut event_loop);
             event_loop.run(&mut handler).unwrap();
-        });
-
-        match join {
-            Ok(join) => self.join_handles.push(join),
-            Err(err) => panic!("Couldn't spawn thread: {}", err),
-        }
     }
 }
 
