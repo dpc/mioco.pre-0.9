@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.4.4/src/event.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-4cff9b923cdd6ec7/43fa7380502b79fe69585d7beb38220c389af67c/src/event.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>event.rs.html -- source</title>
@@ -340,7 +340,6 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>token</span>::<span class='ident'>Token</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>fmt</span>, <span class='ident'>ops</span>};
@@ -620,9 +619,8 @@
     }
 }
 
-
 <span class='comment'>// Keep this struct internal to mio</span>
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Copy</span>, <span class='ident'>Clone</span>, <span class='ident'>Debug</span>)]</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Copy</span>, <span class='ident'>Clone</span>, <span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>, <span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IoEvent</span> {
     <span class='kw'>pub</span> <span class='ident'>kind</span>: <span class='ident'>EventSet</span>,
     <span class='kw'>pub</span> <span class='ident'>token</span>: <span class='ident'>Token</span>

@@ -46,11 +46,28 @@
                 [<span class='inner'>&#x2212;</span>]
             </a>
         </span><a id='src-0' class='srclink' href='../src/bytes/lib.rs.html#1-54' title='goto source code'>[src]</a></span></h1>
-<h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use buf::{<a class='trait' href='../bytes/buf/trait.Buf.html' title='bytes::buf::Buf'>Buf</a>, <a class='trait' href='../bytes/buf/trait.BufExt.html' title='bytes::buf::BufExt'>BufExt</a>, <a class='trait' href='../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a>, <a class='trait' href='../bytes/buf/trait.MutBufExt.html' title='bytes::buf::MutBufExt'>MutBufExt</a>, <a class='trait' href='../bytes/buf/trait.Source.html' title='bytes::buf::Source'>Source</a>, <a class='trait' href='../bytes/buf/trait.Sink.html' title='bytes::buf::Sink'>Sink</a>};</code></td></tr><tr><td><code>pub use str::{<a class='trait' href='../bytes/str/trait.ByteStr.html' title='bytes::str::ByteStr'>ByteStr</a>, <a class='trait' href='../bytes/str/trait.ToBytes.html' title='bytes::str::ToBytes'>ToBytes</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='mod' href='alloc/index.html'
                                title='bytes::alloc'>alloc</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='mod' href='buf/index.html'
+                               title='bytes::buf'>buf</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='mod' href='str/index.html'
+                               title='bytes::str'>str</a></td>
                         <td class='docblock short'>
                              
                         </td>
@@ -183,80 +200,6 @@ represented as a tree whose leaf nodes are each a <code>Bytes</code> value.</p>
                     <tr class=' module-item'>
                         <td><a class='enum' href='enum.BufError.html'
                                title='bytes::BufError'>BufError</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Buf.html'
-                               title='bytes::Buf'>Buf</a></td>
-                        <td class='docblock short'>
-                             <p>A trait for values that provide sequential read access to bytes.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.BufExt.html'
-                               title='bytes::BufExt'>BufExt</a></td>
-                        <td class='docblock short'>
-                             <p>An extension trait providing extra functions applicable to all <code>Buf</code> values.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.ByteStr.html'
-                               title='bytes::ByteStr'>ByteStr</a></td>
-                        <td class='docblock short'>
-                             <p>An immutable sequence of bytes. Operations will not mutate the original
-value. Since only immutable access is permitted, operations do not require
-copying (though, sometimes copying will happen as an optimization).</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.MutBuf.html'
-                               title='bytes::MutBuf'>MutBuf</a></td>
-                        <td class='docblock short'>
-                             <p>A trait for values that provide sequential write access to bytes.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.MutBufExt.html'
-                               title='bytes::MutBufExt'>MutBufExt</a></td>
-                        <td class='docblock short'>
-                             <p>An extension trait providing extra functions applicable to all <code>MutBuf</code> values.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Sink.html'
-                               title='bytes::Sink'>Sink</a></td>
-                        <td class='docblock short'>
-                             <p>A value that reads bytes from a Buf into itself</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Source.html'
-                               title='bytes::Source'>Source</a></td>
-                        <td class='docblock short'>
-                             <p>A value that writes bytes from itself into a <code>MutBuf</code>.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.ToBytes.html'
-                               title='bytes::ToBytes'>ToBytes</a></td>
                         <td class='docblock short'>
                              
                         </td>

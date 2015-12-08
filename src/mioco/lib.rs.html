@@ -2618,9 +2618,6 @@
 <span id="2576">2576</span>
 <span id="2577">2577</span>
 <span id="2578">2578</span>
-<span id="2579">2579</span>
-<span id="2580">2580</span>
-<span id="2581">2581</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2663,7 +2660,7 @@ extern crate env_logger;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::{Read, Write};
-use mioco::mio::tcp::{TcpSocket};
+use mioco::mio::tcp::TcpListener;
 
 const DEFAULT_LISTEN_ADDR : &amp;&#39;static str = &quot;127.0.0.1:5555&quot;;
 
@@ -2677,16 +2674,14 @@ fn main() {
     mioco::start(move |mioco| {
         let addr = listend_addr();
 
-        let sock = try!(TcpSocket::v4());
-        try!(sock.bind(&amp;addr));
-        let sock = try!(sock.listen(1024));
+        let listener = TcpListener::bind(&amp;addr).unwrap();
 
-        println!(&quot;Starting tcp echo server on {:?}&quot;, sock.local_addr().unwrap());
+        println!(&quot;Starting tcp echo server on {:?}&quot;, listener.local_addr().unwrap());
 
-        let sock = mioco.wrap(sock);
+        let listener = mioco.wrap(listener);
 
         loop {
-            let conn = try!(sock.accept());
+            let conn = try!(listener.accept());
 
             mioco.spawn(move |mioco| {
                 let mut conn = mioco.wrap(conn);
@@ -2756,7 +2751,6 @@ fn main() {
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>marker</span>::{<span class='ident'>PhantomData</span>, <span class='ident'>Reflect</span>};
-<span class='kw'>use</span> <span class='ident'>mio</span>::<span class='ident'>buf</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>};
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>VecDeque</span>;
 <span class='kw'>use</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>;
@@ -2974,7 +2968,7 @@ fn main() {
 
     <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span> : <span class='ident'>Token</span>, <span class='ident'>interest</span> : <span class='ident'>EventSet</span>) {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Evented({}): register&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
-        <span class='ident'>event_loop</span>.<span class='ident'>register_opt</span>(
+        <span class='ident'>event_loop</span>.<span class='ident'>register</span>(
             <span class='self'>self</span>, <span class='ident'>token</span>,
             <span class='ident'>interest</span>,
             <span class='ident'>mio</span>::<span class='ident'>PollOpt</span>::<span class='ident'>edge</span>(),
@@ -4046,12 +4040,12 @@ fn main() {
 
 <span class='kw'>impl</span> <span class='ident'>EventSource</span><span class='op'>&lt;</span><span class='ident'>UdpSocket</span><span class='op'>&gt;</span> {
     <span class='doccomment'>/// Try to read without blocking</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_read</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>recv_from</span>(<span class='ident'>buf</span>)
     }
 
     <span class='doccomment'>/// Block on read</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>recv_from</span>(<span class='ident'>buf</span>);
 
@@ -4070,12 +4064,12 @@ fn main() {
     }
 
     <span class='doccomment'>/// Try to read without blocking</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_write</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>], <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>)<span class='op'>&gt;&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>send_to</span>(<span class='ident'>buf</span>, <span class='ident'>target</span>)
     }
 
     <span class='doccomment'>/// Block on write</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>write</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>], <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>)<span class='op'>&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>io</span>().<span class='ident'>send_to</span>(<span class='ident'>buf</span>, <span class='ident'>target</span>);
 
@@ -4853,7 +4847,7 @@ fn main() {
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>event_loops</span> <span class='op'>=</span> <span class='ident'>VecDeque</span>::<span class='ident'>new</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>senders</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
             <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>thread_num</span> {
-                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>configured</span>(<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>event_loop_config</span>).<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
+                <span class='kw'>let</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>configured</span>(<span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>event_loop_config</span>.<span class='ident'>clone</span>()).<span class='ident'>expect</span>(<span class='string'>&quot;new EventLoop&quot;</span>);
                 <span class='ident'>senders</span>.<span class='ident'>push</span>(<span class='ident'>event_loop</span>.<span class='ident'>channel</span>());
                 <span class='ident'>event_loops</span>.<span class='ident'>push_back</span>(<span class='ident'>event_loop</span>);
             }

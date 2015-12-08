@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.4.4/src/timer.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-4cff9b923cdd6ec7/43fa7380502b79fe69585d7beb38220c389af67c/src/timer.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>timer.rs.html -- source</title>
@@ -516,6 +516,10 @@
 <span id="474">474</span>
 <span id="475">475</span>
 <span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>token</span>::<span class='ident'>Token</span>;
 <span class='kw'>use</span> <span class='ident'>util</span>::<span class='ident'>Slab</span>;
@@ -584,15 +588,19 @@
     }
 
     <span class='comment'>// Number of ms remaining until the next tick</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>next_tick_in_ms</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>u64</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>next_tick_in_ms</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u64</span><span class='op'>&gt;</span> {
+        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>entries</span>.<span class='ident'>count</span>() <span class='op'>==</span> <span class='number'>0</span> {
+            <span class='kw'>return</span> <span class='prelude-val'>None</span>;
+        }
+
         <span class='kw'>let</span> <span class='ident'>now</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>now_ms</span>();
         <span class='kw'>let</span> <span class='ident'>nxt</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>start</span> <span class='op'>+</span> (<span class='self'>self</span>.<span class='ident'>tick</span> <span class='op'>+</span> <span class='number'>1</span>) <span class='op'>*</span> <span class='self'>self</span>.<span class='ident'>tick_ms</span>;
 
         <span class='kw'>if</span> <span class='ident'>nxt</span> <span class='op'>&lt;=</span> <span class='ident'>now</span> {
-            <span class='kw'>return</span> <span class='number'>0</span>;
+            <span class='kw'>return</span> <span class='prelude-val'>Some</span>(<span class='number'>0</span>);
         }
 
-        <span class='ident'>nxt</span> <span class='op'>-</span> <span class='ident'>now</span>
+        <span class='prelude-val'>Some</span>(<span class='ident'>nxt</span> <span class='op'>-</span> <span class='ident'>now</span>)
     }
 
     <span class='comment'>/*

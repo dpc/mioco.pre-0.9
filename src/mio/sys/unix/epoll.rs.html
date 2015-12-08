@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.4.4/src/sys/unix/epoll.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-4cff9b923cdd6ec7/43fa7380502b79fe69585d7beb38220c389af67c/src/sys/unix/epoll.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>epoll.rs.html -- source</title>
@@ -199,33 +199,65 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>io</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>event</span>::<span class='ident'>IoEvent</span>;
 <span class='kw'>use</span> <span class='ident'>nix</span>::<span class='ident'>sys</span>::<span class='ident'>epoll</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>nix</span>::<span class='ident'>unistd</span>::<span class='ident'>close</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::<span class='ident'>RawFd</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_USIZE_INIT</span>};
+
+<span class='doccomment'>/// Each Selector has a globally unique(ish) ID associated with it. This ID</span>
+<span class='doccomment'>/// gets tracked by `TcpStream`, `TcpListener`, etc... when they are first</span>
+<span class='doccomment'>/// registered with the `Selector`. If a type that is previously associatd with</span>
+<span class='doccomment'>/// a `Selector` attempts to register itself with a different `Selector`, the</span>
+<span class='doccomment'>/// operation will return with an error. This matches windows behavior.</span>
+<span class='kw'>static</span> <span class='ident'>NEXT_ID</span>: <span class='ident'>AtomicUsize</span> <span class='op'>=</span> <span class='ident'>ATOMIC_USIZE_INIT</span>;
 
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Selector</span> {
+    <span class='ident'>id</span>: <span class='ident'>usize</span>,
     <span class='ident'>epfd</span>: <span class='ident'>RawFd</span>
 }
 
 <span class='kw'>impl</span> <span class='ident'>Selector</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Selector</span><span class='op'>&gt;</span> {
+        <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>NEXT_ID</span>.<span class='ident'>fetch_add</span>(<span class='number'>1</span>, <span class='ident'>Ordering</span>::<span class='ident'>Relaxed</span>);
         <span class='kw'>let</span> <span class='ident'>epfd</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>epoll_create</span>().<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>));
 
-        <span class='prelude-val'>Ok</span>(<span class='ident'>Selector</span> { <span class='ident'>epfd</span>: <span class='ident'>epfd</span> })
+        <span class='prelude-val'>Ok</span>(<span class='ident'>Selector</span> {
+            <span class='ident'>id</span>: <span class='ident'>id</span>,
+            <span class='ident'>epfd</span>: <span class='ident'>epfd</span>,
+        })
+    }
+
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>id</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
+        <span class='self'>self</span>.<span class='ident'>id</span>
     }
 
     <span class='doccomment'>/// Wait for events from the OS</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>evts</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Events</span>, <span class='ident'>timeout_ms</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-        <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>isize</span>, <span class='ident'>slice</span>};
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>evts</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Events</span>, <span class='ident'>timeout_ms</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+        <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>cmp</span>, <span class='ident'>i32</span>, <span class='ident'>slice</span>};
 
-        <span class='kw'>let</span> <span class='ident'>timeout_ms</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>timeout_ms</span> <span class='op'>&gt;=</span> <span class='ident'>isize</span>::<span class='ident'>MAX</span> <span class='kw'>as</span> <span class='ident'>usize</span> {
-            <span class='ident'>isize</span>::<span class='ident'>MAX</span>
-        } <span class='kw'>else</span> {
-            <span class='ident'>timeout_ms</span> <span class='kw'>as</span> <span class='ident'>isize</span>
+        <span class='kw'>let</span> <span class='ident'>timeout_ms</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>timeout_ms</span> {
+            <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> <span class='op'>-</span><span class='number'>1</span> <span class='kw'>as</span> <span class='ident'>i32</span>,
+            <span class='prelude-val'>Some</span>(<span class='ident'>x</span>) <span class='op'>=&gt;</span> <span class='ident'>cmp</span>::<span class='ident'>min</span>(<span class='ident'>i32</span>::<span class='ident'>MAX</span> <span class='kw'>as</span> <span class='ident'>usize</span>, <span class='ident'>x</span>) <span class='kw'>as</span> <span class='ident'>i32</span>,
         };
 
         <span class='kw'>let</span> <span class='ident'>dst</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
@@ -235,7 +267,7 @@
         };
 
         <span class='comment'>// Wait for epoll events for at most timeout_ms milliseconds</span>
-        <span class='kw'>let</span> <span class='ident'>cnt</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>epoll_wait</span>(<span class='self'>self</span>.<span class='ident'>epfd</span>, <span class='ident'>dst</span>, <span class='ident'>timeout_ms</span>)
+        <span class='kw'>let</span> <span class='ident'>cnt</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>epoll_wait</span>(<span class='self'>self</span>.<span class='ident'>epfd</span>, <span class='ident'>dst</span>, <span class='ident'>timeout_ms</span> <span class='kw'>as</span> <span class='ident'>isize</span>)
                            .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>));
 
         <span class='kw'>unsafe</span> { <span class='ident'>evts</span>.<span class='ident'>events</span>.<span class='ident'>set_len</span>(<span class='ident'>cnt</span>); }

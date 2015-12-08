@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mio/lib.rs.html#1-175' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mio/lib.rs.html#1-182' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>A fast, low-level IO library for Rust focusing on non-blocking APIs, event
 notification, and other useful utilities for building high performance IO
 apps.</p>
@@ -82,13 +82,15 @@ handles receiving events from the OS and dispatching them to a supplied
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>event_loop</span> <span class='op'>=</span> <span class='ident'>EventLoop</span>::<span class='ident'>new</span>().<span class='ident'>unwrap</span>();
 
 <span class='comment'>// Start listening for incoming connections</span>
-<span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='ident'>server</span>, <span class='ident'>SERVER</span>).<span class='ident'>unwrap</span>();
+<span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='ident'>server</span>, <span class='ident'>SERVER</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>(),
+                    <span class='ident'>PollOpt</span>::<span class='ident'>edge</span>()).<span class='ident'>unwrap</span>();
 
 <span class='comment'>// Setup the client socket</span>
 <span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='ident'>TcpStream</span>::<span class='ident'>connect</span>(<span class='kw-2'>&amp;</span><span class='ident'>addr</span>).<span class='ident'>unwrap</span>();
 
 <span class='comment'>// Register the socket</span>
-<span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='ident'>sock</span>, <span class='ident'>CLIENT</span>).<span class='ident'>unwrap</span>();
+<span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='ident'>sock</span>, <span class='ident'>CLIENT</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>(),
+                    <span class='ident'>PollOpt</span>::<span class='ident'>edge</span>()).<span class='ident'>unwrap</span>();
 
 <span class='comment'>// Define a handler to process the events</span>
 <span class='kw'>struct</span> <span class='ident'>MyHandler</span>(<span class='ident'>TcpListener</span>);
@@ -120,14 +122,6 @@ handles receiving events from the OS and dispatching them to a supplied
 </pre>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='buf/index.html'
-                               title='mio::buf'>buf</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
                     <tr class=' module-item'>
                         <td><a class='mod' href='prelude/index.html'
                                title='mio::prelude'>prelude</a></td>
@@ -197,8 +191,24 @@ handles receiving events from the OS and dispatching them to a supplied
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='struct' href='struct.Events.html'
+                               title='mio::Events'>Events</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.Io.html'
                                title='mio::Io'>Io</a></td>
+                        <td class='docblock short'>
+                             
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.IoEvent.html'
+                               title='mio::IoEvent'>IoEvent</a></td>
                         <td class='docblock short'>
                              
                         </td>
@@ -299,15 +309,6 @@ handles receiving events from the OS and dispatching them to a supplied
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Buf.html'
-                               title='mio::Buf'>Buf</a></td>
-                        <td class='docblock short'>
-                             <p>A trait for values that provide sequential read access to bytes.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
                         <td><a class='trait' href='trait.Evented.html'
                                title='mio::Evented'>Evented</a></td>
                         <td class='docblock short'>
@@ -321,15 +322,6 @@ handles receiving events from the OS and dispatching them to a supplied
                                title='mio::Handler'>Handler</a></td>
                         <td class='docblock short'>
                              
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.MutBuf.html'
-                               title='mio::MutBuf'>MutBuf</a></td>
-                        <td class='docblock short'>
-                             <p>A trait for values that provide sequential write access to bytes.</p>
-
                         </td>
                     </tr>
                 

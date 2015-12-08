@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-392' class='srclink' href='../../src/mio/event_loop.rs.html#38-44' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-428' class='srclink' href='../../src/mio/event_loop.rs.html#76-82' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct EventLoop&lt;H: <a class='trait' href='../../mio/trait.Handler.html' title='mio::Handler'>Handler</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Single threaded IO event loop.</p>
@@ -86,7 +86,7 @@ thread-safe way, waking up the event loop if needed.</p>
 <h1 id='implementation-details' class='section-header'><a href='#implementation-details'>Implementation Details</a></h1>
 <p>Each <a href="#">EventLoop</a> contains a lock-free queue with a pre-allocated
 buffer size. The size can be changed by modifying
-<a href="struct.EventLoopConfig.html#structfield.notify_capacity">EventLoopConfig.notify_capacity</a>.
+<a href="struct.EventLoopConfig.html#method.notify_capacity">EventLoopConfig.notify_capacity</a>.
 When a message is sent to the EventLoop, it is first pushed on to the
 queue. Then, if the EventLoop is currently running, an atomic flag is
 set to indicate that the next loop iteration should be started without
@@ -136,9 +136,7 @@ current iteration.</p>
 </div><h4 id='method.is_running' class='method'><code>fn <a href='#method.is_running' class='fnname'>is_running</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Indicates whether the event loop is currently running. If it&#39;s not it has either
 stopped or is scheduled to stop on the next tick.</p>
-</div><h4 id='method.register' class='method'><code>fn <a href='#method.register' class='fnname'>register</a>&lt;E: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;mut self, io: &amp;E, token: <a class='struct' href='../../mio/struct.Token.html' title='mio::Token'>Token</a>) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; <span class='where'>where E: <a class='trait' href='../../mio/trait.Evented.html' title='mio::Evented'>Evented</a></span></code></h4>
-<div class='docblock'><p>Registers an IO handle with the event loop.</p>
-</div><h4 id='method.register_opt' class='method'><code>fn <a href='#method.register_opt' class='fnname'>register_opt</a>&lt;E: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;mut self, io: &amp;E, token: <a class='struct' href='../../mio/struct.Token.html' title='mio::Token'>Token</a>, interest: <a class='struct' href='../../mio/struct.EventSet.html' title='mio::EventSet'>EventSet</a>, opt: <a class='struct' href='../../mio/struct.PollOpt.html' title='mio::PollOpt'>PollOpt</a>) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; <span class='where'>where E: <a class='trait' href='../../mio/trait.Evented.html' title='mio::Evented'>Evented</a></span></code></h4>
+</div><h4 id='method.register' class='method'><code>fn <a href='#method.register' class='fnname'>register</a>&lt;E: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;mut self, io: &amp;E, token: <a class='struct' href='../../mio/struct.Token.html' title='mio::Token'>Token</a>, interest: <a class='struct' href='../../mio/struct.EventSet.html' title='mio::EventSet'>EventSet</a>, opt: <a class='struct' href='../../mio/struct.PollOpt.html' title='mio::PollOpt'>PollOpt</a>) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; <span class='where'>where E: <a class='trait' href='../../mio/trait.Evented.html' title='mio::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Registers an IO handle with the event loop.</p>
 </div><h4 id='method.reregister' class='method'><code>fn <a href='#method.reregister' class='fnname'>reregister</a>&lt;E: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;mut self, io: &amp;E, token: <a class='struct' href='../../mio/struct.Token.html' title='mio::Token'>Token</a>, interest: <a class='struct' href='../../mio/struct.EventSet.html' title='mio::EventSet'>EventSet</a>, opt: <a class='struct' href='../../mio/struct.PollOpt.html' title='mio::PollOpt'>PollOpt</a>) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; <span class='where'>where E: <a class='trait' href='../../mio/trait.Evented.html' title='mio::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Re-Registers an IO handle with the event loop.</p>
@@ -147,7 +145,7 @@ stopped or is scheduled to stop on the next tick.</p>
 any of the registered handles are ready.</p>
 </div><h4 id='method.deregister' class='method'><code>fn <a href='#method.deregister' class='fnname'>deregister</a>&lt;E: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;mut self, io: &amp;E) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; <span class='where'>where E: <a class='trait' href='../../mio/trait.Evented.html' title='mio::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Deregisters an IO handle with the event loop.</p>
-</div><h4 id='method.run_once' class='method'><code>fn <a href='#method.run_once' class='fnname'>run_once</a>(&amp;mut self, handler: &amp;mut H) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+</div><h4 id='method.run_once' class='method'><code>fn <a href='#method.run_once' class='fnname'>run_once</a>(&amp;mut self, handler: &amp;mut H, timeout_ms: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;) -&gt; <a class='type' href='../../std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
 <div class='docblock'><p>Spin the event loop once, with a timeout of one second, and notify the
 handler if any of the registered handles become ready during that
 time.</p>

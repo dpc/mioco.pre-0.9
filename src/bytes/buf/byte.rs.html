@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/bytes-0.2.11/src/buf/byte.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/bytes-0.3.0/src/buf/byte.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>byte.rs.html -- source</title>
@@ -369,10 +369,28 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>alloc</span>, <span class='ident'>Bytes</span>, <span class='ident'>SeqByteStr</span>, <span class='ident'>MAX_CAPACITY</span>};
 <span class='kw'>use</span> <span class='ident'>traits</span>::{<span class='ident'>Buf</span>, <span class='ident'>MutBuf</span>, <span class='ident'>MutBufExt</span>, <span class='ident'>ByteStr</span>};
-<span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>cmp</span>, <span class='ident'>ptr</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>cmp</span>, <span class='ident'>fmt</span>, <span class='ident'>ptr</span>};
 
 <span class='comment'>/*
  *
@@ -560,6 +578,12 @@
     }
 }
 
+<span class='kw'>impl</span> <span class='ident'>fmt</span>::<span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>ByteBuf</span> {
+    <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>fmt</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
+        <span class='self'>self</span>.<span class='ident'>bytes</span>().<span class='ident'>fmt</span>(<span class='ident'>fmt</span>)
+    }
+}
+
 <span class='comment'>/*
  *
  * ===== ROByteBuf =====
@@ -626,6 +650,12 @@
     }
 }
 
+<span class='kw'>impl</span> <span class='ident'>fmt</span>::<span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>ROByteBuf</span> {
+    <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>fmt</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
+        <span class='self'>self</span>.<span class='ident'>bytes</span>().<span class='ident'>fmt</span>(<span class='ident'>fmt</span>)
+    }
+}
+
 <span class='comment'>/*
  *
  * ===== MutByteBuf =====
@@ -689,14 +719,20 @@
         <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>remaining</span>()
     }
 
-    <span class='kw'>fn</span> <span class='ident'>advance</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>cnt</span>: <span class='ident'>usize</span>) {
+    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>advance</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>cnt</span>: <span class='ident'>usize</span>) {
         <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>advance</span>(<span class='ident'>cnt</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>mut_bytes</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>u8</span>] {
+    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>mut_bytes</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>u8</span>] {
         <span class='kw'>let</span> <span class='ident'>pos</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>pos</span>();
         <span class='kw'>let</span> <span class='ident'>lim</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>lim</span>();
         <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>buf</span>.<span class='ident'>mem</span>.<span class='ident'>bytes_mut</span>()[<span class='ident'>pos</span>..<span class='ident'>lim</span>]
+    }
+}
+
+<span class='kw'>impl</span> <span class='ident'>fmt</span>::<span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>MutByteBuf</span> {
+    <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>fmt</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
+        <span class='self'>self</span>.<span class='ident'>bytes</span>().<span class='ident'>fmt</span>(<span class='ident'>fmt</span>)
     }
 }
 </pre>
