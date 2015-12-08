@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.1/src/sys/mman.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/nix-0.4.2/src/sys/mman.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mman.rs.html -- source</title>
@@ -302,6 +302,8 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Error</span>, <span class='prelude-ty'>Result</span>, <span class='ident'>NixPath</span>};
 <span class='kw'>use</span> <span class='ident'>errno</span>::<span class='ident'>Errno</span>;
@@ -418,7 +420,7 @@
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_FAILED</span>: <span class='ident'>isize</span>               <span class='op'>=</span> <span class='op'>-</span><span class='number'>1</span>;
 }
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>))]</span>
 <span class='kw'>mod</span> <span class='ident'>consts</span> {
     <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 
@@ -432,6 +434,8 @@
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_NORESERVE</span>: <span class='ident'>MmapFlag</span>       <span class='op'>=</span> <span class='number'>0x00040</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_HASSEMAPHORE</span>: <span class='ident'>MmapFlag</span>    <span class='op'>=</span> <span class='number'>0x00200</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_STACK</span>: <span class='ident'>MmapFlag</span>           <span class='op'>=</span> <span class='number'>0x00400</span>;
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>)]</span>
+    <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_WIRED</span>: <span class='ident'>MmapFlag</span>           <span class='op'>=</span> <span class='number'>0x00800</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_NOSYNC</span>: <span class='ident'>MmapFlag</span>          <span class='op'>=</span> <span class='number'>0x00800</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_FILE</span>: <span class='ident'>MmapFlag</span>            <span class='op'>=</span> <span class='number'>0x00000</span>;
     <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_ANON</span>: <span class='ident'>MmapFlag</span>            <span class='op'>=</span> <span class='number'>0x01000</span>;
@@ -625,6 +629,6 @@
     <script src="../../../jquery.js"></script>
     <script src="../../../main.js"></script>
     
-    <script async src="../../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>

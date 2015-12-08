@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/libc-0.2.1/src/unix/notbsd/linux/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/libc-0.2.2/src/unix/notbsd/linux/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -355,6 +355,25 @@
 <span id="313">313</span>
 <span id="314">314</span>
 <span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Linux-specific definitions for linux-like values</span>
 
@@ -367,6 +386,8 @@
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>off64_t</span> <span class='op'>=</span> <span class='ident'>i64</span>;
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>blkcnt64_t</span> <span class='op'>=</span> <span class='ident'>i64</span>;
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>rlim64_t</span> <span class='op'>=</span> <span class='ident'>u64</span>;
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>fsblkcnt_t</span> <span class='op'>=</span> ::<span class='ident'>c_ulong</span>;
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>fsfilcnt_t</span> <span class='op'>=</span> ::<span class='ident'>c_ulong</span>;
 
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>fpos64_t</span> {} <span class='comment'>// TODO: fill this out with a struct</span>
 
@@ -456,6 +477,23 @@
         <span class='kw'>pub</span> <span class='ident'>pw_gecos</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>c_char</span>,
         <span class='kw'>pub</span> <span class='ident'>pw_dir</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>c_char</span>,
         <span class='kw'>pub</span> <span class='ident'>pw_shell</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>c_char</span>,
+    }
+
+    <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>statvfs</span> {
+        <span class='kw'>pub</span> <span class='ident'>f_bsize</span>: ::<span class='ident'>c_ulong</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_frsize</span>: ::<span class='ident'>c_ulong</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_blocks</span>: ::<span class='ident'>fsblkcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_bfree</span>: ::<span class='ident'>fsblkcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_bavail</span>: ::<span class='ident'>fsblkcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_files</span>: ::<span class='ident'>fsfilcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_ffree</span>: ::<span class='ident'>fsfilcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_favail</span>: ::<span class='ident'>fsfilcnt_t</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_fsid</span>: ::<span class='ident'>c_ulong</span>,
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_pointer_width</span> <span class='op'>=</span> <span class='string'>&quot;32&quot;</span>)]</span>
+        <span class='kw'>pub</span> <span class='ident'>__f_unused</span>: ::<span class='ident'>c_int</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_flag</span>: ::<span class='ident'>c_ulong</span>,
+        <span class='kw'>pub</span> <span class='ident'>f_namemax</span>: ::<span class='ident'>c_ulong</span>,
+        <span class='ident'>__f_spare</span>: [::<span class='ident'>c_int</span>; <span class='number'>6</span>],
     }
 }
 
@@ -576,6 +614,18 @@
 <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_TLOCK</span>: ::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>2</span>;
 <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>F_ULOCK</span>: ::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0</span>;
 
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_RDONLY</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>1</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_NOSUID</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>2</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_NODEV</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>4</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_NOEXEC</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>8</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_SYNCHRONOUS</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>16</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_MANDLOCK</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>64</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_WRITE</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>128</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_APPEND</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>256</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_IMMUTABLE</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>512</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_NOATIME</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>1024</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>ST_NODIRATIME</span>: ::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='number'>2048</span>;
+
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>))]</span>
 <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>MAP_32BIT</span>: ::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x0040</span>;
 
@@ -639,36 +689,24 @@
                     <span class='ident'>offset</span>: ::<span class='ident'>off64_t</span>,
                     <span class='ident'>whence</span>: ::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ftello64</span>(<span class='ident'>stream</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>FILE</span>) <span class='op'>-&gt;</span> ::<span class='ident'>off64_t</span>;
-}
-
-<span class='macro'>cfg_if</span><span class='macro'>!</span> {
-    <span class='kw'>if</span> <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_env</span> <span class='op'>=</span> <span class='string'>&quot;musl&quot;</span>))]</span> {
-        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>PTHREAD_STACK_MIN</span>: ::<span class='ident'>size_t</span> <span class='op'>=</span> <span class='number'>2048</span>;
-    } <span class='kw'>else</span> <span class='kw'>if</span> <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;arm&quot;</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>,
-                        <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>))]</span> {
-        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>PTHREAD_STACK_MIN</span>: ::<span class='ident'>size_t</span> <span class='op'>=</span> <span class='number'>16384</span>;
-    } <span class='kw'>else</span> {
-        <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>PTHREAD_STACK_MIN</span>: ::<span class='ident'>size_t</span> <span class='op'>=</span> <span class='number'>131072</span>;
-    }
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>fallocate</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>mode</span>: ::<span class='ident'>c_int</span>,
+                     <span class='ident'>offset</span>: ::<span class='ident'>off_t</span>, <span class='ident'>len</span>: ::<span class='ident'>off_t</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>posix_fallocate</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>offset</span>: ::<span class='ident'>off_t</span>,
+                           <span class='ident'>len</span>: ::<span class='ident'>off_t</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>readahead</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>offset</span>: ::<span class='ident'>off64_t</span>,
+                     <span class='ident'>count</span>: ::<span class='ident'>size_t</span>) <span class='op'>-&gt;</span> ::<span class='ident'>ssize_t</span>;
 }
 
 <span class='macro'>cfg_if</span><span class='macro'>!</span> {
     <span class='kw'>if</span> <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_env</span> <span class='op'>=</span> <span class='string'>&quot;musl&quot;</span>)]</span> {
         <span class='kw'>mod</span> <span class='ident'>musl</span>;
         <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>musl</span>::<span class='op'>*</span>;
-    } <span class='kw'>else</span> {
-        <span class='kw'>mod</span> <span class='ident'>notmusl</span>;
-        <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>notmusl</span>::<span class='op'>*</span>;
-    }
-}
-
-<span class='macro'>cfg_if</span><span class='macro'>!</span> {
-    <span class='kw'>if</span> <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mips&quot;</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mipsel&quot;</span>))]</span> {
+    } <span class='kw'>else</span> <span class='kw'>if</span> <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mips&quot;</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mipsel&quot;</span>))]</span> {
         <span class='kw'>mod</span> <span class='ident'>mips</span>;
         <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>mips</span>::<span class='op'>*</span>;
     } <span class='kw'>else</span> {
-        <span class='kw'>mod</span> <span class='ident'>notmips</span>;
-        <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>notmips</span>::<span class='op'>*</span>;
+        <span class='kw'>mod</span> <span class='ident'>other</span>;
+        <span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>other</span>::<span class='op'>*</span>;
     }
 }
 </pre>
@@ -731,6 +769,6 @@
     <script src="../../../../../jquery.js"></script>
     <script src="../../../../../main.js"></script>
     
-    <script async src="../../../../../search-index.js"></script>
+    <script defer src="../../../../../search-index.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/libc-0.2.1/src/unix/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/libc-0.2.2/src/unix/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -619,6 +619,8 @@
 <span id="577">577</span>
 <span id="578">578</span>
 <span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Definitions found commonly among almost all Unix derivatives</span>
 <span class='doccomment'>//!</span>
@@ -1180,6 +1182,8 @@
                   <span class='ident'>whence</span>: ::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>ftello</span>(<span class='ident'>stream</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>FILE</span>) <span class='op'>-&gt;</span> ::<span class='ident'>off_t</span>;
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>timegm</span>(<span class='ident'>tm</span>: <span class='op'>*</span><span class='kw-2'>mut</span> ::<span class='ident'>tm</span>) <span class='op'>-&gt;</span> <span class='ident'>time_t</span>;
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>statvfs</span>(<span class='ident'>path</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_char</span>, <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>statvfs</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>fstatvfs</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>statvfs</span>) <span class='op'>-&gt;</span> ::<span class='ident'>c_int</span>;
 }
 
 <span class='macro'>cfg_if</span><span class='macro'>!</span> {
@@ -1259,6 +1263,6 @@
     <script src="../../../jquery.js"></script>
     <script src="../../../main.js"></script>
     
-    <script async src="../../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>

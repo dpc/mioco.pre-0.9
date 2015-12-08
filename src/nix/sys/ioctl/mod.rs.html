@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.1/src/sys/ioctl/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/nix-0.4.2/src/sys/ioctl/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -182,6 +182,11 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Provide helpers for making ioctl system calls</span>
 <span class='doccomment'>//!</span>
@@ -304,6 +309,11 @@
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>mod</span> <span class='ident'>platform</span>;
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>)]</span>
+<span class='attribute'>#[<span class='ident'>path</span> <span class='op'>=</span> <span class='string'>&quot;platform/netbsd.rs&quot;</span>]</span>
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
+<span class='kw'>mod</span> <span class='ident'>platform</span>;
+
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>)]</span>
 <span class='attribute'>#[<span class='ident'>path</span> <span class='op'>=</span> <span class='string'>&quot;platform/openbsd.rs&quot;</span>]</span>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
@@ -385,6 +395,6 @@
     <script src="../../../../jquery.js"></script>
     <script src="../../../../main.js"></script>
     
-    <script async src="../../../../search-index.js"></script>
+    <script defer src="../../../../search-index.js"></script>
 </body>
 </html>

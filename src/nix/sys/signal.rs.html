@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/nix-0.4.1/src/sys/signal.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/nix-0.4.2/src/sys/signal.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>signal.rs.html -- source</title>
@@ -604,6 +604,7 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
+<span id="565">565</span>
 </pre><pre class='rust '>
 <span class='comment'>// Portions of this file are Copyright 2014 The Rust Project Developers.</span>
 <span class='comment'>// See http://rust-lang.org/COPYRIGHT.</span>
@@ -827,7 +828,8 @@
           <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>,
           <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>,
           <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>,
-          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>))]</span>
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>,
+          <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>))]</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>signal</span> {
     <span class='kw'>use</span> <span class='ident'>libc</span>;
 
@@ -880,7 +882,7 @@
     <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>sigset_t</span> {
         <span class='ident'>bits</span>: [<span class='ident'>u32</span>; <span class='number'>4</span>],
     }
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>)]</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>))]</span>
     <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
     <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Copy</span>)]</span>
     <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>sigset_t</span> {
@@ -930,7 +932,7 @@
         <span class='kw'>pub</span> <span class='ident'>sa_mask</span>: <span class='ident'>sigset_t</span>,
     }
 
-    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>)]</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>))]</span>
     <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
     <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>sigaction</span> {
         <span class='kw'>pub</span> <span class='ident'>sa_handler</span>: <span class='kw'>extern</span> <span class='kw'>fn</span>(<span class='ident'>libc</span>::<span class='ident'>c_int</span>),
@@ -1229,6 +1231,6 @@
     <script src="../../../jquery.js"></script>
     <script src="../../../main.js"></script>
     
-    <script async src="../../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>

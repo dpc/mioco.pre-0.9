@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-0a35038f75765ae4/libc-0.2.1/src/unix/notbsd/mod.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/libc-0.2.2/src/unix/notbsd/mod.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mod.rs.html -- source</title>
@@ -759,20 +759,20 @@
 <span class='macro'>f</span><span class='macro'>!</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>FD_CLR</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>set</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>fd_set</span>) <span class='op'>-&gt;</span> () {
         <span class='kw'>let</span> <span class='ident'>fd</span> <span class='op'>=</span> <span class='ident'>fd</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
-        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]);
+        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]) <span class='op'>*</span> <span class='number'>8</span>;
         (<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='ident'>fd</span> <span class='op'>/</span> <span class='ident'>size</span>] <span class='op'>&amp;=</span> <span class='op'>!</span>(<span class='number'>1</span> <span class='op'>&lt;&lt;</span> (<span class='ident'>fd</span> <span class='op'>%</span> <span class='ident'>size</span>));
         <span class='kw'>return</span>
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>FD_ISSET</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>set</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>fd_set</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>let</span> <span class='ident'>fd</span> <span class='op'>=</span> <span class='ident'>fd</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
-        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]);
+        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]) <span class='op'>*</span> <span class='number'>8</span>;
         <span class='kw'>return</span> ((<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='ident'>fd</span> <span class='op'>/</span> <span class='ident'>size</span>] <span class='kw-2'>&amp;</span> (<span class='number'>1</span> <span class='op'>&lt;&lt;</span> (<span class='ident'>fd</span> <span class='op'>%</span> <span class='ident'>size</span>))) <span class='op'>!=</span> <span class='number'>0</span>
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>FD_SET</span>(<span class='ident'>fd</span>: ::<span class='ident'>c_int</span>, <span class='ident'>set</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>fd_set</span>) <span class='op'>-&gt;</span> () {
         <span class='kw'>let</span> <span class='ident'>fd</span> <span class='op'>=</span> <span class='ident'>fd</span> <span class='kw'>as</span> <span class='ident'>usize</span>;
-        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]);
+        <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span>(<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='number'>0</span>]) <span class='op'>*</span> <span class='number'>8</span>;
         (<span class='op'>*</span><span class='ident'>set</span>).<span class='ident'>fds_bits</span>[<span class='ident'>fd</span> <span class='op'>/</span> <span class='ident'>size</span>] <span class='op'>|=</span> <span class='number'>1</span> <span class='op'>&lt;&lt;</span> (<span class='ident'>fd</span> <span class='op'>%</span> <span class='ident'>size</span>);
         <span class='kw'>return</span>
     }
@@ -885,6 +885,6 @@
     <script src="../../../../jquery.js"></script>
     <script src="../../../../main.js"></script>
     
-    <script async src="../../../../search-index.js"></script>
+    <script defer src="../../../../search-index.js"></script>
 </body>
 </html>

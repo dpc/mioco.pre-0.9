@@ -99,6 +99,11 @@ dereferencing the pointer.</p>
 
 <h2 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h2>
 <p>The caller must ensure that the file is not concurrently accessed.</p>
+</div><h4 id='method.clone' class='method'><code>unsafe fn <a href='#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../memmap/struct.MmapView.html' title='memmap::MmapView'>MmapView</a></code></h4>
+<div class='docblock'><p>Clones the view of the memory map.</p>
+
+<p>The underlying memory map is shared, and thus the caller must ensure that the memory
+underlying the view is not illegally aliased.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
 
@@ -158,6 +163,6 @@ dereferencing the pointer.</p>
     <script src="../jquery.js"></script>
     <script src="../main.js"></script>
     
-    <script async src="../search-index.js"></script>
+    <script defer src="../search-index.js"></script>
 </body>
 </html>

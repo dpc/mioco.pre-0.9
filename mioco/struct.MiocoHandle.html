@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-851' class='srclink' href='../src/mioco/lib.rs.html#1437-1441' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-872' class='srclink' href='../src/mioco/lib.rs.html#1478-1482' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MiocoHandle&lt;'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance handle</p>
@@ -68,11 +68,18 @@ coroutine when the result is available.</p>
 
 <p>TODO: find some wise people to confirm if this is sound
 TODO: use threadpool to prevent potential system starvation?</p>
-</div><h4 id='method.wrap' class='method'><code>fn <a href='#method.wrap' class='fnname'>wrap</a>&lt;T: 'static&gt;(&amp;mut self, io: T) -&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
+</div><h4 id='method.wrap' class='method'><code>fn <a href='#method.wrap' class='fnname'>wrap</a>&lt;T: 'static&gt;(&amp;mut self, raw_io: T) -&gt; <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
 <div class='docblock'><p>Register <code>mio</code>&#39;s native io type to be used within <code>mioco</code> coroutine</p>
 
 <p>Consumes the <code>io</code>, returns a mioco wrapper over it. Use this wrapped IO
 to perform IO.</p>
+</div><h4 id='method.unwrap' class='method'><code>fn <a href='#method.unwrap' class='fnname'>unwrap</a>&lt;T: 'static&gt;(&amp;mut self, io: <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt;) -&gt; T <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></code></h4>
+<div class='docblock'><p>Deregister <code>mio</code>&#39;s native io type from owning <code>mioco</code> coroutine</p>
+
+<p>Consumes the wrapped <code>io</code>, returns the original <code>io</code>.</p>
+
+<p>This function is useful, when <code>EventSource&lt;T&gt;</code> was used in
+one coroutine, and then needs to be moved to another.</p>
 </div><h4 id='method.thread_num' class='method'><code>fn <a href='#method.thread_num' class='fnname'>thread_num</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <div class='docblock'><p>Get number of threads of the Mioco instance that coroutine is
 running in.</p>
@@ -86,6 +93,11 @@ there is handling threads that can run them.</p>
 when it&#39;s timeout (see <code>set_timer()</code> ) expire.</p>
 </div><h4 id='method.sleep' class='method'><code>fn <a href='#method.sleep' class='fnname'>sleep</a>(&amp;mut self, time_ms: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
 <div class='docblock'><p>Block coroutine for a given time</p>
+
+<p>Warning: The precision of this call (and other <code>timer()</code> like
+functionality) is limited by <code>mio</code> event loop settings. Any small
+value of <code>time_ms</code> will effectively be rounded up to
+<code>mio::EventLoop::timer_tick_ms()</code>.</p>
 </div><h4 id='method.yield_now' class='method'><code>fn <a href='#method.yield_now' class='fnname'>yield_now</a>(&amp;mut self)</code></h4>
 <div class='docblock'><p>Yield coroutine execution</p>
 
@@ -186,6 +198,6 @@ See <code>MiocoHandle::select()</code>.</p>
     <script src="../jquery.js"></script>
     <script src="../main.js"></script>
     
-    <script async src="../search-index.js"></script>
+    <script defer src="../search-index.js"></script>
 </body>
 </html>
