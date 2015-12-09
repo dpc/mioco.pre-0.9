@@ -15,6 +15,39 @@
 </p>
 
 
+## Code snippet
+
+``` rust
+fn main() {
+    mioco::start(|| {
+        let addr = listend_addr();
+
+        let listener = TcpListener::bind(&addr).unwrap();
+
+        println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
+
+        let listener = mioco::wrap(listener);
+
+        loop {
+            let conn = try!(listener.accept());
+
+            mioco::spawn(|| {
+                let mut conn = mioco::wrap(conn);
+
+                let mut buf = [0u8; 1024 * 16];
+                loop {
+                    let size = try!(conn.read(&mut buf));
+                    if size == 0 {/* eof */ break; }
+                    try!(conn.write_all(&mut buf[0..size]))
+                }
+
+                Ok(())
+            });
+        }
+    });
+}
+```
+
 ## Introduction
 
 Scalable, coroutine-based, asynchronous IO handling library for Rust programming language.
