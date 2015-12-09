@@ -789,7 +789,14 @@ impl CoroutineControl {
         let handler_shared = handler.shared.clone();
 
         trace!("Coroutine({}): reattach in a new thread", self.id().as_usize());
-        let _id = handler.shared.borrow_mut().coroutines.insert_with(|id| {
+        let coroutines = &mut handler.shared.borrow_mut().coroutines;
+
+        if !coroutines.has_remaining() {
+            let count = coroutines.count();
+            coroutines.grow(count);
+        }
+
+        let _id = coroutines.insert_with(|id| {
             let mut co = self.rc.borrow_mut();
 
             co.id = id;
@@ -817,27 +824,36 @@ impl Coroutine {
         trace!("Coroutine: spawning");
         let stack_size = handler_shared.borrow().stack_size;
 
-        let id = handler_shared.borrow_mut().coroutines.insert_with(|id| {
-            let coroutine = Coroutine {
-                state: State::Ready,
-                id: id,
-                last_event: Event{ rw: RW::read(), id: EventSourceId(0)},
-                context: Context::empty(),
-                handler_shared: Some(handler_shared.clone()),
-                blocked_on: Default::default(),
-                exit_notificators: Vec::new(),
-                registered: Default::default(),
-                io: Slab::new(4),
-                children_to_start: Vec::new(),
-                stack: Stack::new(stack_size),
-                coroutine_func: Some(Box::new(f)),
-                self_rc: None,
-                timer: None,
-                sync_mailbox: None,
-            };
+        let id = {
+            let coroutines = &mut handler_shared.borrow_mut().coroutines;
 
-            CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
-        }).expect("Run out of slab for coroutines");
+            if !coroutines.has_remaining() {
+                let count = coroutines.count();
+                coroutines.grow(count);
+            }
+
+            coroutines.insert_with(|id| {
+                let coroutine = Coroutine {
+                    state: State::Ready,
+                    id: id,
+                    last_event: Event{ rw: RW::read(), id: EventSourceId(0)},
+                    context: Context::empty(),
+                    handler_shared: Some(handler_shared.clone()),
+                    blocked_on: Default::default(),
+                    exit_notificators: Vec::new(),
+                    registered: Default::default(),
+                    io: Slab::new(4),
+                    children_to_start: Vec::new(),
+                    stack: Stack::new(stack_size),
+                    coroutine_func: Some(Box::new(f)),
+                    self_rc: None,
+                    timer: None,
+                    sync_mailbox: None,
+                };
+
+                CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
+            }).expect("Run out of slab for coroutines")
+        };
         handler_shared.borrow_mut().coroutines_inc();
 
         let coroutine_rc = handler_shared.borrow().coroutines[id].rc.clone();
@@ -1844,7 +1860,6 @@ impl HandlerThreadShared {
 /// belonging to it.
 struct HandlerShared {
     /// Slab allocator
-    /// TODO: dynamically growing slab would be better; or a fast hashmap?
     coroutines : slab::Slab<CoroutineSlabHandle, CoroutineId>,
 
     /// Context saved when jumping into coroutine
@@ -1869,7 +1884,7 @@ struct HandlerShared {
 impl HandlerShared {
     fn new(senders : Vec<MioSender>, thread_shared : ArcHandlerThreadShared, stack_size : usize) -> Self {
         HandlerShared {
-            coroutines: Slab::new(32 * 1024),
+            coroutines: Slab::new(512),
             thread_shared: thread_shared,
             context: Context::empty(),
             senders: senders,
