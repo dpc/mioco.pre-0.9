@@ -1196,7 +1196,7 @@ impl<T> EventSource<T> {
 /// Id of an event source used to enumerate them
 ///
 /// It's unique within coroutine of an event source, but not globally.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct EventSourceId(usize);
 
 impl EventSourceId {
@@ -1264,13 +1264,13 @@ where T : Reflect+'static {
 
     /// Access raw mio type
     pub fn with_raw<F, R>(&self, f : F) -> R
-        where F : Fn(&T) -> R {
+        where F : FnOnce(&T) -> R {
         f(self.io())
     }
 
     /// Access mutable raw mio type
     pub fn with_raw_mut<F, R>(&mut self, f : F) -> R
-        where F : Fn(&mut T) -> R {
+        where F : FnOnce(&mut T) -> R {
         f(self.io())
     }
 
@@ -1656,7 +1656,7 @@ pub fn thread_num() -> usize {
 /// Get mutable reference to a timer source io for this coroutine
 ///
 /// Each coroutine has one internal Timer source, that will become readable
-/// when it's timeout (see `set_timer()` ) expire.
+/// when it's timeout (see `set_timeout()` ) expire.
 pub fn timer() -> &'static mut EventSource<Timer> {
     let coroutine = tl_coroutine_current();
 
@@ -2425,7 +2425,7 @@ impl EventSource<Timer> {
 
     /// Set timeout for the timer
     ///
-    /// The timeout counts from the time `set_timer` is called.
+    /// The timeout counts from the time `set_timeout` is called.
     pub fn set_timeout(&mut self, delay_ms : i64) {
         self.with_raw_mut(
             |timer|
