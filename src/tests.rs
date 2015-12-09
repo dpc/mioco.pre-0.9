@@ -764,3 +764,32 @@ fn event_source_unwrap_on_drop() {
 
     assert!(*finished_ok.lock().unwrap());
 }
+
+#[ignore]
+#[test]
+fn million_coroutines() {
+    let mut config = mioco::Config::new();
+
+    unsafe { config.set_stack_size(1024 * 128); }
+
+    let mut mioco_server = mioco::Mioco::new_configured(config);
+
+    let finished_ok = Arc::new(Mutex::new(false));
+    let finished_copy = finished_ok.clone();
+
+    mioco_server.start(move || {
+        for _ in 0..50000 {
+            mioco::spawn(|| {
+                mioco::sleep(5000);
+                Ok(())
+            });
+        }
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
+
