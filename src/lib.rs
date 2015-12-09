@@ -1005,6 +1005,20 @@ impl Coroutine {
             *target = *src
         }
     }
+
+    fn unwrap_event_source<T>(&mut self, io : &mut EventSource<T>) -> RcEventSourceShared {
+        let index = io.inn.borrow().id;
+        let registered = io.inn.borrow().registered;
+
+        if registered {
+            self.state = State::UnregisterdEventSource(index);
+            coroutine_jump_out(&self.self_rc.as_ref().unwrap());
+            debug_assert!(!io.inn.borrow().registered);
+        }
+
+        io.unwrapped = true;
+        self.io.remove(index).unwrap()
+    }
 }
 
 /// Resume coroutine execution, jumping into it
@@ -1151,6 +1165,7 @@ impl EventSourceShared {
 /// `MiocoHandle::timer()`.
 #[derive(Clone)]
 pub struct EventSource<T> {
+    unwrapped : bool,
     inn : RcEventSourceShared,
     _t: PhantomData<T>,
 }
@@ -1393,6 +1408,14 @@ impl EventSource<UdpSocket> {
     }
 }
 
+impl<T> Drop for EventSource<T> {
+    fn drop(&mut self) {
+        if !self.unwrapped {
+            let coroutine = tl_coroutine_current();
+            coroutine.unwrap_event_source(self);
+        }
+    }
+}
 
 fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
     {
@@ -1573,6 +1596,7 @@ where T : Evented {
 
     EventSource {
         inn: coroutine.io[index.unwrap()].clone(),
+        unwrapped : false,
         _t: PhantomData,
     }
 }
@@ -1583,22 +1607,13 @@ where T : Evented {
 ///
 /// This function is useful, when `EventSource<T>` was used in
 /// one coroutine, and then needs to be moved to another.
-pub fn unwrap<T : 'static>(io : EventSource<T>) -> T
+pub fn unwrap<T : 'static>(mut event_source : EventSource<T>) -> T
 where T : Evented {
-
     let coroutine = tl_coroutine_current();
 
-    let index = io.inn.borrow().id;
-    let registered = io.inn.borrow().registered;
+    let io = coroutine.unwrap_event_source(&mut event_source);
 
-    if registered {
-        coroutine.state = State::UnregisterdEventSource(index);
-        coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-        debug_assert!(!io.inn.borrow().registered);
-    }
-
-    drop(io);
-    let io = coroutine.io.remove(index).unwrap();
+    drop(event_source);
 
     let EventSourceShared {
         mut io,
