@@ -741,3 +741,26 @@ fn spawn_as_start() {
 
     assert!(*finished_ok.lock().unwrap());
 }
+
+#[test]
+fn event_source_unwrap_on_drop() {
+
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    mioco::spawn(move || {
+        for _ in 0..100000 {
+
+            let (reader, writer) = try!(mioco::mio::unix::pipe());
+
+            let _reader = mioco::wrap(reader);
+            let _writer = mioco::wrap(writer);
+        }
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
