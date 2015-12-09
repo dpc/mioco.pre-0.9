@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2578' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2553' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -92,20 +92,20 @@
 <span class='kw'>fn</span> <span class='ident'>main</span>() {
     <span class='ident'>env_logger</span>::<span class='ident'>init</span>().<span class='ident'>unwrap</span>();
 
-    <span class='ident'>mioco</span>::<span class='ident'>start</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
+    <span class='ident'>mioco</span>::<span class='ident'>start</span>(<span class='kw'>move</span> <span class='op'>||</span> {
         <span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='ident'>listend_addr</span>();
 
         <span class='kw'>let</span> <span class='ident'>listener</span> <span class='op'>=</span> <span class='ident'>TcpListener</span>::<span class='ident'>bind</span>(<span class='kw-2'>&amp;</span><span class='ident'>addr</span>).<span class='ident'>unwrap</span>();
 
         <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Starting tcp echo server on {:?}&quot;</span>, <span class='ident'>listener</span>.<span class='ident'>local_addr</span>().<span class='ident'>unwrap</span>());
 
-        <span class='kw'>let</span> <span class='ident'>listener</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>listener</span>);
+        <span class='kw'>let</span> <span class='ident'>listener</span> <span class='op'>=</span> <span class='ident'>mioco</span>::<span class='ident'>wrap</span>(<span class='ident'>listener</span>);
 
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>listener</span>.<span class='ident'>accept</span>());
 
-            <span class='ident'>mioco</span>.<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>|</span><span class='ident'>mioco</span><span class='op'>|</span> {
-                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>mioco</span>.<span class='ident'>wrap</span>(<span class='ident'>conn</span>);
+            <span class='ident'>mioco</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>mioco</span>::<span class='ident'>wrap</span>(<span class='ident'>conn</span>);
 
                 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>16</span>];
                 <span class='kw'>loop</span> {
@@ -242,15 +242,6 @@
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.MiocoHandle.html'
-                               title='mioco::MiocoHandle'>MiocoHandle</a></td>
-                        <td class='docblock short'>
-                             <p>Mioco instance handle</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.Timer.html'
                                title='mioco::Timer'>Timer</a></td>
                         <td class='docblock short'>
@@ -317,6 +308,87 @@
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select.html'
+                               title='mioco::select'>select</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till an event is ready</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_from.html'
+                               title='mioco::select_from'>select_from</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till any event is ready on a set of Handles.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_read.html'
+                               title='mioco::select_read'>select_read</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till a read event is ready</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_read_from.html'
+                               title='mioco::select_read_from'>select_read_from</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till read event is ready on a set of Handles.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_write.html'
+                               title='mioco::select_write'>select_write</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till a read event is ready.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_write_from.html'
+                               title='mioco::select_write_from'>select_write_from</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till write event is ready on a set of Handles.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.sleep.html'
+                               title='mioco::sleep'>sleep</a></td>
+                        <td class='docblock short'>
+                             <p>Block coroutine for a given time</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.spawn.html'
+                               title='mioco::spawn'>spawn</a></td>
+                        <td class='docblock short'>
+                             <p>Spawn a <code>mioco</code> coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.spawn_ext.html'
+                               title='mioco::spawn_ext'>spawn_ext</a></td>
+                        <td class='docblock short'>
+                             <p>Spawn a <code>mioco</code> coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='fn' href='fn.start.html'
                                title='mioco::start'>start</a></td>
                         <td class='docblock short'>
@@ -331,6 +403,61 @@
                         <td class='docblock short'>
                              <p>Shorthand for creating new <code>Mioco</code> instance with a fixed number of
 threads and starting it right away.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.sync.html'
+                               title='mioco::sync'>sync</a></td>
+                        <td class='docblock short'>
+                             <p>Execute a block of synchronous operations</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.thread_num.html'
+                               title='mioco::thread_num'>thread_num</a></td>
+                        <td class='docblock short'>
+                             <p>Get number of threads of the Mioco instance that coroutine is
+running in.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.timer.html'
+                               title='mioco::timer'>timer</a></td>
+                        <td class='docblock short'>
+                             <p>Get mutable reference to a timer source io for this coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.unwrap.html'
+                               title='mioco::unwrap'>unwrap</a></td>
+                        <td class='docblock short'>
+                             <p>Deregister <code>mio</code>&#39;s native io type from owning <code>mioco</code> coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.wrap.html'
+                               title='mioco::wrap'>wrap</a></td>
+                        <td class='docblock short'>
+                             <p>Register <code>mio</code>&#39;s native io type to be used within <code>mioco</code> coroutine</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.yield_now.html'
+                               title='mioco::yield_now'>yield_now</a></td>
+                        <td class='docblock short'>
+                             <p>Yield coroutine execution</p>
 
                         </td>
                     </tr>
