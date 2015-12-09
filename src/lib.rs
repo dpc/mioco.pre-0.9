@@ -1264,13 +1264,13 @@ where T : Reflect+'static {
 
     /// Access raw mio type
     pub fn with_raw<F, R>(&self, f : F) -> R
-        where F : Fn(&T) -> R {
+        where F : FnOnce(&T) -> R {
         f(self.io())
     }
 
     /// Access mutable raw mio type
     pub fn with_raw_mut<F, R>(&mut self, f : F) -> R
-        where F : Fn(&mut T) -> R {
+        where F : FnOnce(&mut T) -> R {
         f(self.io())
     }
 
