@@ -1196,7 +1196,7 @@ impl<T> EventSource<T> {
 /// Id of an event source used to enumerate them
 ///
 /// It's unique within coroutine of an event source, but not globally.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct EventSourceId(usize);
 
 impl EventSourceId {
