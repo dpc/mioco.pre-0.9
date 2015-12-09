@@ -26,15 +26,15 @@ fn main() {
 
     println!("Starting \"cheating\" http server on {:?}", listener.local_addr().unwrap());
 
-    mioco::start(move |mioco| {
-        for _ in 0..mioco.thread_num() {
+    mioco::start(move || {
+        for _ in 0..mioco::thread_num() {
             let listener = try!(listener.try_clone());
-            mioco.spawn(move |mioco| {
-                let listener = mioco.wrap(listener);
+            mioco::spawn(move || {
+                let listener = mioco::wrap(listener);
                 loop {
                     let conn = try!(listener.accept());
-                    mioco.spawn(move |mioco| {
-                        let mut conn = mioco.wrap(conn);
+                    mioco::spawn(move || {
+                        let mut conn = mioco::wrap(conn);
                         loop {
                             let _ = try!(conn.write_all(&RESPONSE.as_bytes()));
                         }

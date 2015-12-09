@@ -1,4 +1,7 @@
-use super::*;
+
+mod mioco {
+    pub use super::super::*;
+}
 
 use std;
 use std::io::{Read, Write};
@@ -16,7 +19,7 @@ fn empty_handler() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |_| {
+        mioco::start_threads(threads, move || {
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
 
@@ -34,11 +37,11 @@ fn empty_subcoroutines() {
 
         let counter_copy = counter.clone();
 
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
             for _ in 0..512 {
                 let counter_subcopy = counter_copy.clone();
-                mioco.spawn(move |_| {
+                mioco::spawn(move || {
                     let mut lock = counter_subcopy.lock().unwrap();
                     *lock += 1;
 
@@ -61,7 +64,7 @@ fn contain_panics() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
-        start_threads(threads, move |_| {
+        mioco::start_threads(threads, move || {
             panic!()
         });
 
@@ -75,10 +78,10 @@ fn contain_panics_in_subcoroutines() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
             for _ in 0..512 {
-                mioco.spawn(|_| {
+                mioco::spawn(|| {
                     panic!()
                 });
             }
@@ -99,19 +102,19 @@ fn long_chain() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let (first_reader, first_writer) = try!(mio::unix::pipe());
+            let (first_reader, first_writer) = try!(mioco::mio::unix::pipe());
 
             let mut prev_reader = first_reader;
 
             // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
             for _ in 0..128 {
-                let (reader, writer) = try!(mio::unix::pipe());
+                let (reader, writer) = try!(mioco::mio::unix::pipe());
 
-                mioco.spawn(move |mioco| {
-                    let mut reader = mioco.wrap(prev_reader);
-                    let mut writer = mioco.wrap(writer);
+                mioco::spawn(move || {
+                    let mut reader = mioco::wrap(prev_reader);
+                    let mut writer = mioco::wrap(writer);
 
                     let _ = std::io::copy(&mut reader, &mut writer);
 
@@ -121,8 +124,8 @@ fn long_chain() {
                 prev_reader = reader;
             }
 
-            let mut first_writer = mioco.wrap(first_writer);
-            let mut last_reader = mioco.wrap(prev_reader);
+            let mut first_writer = mioco::wrap(first_writer);
+            let mut last_reader = mioco::wrap(prev_reader);
 
             for i in 0..9 {
                 let test_str = format!("TeSt{}", i);
@@ -152,29 +155,29 @@ fn lots_of_event_sources() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let (first_reader, first_writer) = try!(mio::unix::pipe());
+            let (first_reader, first_writer) = try!(mioco::mio::unix::pipe());
 
             let mut prev_reader = first_reader;
 
             // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
             for _ in 0..4 {
-                let (reader, writer) = try!(mio::unix::pipe());
+                let (reader, writer) = try!(mioco::mio::unix::pipe());
 
-                mioco.spawn(move |mioco| {
+                mioco::spawn(move || {
                     // This fake readers are not really used, they are just registered for the sake of
                     // testing if event sources registered with high id number are handled correctly
                     let mut readers = Vec::new();
                     let mut writers = Vec::new();
                     for _ in 0..100 {
-                        let (r, w) = try!(mio::unix::pipe());
-                        readers.push(mioco.wrap(r));
-                        writers.push(mioco.wrap(w));
+                        let (r, w) = try!(mioco::mio::unix::pipe());
+                        readers.push(mioco::wrap(r));
+                        writers.push(mioco::wrap(w));
                     }
 
-                    let mut reader = mioco.wrap(prev_reader);
-                    let mut writer = mioco.wrap(writer);
+                    let mut reader = mioco::wrap(prev_reader);
+                    let mut writer = mioco::wrap(writer);
 
                     let _ = std::io::copy(&mut reader, &mut writer);
 
@@ -184,8 +187,8 @@ fn lots_of_event_sources() {
                 prev_reader = reader;
             }
 
-            let mut first_writer = mioco.wrap(first_writer);
-            let mut last_reader = mioco.wrap(prev_reader);
+            let mut first_writer = mioco::wrap(first_writer);
+            let mut last_reader = mioco::wrap(prev_reader);
 
             for i in 0..9 {
                 let test_str = format!("TeSt{}", i);
@@ -216,12 +219,12 @@ fn destructs_io_on_panic() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_ok_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let (reader, writer) = try!(mio::unix::pipe());
+            let (reader, writer) = try!(mioco::mio::unix::pipe());
 
-            mioco.spawn(move |mioco| {
-                let mut reader = mioco.wrap(reader);
+            mioco::spawn(move || {
+                let mut reader = mioco::wrap(reader);
                 let mut buf = [0u8; 16];
                 let ret = reader.read(&mut buf);
                 assert!(ret.is_ok());
@@ -231,8 +234,8 @@ fn destructs_io_on_panic() {
                 Ok(())
             });
 
-            mioco.spawn(move |mioco| {
-                let _writer = mioco.wrap(writer);
+            mioco::spawn(move || {
+                let _writer = mioco::wrap(writer);
                 panic!();
             });
 
@@ -252,15 +255,15 @@ fn timer_times_out() {
 
         let finished_ok_1_copy = finished_ok_1.clone();
         let finished_ok_2_copy = finished_ok_2.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let (reader, writer) = try!(mio::unix::pipe());
+            let (reader, writer) = try!(mioco::mio::unix::pipe());
 
-            mioco.spawn(move |mioco| {
-                let reader = mioco.wrap(reader);
-                let timer_id = mioco.timer().id();
-                mioco.timer().set_timeout(500);
-                let ev = mioco.select_read_from(&[reader.id(), timer_id]);
+            mioco::spawn(move || {
+                let reader = mioco::wrap(reader);
+                let timer_id = mioco::timer().id();
+                mioco::timer().set_timeout(500);
+                let ev = mioco::select_read_from(&[reader.id(), timer_id]);
                 assert_eq!(ev.id(), timer_id);
 
                 let mut lock = finished_ok_1_copy.lock().unwrap();
@@ -268,9 +271,9 @@ fn timer_times_out() {
                 Ok(())
             });
 
-            mioco.spawn(move |mioco| {
-                let mut writer = mioco.wrap(writer);
-                mioco.sleep(1000);
+            mioco::spawn(move || {
+                let mut writer = mioco::wrap(writer);
+                mioco::sleep(1000);
                 let _ = writer.write_all("test".as_bytes());
 
                 let mut lock = finished_ok_2_copy.lock().unwrap();
@@ -293,11 +296,11 @@ fn timer_default_timeout() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_ok_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            mioco.spawn(move |mioco| {
-                let timer_id = mioco.timer().id();
-                let ev = mioco.select_read_from(&[timer_id]);
+            mioco::spawn(move || {
+                let timer_id = mioco::timer().id();
+                let ev = mioco::select_read_from(&[timer_id]);
                 assert_eq!(ev.id(), timer_id);
 
                 let mut lock = finished_ok_copy.lock().unwrap();
@@ -317,8 +320,8 @@ fn sleep_takes_time() {
     for &threads in THREADS_N.iter() {
         let starting_time = SteadyTime::now();
 
-        start_threads(threads, move |mioco| {
-            mioco.sleep(500); Ok(())
+        mioco::start_threads(threads, move || {
+            mioco::sleep(500); Ok(())
         });
 
         assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
@@ -330,11 +333,11 @@ fn timer_select_takes_time() {
     for &threads in THREADS_N.iter() {
         let starting_time = SteadyTime::now();
 
-        start_threads(threads, move |mioco| {
-            let timer_id = mioco.timer().id();
-            mioco.timer().set_timeout(500);
-            let ev = mioco.select_read_from(&[timer_id]);
-            assert_eq!(mioco.timer().id(), ev.id());
+        mioco::start_threads(threads, move || {
+            let timer_id = mioco::timer().id();
+            mioco::timer().set_timeout(500);
+            let ev = mioco::select_read_from(&[timer_id]);
+            assert_eq!(mioco::timer().id(), ev.id());
             Ok(())
         });
 
@@ -345,17 +348,17 @@ fn timer_select_takes_time() {
 #[test]
 fn basic_timer_stress_test() {
     for &threads in THREADS_N.iter() {
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
             for _ in 0..10 {
                 for t in 0..100 {
-                    mioco.spawn(move |mioco| {
-                        mioco.sleep(t);
+                    mioco::spawn(move || {
+                        mioco::sleep(t);
                         Ok(())
                     });
 
                 }
 
-                mioco.sleep(1);
+                mioco::sleep(1);
             }
             Ok(())
         });
@@ -368,13 +371,13 @@ fn exit_notifier_simple() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let notify = mioco.spawn(move |_| {
+            let notify = mioco::spawn(move || {
                 Ok(())
             }).exit_notificator();
 
-            let notify = mioco.wrap(notify);
+            let notify = mioco::wrap(notify);
 
             assert!(!notify.read().is_panic());
 
@@ -393,13 +396,13 @@ fn exit_notifier_simple_panic() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let notify = mioco.spawn(move |_| {
+            let notify = mioco::spawn(move || {
                 panic!()
             }).exit_notificator();
 
-            let notify = mioco.wrap(notify);
+            let notify = mioco::wrap(notify);
 
             assert!(notify.read().is_panic());
 
@@ -418,28 +421,28 @@ fn exit_notifier_wrap_after_finish() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
 
-            let handle1 = mioco.spawn(move |_| {
+            let handle1 = mioco::spawn(move || {
                 panic!()
             });
 
-            mioco.sleep(1000);
+            mioco::sleep(1000);
             let notify1 = handle1.exit_notificator();
 
-            let handle2 = mioco.spawn(move |mioco| {
-                let notify1 = mioco.wrap(notify1);
+            let handle2 = mioco::spawn(move || {
+                let notify1 = mioco::wrap(notify1);
                 assert!(notify1.read().is_panic());
                 Ok(())
             });
 
             let notify2 = handle2.exit_notificator();
-            let notify2 = mioco.wrap(notify2);
+            let notify2 = mioco::wrap(notify2);
             assert!(!notify2.read().is_panic());
 
 
             let notify1 = handle1.exit_notificator();
-            let notify1 = mioco.wrap(notify1);
+            let notify1 = mioco::wrap(notify1);
             assert!(notify1.read().is_panic());
 
 
@@ -458,14 +461,14 @@ fn tiny_stacks() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        let mut config = Config::new();
+        let mut config = mioco::Config::new();
 
         config.set_thread_num(threads);
         unsafe { config.set_stack_size(1024 * 128); }
 
-        let mut mioco = Mioco::new_configured(config);
+        let mut mioco = mioco::Mioco::new_configured(config);
 
-        mioco.start(move |_| {
+        mioco.start(move || {
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
             Ok(())
@@ -482,8 +485,8 @@ fn basic_sync() {
 
         let finished_copy = finished_ok.clone();
 
-        start_threads(threads, move |mioco| {
-            let res = mioco.sync(|| {
+        mioco::start_threads(threads, move || {
+            let res = mioco::sync(|| {
                 thread::sleep_ms(1000);
                 let mut lock = finished_copy.lock().unwrap();
                 assert_eq!(*lock, true);
@@ -507,8 +510,8 @@ fn sync_takes_time() {
     for &threads in THREADS_N.iter() {
         let starting_time = SteadyTime::now();
 
-        start_threads(threads, move |mioco| {
-            mioco.sync(|| {
+        mioco::start_threads(threads, move || {
+            mioco::sync(|| {
                 thread::sleep_ms(500);
             });
             Ok(())
@@ -521,10 +524,10 @@ fn sync_takes_time() {
 #[test]
 fn basic_sync_in_loop() {
     for &threads in THREADS_N.iter() {
-        start_threads(threads, move |mioco| {
+        mioco::start_threads(threads, move || {
             let mut counter = 0i32;
             for i in 0..10000 {
-                let res = mioco.sync(|| {
+                let res = mioco::sync(|| {
                     if i & 0xf == 0 { // cut the wait
                         thread::sleep_ms(1);
                     }
@@ -544,31 +547,31 @@ fn scheduler_kill_on_initial_drop() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+    impl mioco::Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+    impl mioco::SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
 
-        fn ready(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+        fn ready(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
     }
 
-    let mut config = Config::new();
+    let mut config = mioco::Config::new();
     config.set_scheduler(Box::new(TestScheduler));
 
-    let mut mioco = Mioco::new_configured(config);
+    let mut mioco = mioco::Mioco::new_configured(config);
 
     let finished_ok = Arc::new(Mutex::new(false));
 
     let finished_copy = finished_ok.clone();
-    mioco.start(move |_| {
+    mioco.start(move || {
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
         Ok(())
@@ -582,38 +585,38 @@ fn scheduler_kill_on_drop() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+    impl mioco::Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+    impl mioco::SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
             coroutine_ctrl.resume(event_loop);
         }
 
-        fn ready(&mut self, _event_loop: &mut mio::EventLoop<Handler>, _coroutine_ctrl: CoroutineControl) {
+        fn ready(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
     }
 
-    let mut config = Config::new();
+    let mut config = mioco::Config::new();
     config.set_scheduler(Box::new(TestScheduler));
 
-    let mut mioco = Mioco::new_configured(config);
+    let mut mioco = mioco::Mioco::new_configured(config);
 
     let started_ok = Arc::new(Mutex::new(false));
     let finished_ok = Arc::new(Mutex::new(false));
 
     let started_copy = started_ok.clone();
     let finished_copy = finished_ok.clone();
-    mioco.start(move |mioco| {
+    mioco.start(move || {
         {
             let mut lock = started_copy.lock().unwrap();
             *lock = true;
         }
-        mioco.sleep(1000);
+        mioco::sleep(1000);
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
         Ok(())
@@ -628,19 +631,19 @@ fn simple_yield() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+    impl mioco::Scheduler for TestScheduler {
+        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+    impl mioco::SchedulerThread for TestSchedulerThread {
+        fn spawned(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
             assert!(!coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
 
-        fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
+        fn ready(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
             assert!(coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
@@ -651,18 +654,18 @@ fn simple_yield() {
 
         let finished_copy = finished_ok.clone();
 
-        let mut config = Config::new();
+        let mut config = mioco::Config::new();
 
         config.set_scheduler(Box::new(TestScheduler));
         config.set_thread_num(threads);
 
-        let mut mioco = Mioco::new_configured(config);
+        let mut mioco = mioco::Mioco::new_configured(config);
 
-        mioco.start(move |mioco| {
+        mioco.start(move || {
             // long enough to test recursion exhausting stack
             // small enough to finish in sane time
             for _ in 0..10000 {
-                mioco.yield_now();
+                mioco::yield_now();
             }
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
@@ -679,26 +682,26 @@ fn simple_unwrap() {
         let finished_ok = Arc::new(Mutex::new(false));
 
         let finished_copy = finished_ok.clone();
-        start_threads(threads, move |mioco| {
-            let (reader, writer) = try!(mio::unix::pipe());
+        mioco::start_threads(threads, move || {
+            let (reader, writer) = try!(mioco::mio::unix::pipe());
 
-            mioco.spawn(move |mioco| {
+            mioco::spawn(move || {
 
-                let reader = mioco.wrap(reader);
-                let reader = mioco.unwrap(reader);
+                let reader = mioco::wrap(reader);
+                let reader = mioco::unwrap(reader);
 
-                mioco.spawn(move |mioco| {
+                mioco::spawn(move || {
 
-                    let reader = mioco.wrap(reader);
-                    mioco.select_read_from(&[reader.id()]);
-                    let reader = mioco.unwrap(reader);
+                    let reader = mioco::wrap(reader);
+                    mioco::select_read_from(&[reader.id()]);
+                    let reader = mioco::unwrap(reader);
 
-                    mioco.spawn(move |mioco| {
+                    mioco::spawn(move || {
 
-                        let mut reader = mioco.wrap(reader);
+                        let mut reader = mioco::wrap(reader);
                         let mut buf = [0u8, 8];
                         let _ = reader.read(&mut buf);
-                        let _ = mioco.unwrap(reader);
+                        let _ = mioco::unwrap(reader);
 
                         let mut lock = finished_copy.lock().unwrap();
                         *lock = true;
@@ -709,7 +712,7 @@ fn simple_unwrap() {
                 Ok(())
             });
 
-            let mut writer = mioco.wrap(writer);
+            let mut writer = mioco::wrap(writer);
             for _ in 0..100 {
                 match writer.write(b"x") {
                     Err(_) => break,

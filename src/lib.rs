@@ -97,6 +97,9 @@ use time::{SteadyTime, Duration};
 
 use context::{Context, Stack};
 
+use std::ptr;
+thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
+
 use Message::*;
 
 type RcCoroutine = Rc<RefCell<Coroutine>>;
@@ -476,10 +479,14 @@ pub struct Coroutine {
     children_to_start : Vec<RcCoroutine>,
 
     /// Function to be run inside Coroutine
-    coroutine_func : Option<Box<FnBox(&mut MiocoHandle) -> io::Result<()> + Send + 'static>>,
+    coroutine_func : Option<Box<FnBox() -> io::Result<()> + Send + 'static>>,
 
     /// In case Rc to self is needed
     self_rc : Option<RcCoroutine>,
+
+    timer : Option<EventSource<Timer>>,
+
+    sync_mailbox: Option<(MailboxOuterEnd<()>, EventSource<MailboxInnerEnd<()>>)>,
 }
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
@@ -804,10 +811,9 @@ impl CoroutineControl {
 }
 
 impl Coroutine {
-
     /// Spawn a new Coroutine
     fn spawn<F>(handler_shared : RcHandlerShared, f : F) -> RcCoroutine
-    where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static {
+    where F : FnOnce() -> io::Result<()> + Send + 'static {
         trace!("Coroutine: spawning");
         let stack_size = handler_shared.borrow().stack_size;
 
@@ -826,6 +832,8 @@ impl Coroutine {
                 stack: Stack::new(stack_size),
                 coroutine_func: Some(Box::new(f)),
                 self_rc: None,
+                timer: None,
+                sync_mailbox: None,
             };
 
             CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
@@ -847,25 +855,19 @@ impl Coroutine {
         extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx : &Context = {
 
-                let res = thread::catch_panic(
+                let res : Result<(), _> = thread::catch_panic(
                     move|| {
                         let coroutine : &mut Coroutine = unsafe { transmute(arg) };
                         trace!("Coroutine({}): started", {
                             coroutine.id.as_usize()
                         });
 
+                        entry_point(coroutine.self_rc.as_ref().unwrap());
                         let f = coroutine.coroutine_func.take().unwrap();
 
-                        let mut mioco_handle = MiocoHandle {
-                            coroutine: coroutine,
-                            timer: None,
-                            sync_mailbox: None,
-                        };
-
-                        entry_point(mioco_handle.coroutine.self_rc.as_ref().unwrap());
-
                         // TODO: Weird syntax...
-                        f.call_box((&mut mioco_handle, ))
+                        // FIXME?
+                        let _ = f.call_box(());
                     }
                     );
 
@@ -885,7 +887,7 @@ impl Coroutine {
                 match res {
                     Ok(res) => {
                         trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
-                        let arc_res = Arc::new(res);
+                        let arc_res = Arc::new(Ok(res));
                         coroutine.exit_notificators.iter().map(
                             |end| end.send(ExitStatus::Exit(arc_res.clone()))
                             ).count();
@@ -1007,6 +1009,13 @@ impl Coroutine {
 
 /// Resume coroutine execution, jumping into it
 fn coroutine_jump_in(coroutine : &RefCell<Coroutine>) {
+    let prev = TL_CURRENT_COROUTINE.with( |co| {
+        let mut co = co.borrow_mut();
+        let prev = *co;
+        *co = &mut *coroutine.borrow_mut() as *mut Coroutine;
+        prev
+    });
+
     {
         let ref mut state = coroutine.borrow_mut().state;
         match *state {
@@ -1035,6 +1044,9 @@ fn coroutine_jump_in(coroutine : &RefCell<Coroutine>) {
     };
 
     Context::swap(unsafe {&mut *context_out}, unsafe {&*context_in});
+    TL_CURRENT_COROUTINE.with( |co| {
+        *co.borrow_mut() = prev;
+    });
 }
 
 /// Coroutine entry point checks
@@ -1382,16 +1394,6 @@ impl EventSource<UdpSocket> {
 }
 
 
-/// Mioco instance handle
-///
-/// Every coroutine gets an instance of this struct as it's argument.
-/// Use it from within coroutines to call mioco functionality.
-pub struct MiocoHandle<'a> {
-    coroutine : &'a mut Coroutine,
-    timer : Option<EventSource<Timer>>,
-    sync_mailbox: Option<(MailboxOuterEnd<()>, EventSource<MailboxInnerEnd<()>>)>,
-}
-
 fn select_impl_set_mask_from_ids(ids : &[EventSourceId], blocked_on : &mut BitVec<usize>) {
     {
         // TODO: https://github.com/contain-rs/bit-vec/pulls
@@ -1438,318 +1440,350 @@ impl CoroutineHandle {
     }
 }
 
-impl<'a> MiocoHandle<'a> {
-    /// Create a `mioco` coroutine handler
-    ///
-    /// `f` is routine handling connection. It must not use any real blocking-IO operations, only
-    /// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
-    /// cooperative scheduling can block on real blocking-IO which defeats using mioco.
-    pub fn spawn<F>(&mut self, f : F) -> CoroutineHandle
-        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static {
-            let coroutine_ref = Coroutine::spawn(
-                self.coroutine.handler_shared.as_ref().unwrap().clone(),
-                f
-                );
-            let ret = CoroutineHandle {
-                coroutine: coroutine_ref.clone(),
+/// Create a `mioco` coroutine handler
+///
+/// `f` is routine handling connection. It must not use any real blocking-IO operations, only
+/// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
+/// cooperative scheduling can block on real blocking-IO which defeats using mioco.
+pub fn spawn<F>(f : F) -> CoroutineHandle
+where F : FnOnce() -> io::Result<()> + Send + 'static {
+    let coroutine = tl_coroutine_current();
+
+    let coroutine_ref = Coroutine::spawn(
+        coroutine.handler_shared.as_ref().unwrap().clone(),
+        f
+        );
+    let ret = CoroutineHandle {
+        coroutine: coroutine_ref.clone(),
+    };
+    coroutine.children_to_start.push(coroutine_ref);
+
+    ret
+}
+
+/// Execute a block of synchronous operations
+///
+/// This will execute a block of synchronous operations without blocking
+/// cooperative coroutine scheduling. This is done by offloading the
+/// synchronous operations to a separate thread, a notifying the
+/// coroutine when the result is available.
+///
+/// TODO: find some wise people to confirm if this is sound
+/// TODO: use threadpool to prevent potential system starvation?
+pub fn sync<'b, F, R>(f : F) -> R
+where F : FnMut() -> R + 'b {
+
+    struct FakeSend<F>(F);
+
+    unsafe impl<F> Send for FakeSend<F> { };
+
+    let f = FakeSend(f);
+
+    let coroutine = tl_coroutine_current();
+
+    if coroutine.sync_mailbox.is_none() {
+        let (send, recv) = mailbox();
+        let recv = wrap(recv);
+        coroutine.sync_mailbox = Some((send, recv));
+    }
+
+    let &(ref mail_send, ref mail_recv) = coroutine.sync_mailbox.as_ref().unwrap();
+    let join = unsafe {thread_scoped::scoped(move || {
+        let FakeSend(mut f) = f;
+        let res = f();
+        mail_send.send(());
+        FakeSend(res)
+    })};
+
+    mail_recv.read();
+
+    let FakeSend(res) = join.join();
+    res
+}
+
+/// Register `mio`'s native io type to be used within `mioco` coroutine
+///
+/// Consumes the `io`, returns a mioco wrapper over it. Use this wrapped IO
+/// to perform IO.
+pub fn wrap<T : 'static>(raw_io : T) -> EventSource<T>
+where T : Evented {
+    let coroutine = tl_coroutine_current();
+
+    let index = {
+        let &mut Coroutine {
+            ref mut io,
+            ref mut registered,
+            ref mut blocked_on,
+            ref self_rc,
+            ..
+        } = coroutine;
+
+        if !io.has_remaining() {
+            let count = io.count();
+            io.grow(count);
+        }
+
+        let index = io.insert_with(|index| {
+            let io_new = {
+                Rc::new(RefCell::new(
+                        EventSourceShared {
+                            coroutine : self_rc.as_ref().unwrap().clone(),
+                            io: Box::new(raw_io),
+                            peer_hup: false,
+                            id: index,
+                            registered: false,
+                        }
+                        ))
             };
-            self.coroutine.children_to_start.push(coroutine_ref);
 
-            ret
-        }
-
-    /// Execute a block of synchronous operations
-    ///
-    /// This will execute a block of synchronous operations without blocking
-    /// cooperative coroutine scheduling. This is done by offloading the
-    /// synchronous operations to a separate thread, a notifying the
-    /// coroutine when the result is available.
-    ///
-    /// TODO: find some wise people to confirm if this is sound
-    /// TODO: use threadpool to prevent potential system starvation?
-    pub fn sync<'b, F, R>(&mut self, f : F) -> R
-        where F : FnMut() -> R + 'b {
-
-            struct FakeSend<F>(F);
-
-            unsafe impl<F> Send for FakeSend<F> { };
-
-            let f = FakeSend(f);
-
-            if self.sync_mailbox.is_none() {
-                let (send, recv) = mailbox();
-                let recv = self.wrap(recv);
-                self.sync_mailbox = Some((send, recv));
+            let index_usize = index.as_usize();
+            if index_usize >= blocked_on.len() {
+                blocked_on.push(false);
+                registered.push(false);
+            } else {
+                assert_eq!(blocked_on.get(index_usize).unwrap(), false);
+                assert_eq!(registered.get(index_usize).unwrap(), false);
             }
 
-            let &(ref mail_send, ref mail_recv) = self.sync_mailbox.as_ref().unwrap();
-            let join = unsafe {thread_scoped::scoped(move || {
-                let FakeSend(mut f) = f;
-                let res = f();
-                mail_send.send(());
-                FakeSend(res)
-            })};
+            io_new
+        });
+        index
+    };
 
-            mail_recv.read();
-
-            let FakeSend(res) = join.join();
-            res
-        }
-
-    /// Register `mio`'s native io type to be used within `mioco` coroutine
-    ///
-    /// Consumes the `io`, returns a mioco wrapper over it. Use this wrapped IO
-    /// to perform IO.
-    pub fn wrap<T : 'static>(&mut self, raw_io : T) -> EventSource<T>
-    where T : Evented {
-        let index = {
-            let &mut Coroutine {
-                ref mut io,
-                ref mut registered,
-                ref mut blocked_on,
-                ref self_rc,
-                ..
-            } = self.coroutine;
-
-            if !io.has_remaining() {
-                let count = io.count();
-                io.grow(count);
-            }
-
-            let index = io.insert_with(|index| {
-                let io_new = {
-                    Rc::new(RefCell::new(
-                            EventSourceShared {
-                                coroutine : self_rc.as_ref().unwrap().clone(),
-                                io: Box::new(raw_io),
-                                peer_hup: false,
-                                id: index,
-                                registered: false,
-                            }
-                            ))
-                };
-
-                let index_usize = index.as_usize();
-                if index_usize >= blocked_on.len() {
-                    blocked_on.push(false);
-                    registered.push(false);
-                } else {
-                    assert_eq!(blocked_on.get(index_usize).unwrap(), false);
-                    assert_eq!(registered.get(index_usize).unwrap(), false);
-                }
-
-                io_new
-            });
-            index
-        };
-
-        EventSource {
-            inn: self.coroutine.io[index.unwrap()].clone(),
-            _t: PhantomData,
-        }
+    EventSource {
+        inn: coroutine.io[index.unwrap()].clone(),
+        _t: PhantomData,
     }
+}
 
-    /// Deregister `mio`'s native io type from owning `mioco` coroutine
-    ///
-    /// Consumes the wrapped `io`, returns the original `io`.
-    ///
-    /// This function is useful, when `EventSource<T>` was used in
-    /// one coroutine, and then needs to be moved to another.
-    pub fn unwrap<T : 'static>(&mut self, io : EventSource<T>) -> T
-        where T : Evented {
-            let index = io.inn.borrow().id;
-            let registered = io.inn.borrow().registered;
+/// Deregister `mio`'s native io type from owning `mioco` coroutine
+///
+/// Consumes the wrapped `io`, returns the original `io`.
+///
+/// This function is useful, when `EventSource<T>` was used in
+/// one coroutine, and then needs to be moved to another.
+pub fn unwrap<T : 'static>(io : EventSource<T>) -> T
+where T : Evented {
 
-            if registered {
-                self.coroutine.state = State::UnregisterdEventSource(index);
-                coroutine_jump_out(&self.coroutine.self_rc.as_ref().unwrap());
-                debug_assert!(!io.inn.borrow().registered);
-            }
+    let coroutine = tl_coroutine_current();
 
-            drop(io);
-            let io = self.coroutine.io.remove(index).unwrap();
+    let index = io.inn.borrow().id;
+    let registered = io.inn.borrow().registered;
 
-            let EventSourceShared {
-                mut io,
-                ..
-            } = Rc::try_unwrap(io).ok().unwrap().into_inner();
-
-            let raw_io = io.as_any_mut().downcast_mut::<T>().unwrap() as *mut T;
-            mem::forget(io);
-            unsafe {*Box::from_raw(raw_io) }
-        }
-
-    /// Get number of threads of the Mioco instance that coroutine is
-    /// running in.
-    ///
-    /// This is useful for load balancing: spawning as many coroutines as
-    /// there is handling threads that can run them.
-    pub fn thread_num(&self) -> usize {
-        let handler_shared = self.coroutine.handler_shared.as_ref().unwrap().borrow();
-        handler_shared.thread_num()
-    }
-
-    /// Get mutable reference to a timer source io for this coroutine
-    ///
-    /// Each coroutine has one internal Timer source, that will become readable
-    /// when it's timeout (see `set_timer()` ) expire.
-    pub fn timer(&mut self) -> &mut EventSource<Timer> {
-        match self.timer {
-            Some(ref mut timer) => timer,
-            None => {
-                self.timer = Some(self.wrap(Timer::new()));
-                self.timer.as_mut().unwrap()
-            }
-        }
-    }
-
-    /// Block coroutine for a given time
-    ///
-    /// Warning: The precision of this call (and other `timer()` like
-    /// functionality) is limited by `mio` event loop settings. Any small
-    /// value of `time_ms` will effectively be rounded up to
-    /// `mio::EventLoop::timer_tick_ms()`.
-    pub fn sleep(&mut self, time_ms : i64) {
-        let prev_timeout = self.timer().get_timeout_absolute();
-        self.timer().set_timeout(time_ms);
-        let _ = self.timer().read();
-        self.timer().set_timeout_absolute(prev_timeout);
-    }
-
-    /// Wait till a read event is ready
-    fn select_impl(&mut self, rw : RW) -> Event {
-        let coroutine = &mut self.coroutine;
-        coroutine.state = State::BlockedOn(rw);
-        trace!("Coroutine({}): blocked on {:?}", coroutine.id.as_usize(), rw);
+    if registered {
+        coroutine.state = State::UnregisterdEventSource(index);
         coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-        entry_point(&coroutine.self_rc.as_ref().unwrap());
-        trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
-        debug_assert!(coroutine.state.is_running());
-        let e = coroutine.last_event;
-        e
+        debug_assert!(!io.inn.borrow().registered);
     }
 
-    /// Yield coroutine execution
-    ///
-    /// Coroutine can yield execution without blocking on anything
-    /// particular to allow scheduler to run other coroutines before
-    /// resuming execution of the current one.
-    ///
-    /// For this to be effective, custom scheduler must be implemented.
-    /// See `trait Scheduler`.
-    ///
-    /// Note: named `yield_now` as `yield` is reserved word.
-    pub fn yield_now(&mut self) {
-        let coroutine = &mut self.coroutine;
-        coroutine.state = State::BlockedOn(RW::none());
-        trace!("Coroutine({}): yield", coroutine.id.as_usize());
-        coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-        entry_point(&coroutine.self_rc.as_ref().unwrap());
-        trace!("Coroutine({}): resumed after yield ", coroutine.id.as_usize());
-        debug_assert!(coroutine.state.is_running());
-    }
+    drop(io);
+    let io = coroutine.io.remove(index).unwrap();
 
-    /// Wait till an event is ready
-    ///
-    /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
-    /// not block when actually attempting to `read` or `write`. You must
-    /// use `try_read` and `try_write` instead.
-    ///
-    /// The returned value contains event type and the id of the `EventSource`.
-    /// See `EventSource::id()`.
-    pub fn select(&mut self) -> Event {
-        {
-            let Coroutine {
-                ref mut io,
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
+    let EventSourceShared {
+        mut io,
+        ..
+    } = Rc::try_unwrap(io).ok().unwrap().into_inner();
 
-            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
+    let raw_io = io.as_any_mut().downcast_mut::<T>().unwrap() as *mut T;
+    mem::forget(io);
+    unsafe {*Box::from_raw(raw_io) }
+}
+
+/// Get number of threads of the Mioco instance that coroutine is
+/// running in.
+///
+/// This is useful for load balancing: spawning as many coroutines as
+/// there is handling threads that can run them.
+pub fn thread_num() -> usize {
+    let coroutine = tl_coroutine_current();
+
+    let handler_shared = coroutine.handler_shared.as_ref().unwrap().borrow();
+    handler_shared.thread_num()
+}
+
+/// Get mutable reference to a timer source io for this coroutine
+///
+/// Each coroutine has one internal Timer source, that will become readable
+/// when it's timeout (see `set_timer()` ) expire.
+pub fn timer() -> &'static mut EventSource<Timer> {
+    let coroutine = tl_coroutine_current();
+
+    match coroutine.timer {
+        Some(ref mut timer) => timer,
+        None => {
+            coroutine.timer = Some(wrap(Timer::new()));
+            coroutine.timer.as_mut().unwrap()
         }
-        self.select_impl(RW::both())
+    }
+}
+
+// TODO: Technically this leaks unsafe, but only within
+// internals of the module. Any function calling `tl_coroutine_current()`
+// must not pass the reference anywhere outside!
+//
+// It might be possible to use a type system to enforce this. Eg. maybe this
+// should return `Ref` or `RefCell`.
+fn tl_coroutine_current() -> &'static mut Coroutine {
+    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    if coroutine == ptr::null_mut() {
+        panic!(); // TODO: Change to Err
+    }
+    unsafe { &mut *coroutine }
+}
+
+/// Block coroutine for a given time
+///
+/// Warning: The precision of this call (and other `timer()` like
+/// functionality) is limited by `mio` event loop settings. Any small
+/// value of `time_ms` will effectively be rounded up to
+/// `mio::EventLoop::timer_tick_ms()`.
+pub fn sleep(time_ms : i64) {
+    let prev_timeout = timer().get_timeout_absolute();
+    timer().set_timeout(time_ms);
+    let _ = timer().read();
+    timer().set_timeout_absolute(prev_timeout);
+}
+
+/// Wait till a read event is ready
+/// TODO: move to `impl Coroutine`
+fn select_impl(rw : RW) -> Event {
+    let coroutine = tl_coroutine_current();
+    coroutine.state = State::BlockedOn(rw);
+    trace!("Coroutine({}): blocked on {:?}", coroutine.id.as_usize(), rw);
+    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
+    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
+    debug_assert!(coroutine.state.is_running());
+    let e = coroutine.last_event;
+    e
+}
+
+/// Yield coroutine execution
+///
+/// Coroutine can yield execution without blocking on anything
+/// particular to allow scheduler to run other coroutines before
+/// resuming execution of the current one.
+///
+/// For this to be effective, custom scheduler must be implemented.
+/// See `trait Scheduler`.
+///
+/// Note: named `yield_now` as `yield` is reserved word.
+pub fn yield_now() {
+    let coroutine = tl_coroutine_current();
+    coroutine.state = State::BlockedOn(RW::none());
+    trace!("Coroutine({}): yield", coroutine.id.as_usize());
+    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
+    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    trace!("Coroutine({}): resumed after yield ", coroutine.id.as_usize());
+    debug_assert!(coroutine.state.is_running());
+}
+
+/// Wait till an event is ready
+///
+/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+/// not block when actually attempting to `read` or `write`. You must
+/// use `try_read` and `try_write` instead.
+///
+/// The returned value contains event type and the id of the `EventSource`.
+/// See `EventSource::id()`.
+pub fn select() -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut io,
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
+    }
+    select_impl(RW::both())
+}
+
+/// Wait till a read event is ready
+///
+/// See `MiocoHandle::select`.
+pub fn select_read() -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut io,
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
+    }
+    select_impl(RW::read())
+}
+
+/// Wait till a read event is ready.
+///
+/// See `MiocoHandle::select`.
+pub fn select_write() -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut io,
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
+    }
+    select_impl(RW::write())
+}
+
+/// Wait till any event is ready on a set of Handles.
+///
+/// See `EventSource::id()`.
+/// See `MiocoHandle::select()`.
+pub fn select_from(ids : &[EventSourceId]) -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_from_ids(ids, blocked_on);
     }
 
-    /// Wait till a read event is ready
-    ///
-    /// See `MiocoHandle::select`.
-    pub fn select_read(&mut self) -> Event {
-        {
-            let Coroutine {
-                ref mut io,
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
+    select_impl(RW::both())
+}
 
-            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
-        }
-        self.select_impl(RW::read())
+/// Wait till write event is ready on a set of Handles.
+///
+/// See `MiocoHandle::select_from`.
+pub fn select_write_from(ids : &[EventSourceId]) -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_from_ids(ids, blocked_on);
     }
 
-    /// Wait till a read event is ready.
-    ///
-    /// See `MiocoHandle::select`.
-    pub fn select_write(&mut self) -> Event {
-        {
-            let Coroutine {
-                ref mut io,
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
+    select_impl(RW::write())
+}
 
-            select_impl_set_mask_rc_handles(io.iter_mut(), blocked_on);
-        }
-        self.select_impl(RW::write())
+/// Wait till read event is ready on a set of Handles.
+///
+/// See `MiocoHandle::select_from`.
+pub fn select_read_from(ids : &[EventSourceId]) -> Event {
+    let coroutine = tl_coroutine_current();
+    {
+        let Coroutine {
+            ref mut blocked_on,
+            ..
+        } = *coroutine;
+
+        select_impl_set_mask_from_ids(ids, blocked_on);
     }
 
-    /// Wait till any event is ready on a set of Handles.
-    ///
-    /// See `EventSource::id()`.
-    /// See `MiocoHandle::select()`.
-    pub fn select_from(&mut self, ids : &[EventSourceId]) -> Event {
-        {
-            let Coroutine {
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
-
-            select_impl_set_mask_from_ids(ids, blocked_on);
-        }
-
-        self.select_impl(RW::both())
-    }
-
-    /// Wait till write event is ready on a set of Handles.
-    ///
-    /// See `MiocoHandle::select_from`.
-    pub fn select_write_from(&mut self, ids : &[EventSourceId]) -> Event {
-        {
-            let Coroutine {
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
-
-            select_impl_set_mask_from_ids(ids, blocked_on);
-        }
-
-        self.select_impl(RW::write())
-    }
-
-    /// Wait till read event is ready on a set of Handles.
-    ///
-    /// See `MiocoHandle::select_from`.
-    pub fn select_read_from(&mut self, ids : &[EventSourceId]) -> Event {
-        {
-            let Coroutine {
-                ref mut blocked_on,
-                ..
-            } = *self.coroutine;
-
-            select_impl_set_mask_from_ids(ids, blocked_on);
-        }
-
-        self.select_impl(RW::read())
-    }
+    select_impl(RW::read())
 }
 
 
@@ -2091,7 +2125,7 @@ impl Mioco {
     /// See `MiocoHandle::spawn()`.
     pub fn start<F>(&mut self, f : F)
         where
-        F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
+        F : FnOnce() -> io::Result<()> + Send + 'static,
         F : Send
         {
             info!("Starting mioco instance with {} handler threads", self.config.thread_num);
@@ -2140,7 +2174,7 @@ impl Mioco {
         thread_shared : ArcHandlerThreadShared,
         stack_size: usize,
         )
-        where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
+        where F : FnOnce() -> io::Result<()> + Send + 'static,
               F : Send
     {
             let handler_shared = HandlerShared::new(senders, thread_shared, stack_size);
@@ -2365,7 +2399,7 @@ impl EventSource<Timer> {
 
 /// Shorthand for creating new `Mioco` instance and starting it right away.
 pub fn start<F>(f : F)
-    where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
+    where F : FnOnce() -> io::Result<()> + Send + 'static,
           F : Send
 {
     Mioco::new().start(f);
@@ -2374,7 +2408,7 @@ pub fn start<F>(f : F)
 /// Shorthand for creating new `Mioco` instance with a fixed number of
 /// threads and starting it right away.
 pub fn start_threads<F>(thread_num : usize, f : F)
-    where F : FnOnce(&mut MiocoHandle) -> io::Result<()> + Send + 'static,
+    where F : FnOnce() -> io::Result<()> + Send + 'static,
           F : Send
 {
     let mut config = Config::new();

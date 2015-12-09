@@ -15,20 +15,20 @@ fn listend_addr() -> SocketAddr {
 fn main() {
     env_logger::init().unwrap();
 
-    mioco::start(move |mioco| {
+    mioco::start(move || {
         let addr = listend_addr();
 
         let listener = TcpListener::bind(&addr).unwrap();
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
-        let listener = mioco.wrap(listener);
+        let listener = mioco::wrap(listener);
 
         loop {
             let conn = try!(listener.accept());
 
-            mioco.spawn(move |mioco| {
-                let mut conn = mioco.wrap(conn);
+            mioco::spawn(move || {
+                let mut conn = mioco::wrap(conn);
 
                 let mut buf = [0u8; 1024 * 16];
                 loop {
