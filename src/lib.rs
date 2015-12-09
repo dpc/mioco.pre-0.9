@@ -1440,12 +1440,33 @@ impl CoroutineHandle {
     }
 }
 
-/// Create a `mioco` coroutine handler
+/// Spawn a `mioco` coroutine
+///
+/// If called inside an existing coroutine spawns a new coroutine. If called
+/// outside of existing coroutine, it's the same as `mioco::start()`.
 ///
 /// `f` is routine handling connection. It must not use any real blocking-IO operations, only
 /// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
 /// cooperative scheduling can block on real blocking-IO which defeats using mioco.
-pub fn spawn<F>(f : F) -> CoroutineHandle
+pub fn spawn<F>(f : F)
+where F : FnOnce() -> io::Result<()> + Send + 'static {
+    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    if coroutine == ptr::null_mut() {
+        start(f)
+    } else {
+        spawn_ext(f);
+    }
+}
+
+/// Spawn a `mioco` coroutine
+///
+/// Can't be used outside of existing coroutine.
+///
+/// Returns a `CoroutineHandle` that can be used to perform
+/// additional operations.
+// TODO: Could this be unified with `spawn()` so the return type
+// can be simply ignored?
+pub fn spawn_ext<F>(f : F) -> CoroutineHandle
 where F : FnOnce() -> io::Result<()> + Send + 'static {
     let coroutine = tl_coroutine_current();
 

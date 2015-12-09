@@ -373,7 +373,7 @@ fn exit_notifier_simple() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn(move || {
+            let notify = mioco::spawn_ext(move || {
                 Ok(())
             }).exit_notificator();
 
@@ -398,7 +398,7 @@ fn exit_notifier_simple_panic() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn(move || {
+            let notify = mioco::spawn_ext(move || {
                 panic!()
             }).exit_notificator();
 
@@ -423,14 +423,14 @@ fn exit_notifier_wrap_after_finish() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let handle1 = mioco::spawn(move || {
+            let handle1 = mioco::spawn_ext(move || {
                 panic!()
             });
 
             mioco::sleep(1000);
             let notify1 = handle1.exit_notificator();
 
-            let handle2 = mioco::spawn(move || {
+            let handle2 = mioco::spawn_ext(move || {
                 let notify1 = mioco::wrap(notify1);
                 assert!(notify1.read().is_panic());
                 Ok(())
@@ -727,3 +727,17 @@ fn simple_unwrap() {
     }
 }
 
+#[test]
+fn spawn_as_start() {
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    mioco::spawn(move || {
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+
+        Ok(())
+    });
+
+    assert!(*finished_ok.lock().unwrap());
+}
