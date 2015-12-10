@@ -487,7 +487,7 @@ fn basic_sync() {
 
         mioco::start_threads(threads, move || {
             let res = mioco::sync(|| {
-                thread::sleep_ms(1000);
+                thread::sleep(std::time::Duration::from_secs(1));
                 let mut lock = finished_copy.lock().unwrap();
                 assert_eq!(*lock, true);
                 *lock = false;
@@ -512,7 +512,7 @@ fn sync_takes_time() {
 
         mioco::start_threads(threads, move || {
             mioco::sync(|| {
-                thread::sleep_ms(500);
+                thread::sleep(std::time::Duration::from_millis(500));
             });
             Ok(())
         });
@@ -529,7 +529,7 @@ fn basic_sync_in_loop() {
             for i in 0..10000 {
                 let res = mioco::sync(|| {
                     if i & 0xf == 0 { // cut the wait
-                        thread::sleep_ms(1);
+                        thread::sleep(std::time::Duration::from_millis(1));
                     }
                     counter += 1;
                     i
