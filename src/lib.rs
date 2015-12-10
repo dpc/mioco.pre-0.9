@@ -871,7 +871,7 @@ impl Coroutine {
         extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx : &Context = {
 
-                let res : Result<(), _> = thread::catch_panic(
+                let res = thread::catch_panic(
                     move|| {
                         let coroutine : &mut Coroutine = unsafe { transmute(arg) };
                         trace!("Coroutine({}): started", {
@@ -881,9 +881,7 @@ impl Coroutine {
                         entry_point(coroutine.self_rc.as_ref().unwrap());
                         let f = coroutine.coroutine_func.take().unwrap();
 
-                        // TODO: Weird syntax...
-                        // FIXME?
-                        let _ = f.call_box(());
+                        f.call_box(())
                     }
                     );
 
@@ -903,7 +901,7 @@ impl Coroutine {
                 match res {
                     Ok(res) => {
                         trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
-                        let arc_res = Arc::new(Ok(res));
+                        let arc_res = Arc::new(res);
                         coroutine.exit_notificators.iter().map(
                             |end| end.send(ExitStatus::Exit(arc_res.clone()))
                             ).count();
