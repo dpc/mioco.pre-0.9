@@ -1529,7 +1529,7 @@ where F : FnOnce() -> io::Result<()> + Send + 'static {
 /// TODO: find some wise people to confirm if this is sound
 /// TODO: use threadpool to prevent potential system starvation?
 pub fn sync<'b, F, R>(f : F) -> R
-where F : FnMut() -> R + 'b {
+where F : FnOnce() -> R + 'b {
 
     struct FakeSend<F>(F);
 
@@ -1547,7 +1547,7 @@ where F : FnMut() -> R + 'b {
 
     let &(ref mail_send, ref mail_recv) = coroutine.sync_mailbox.as_ref().unwrap();
     let join = unsafe {thread_scoped::scoped(move || {
-        let FakeSend(mut f) = f;
+        let FakeSend(f) = f;
         let res = f();
         mail_send.send(());
         FakeSend(res)
