@@ -794,24 +794,23 @@ fn million_coroutines() {
 }
 
 #[test]
-fn simple_rw_lock() {
-    use super::sync::RwLock;
-    //let counter = Arc::new(mioco::sync::RwLock::new(0usize));
-    let counter = Arc::new(RwLock::new(0usize));
-
+fn simple_rwlock() {
     for &threads in THREADS_N.iter() {
+        let counter = Arc::new(mioco::sync::RwLock::new(0usize));
         let copy_counter = counter.clone();
         mioco::start_threads(threads, move || {
-            for _ in 0..(threads * 1) {
+            for _ in 0..(threads * 4) {
                 let counter = copy_counter.clone();
                 mioco::spawn(move || {
                     let counter = counter.clone();
                     loop {
-                        let counter = counter.read().unwrap();
-                        if *counter != 0 {
-                            break;
+                        {
+                            let counter = counter.read().unwrap();
+                            if *counter != 0 {
+                                break;
+                            }
                         }
-                        mioco::sleep(100)
+                        mioco::sleep(10)
                     }
                     let mut counter = counter.write().unwrap();
                     *counter = *counter + 1;

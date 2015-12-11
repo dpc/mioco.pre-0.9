@@ -2120,6 +2120,7 @@ impl mio::Handler for Handler {
             trace!("Shutting down EventLoop");
             event_loop.shutdown();
         }
+        self.scheduler.tick(event_loop);
     }
 
     fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, token: mio::Token, events: mio::EventSet) {
