@@ -100,6 +100,9 @@ use context::{Context, Stack};
 use std::ptr;
 thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
 
+/// Useful synchronization primitives
+pub mod sync;
+
 use Message::*;
 
 type RcCoroutine = Rc<RefCell<Coroutine>>;

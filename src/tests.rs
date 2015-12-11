@@ -1,4 +1,3 @@
-
 mod mioco {
     pub use super::super::*;
 }
@@ -542,13 +541,14 @@ fn basic_sync_in_loop() {
         });
     }
 }
+
 #[test]
 fn scheduler_kill_on_initial_drop() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
     impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
+        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
@@ -586,7 +586,7 @@ fn scheduler_kill_on_drop() {
     struct TestSchedulerThread;
 
     impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
+        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
@@ -632,7 +632,7 @@ fn simple_yield() {
     struct TestSchedulerThread;
 
     impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&mut self) -> Box<mioco::SchedulerThread> {
+        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
@@ -793,3 +793,38 @@ fn million_coroutines() {
     assert!(*finished_ok.lock().unwrap());
 }
 
+#[test]
+fn simple_rw_lock() {
+    use super::sync::RwLock;
+    //let counter = Arc::new(mioco::sync::RwLock::new(0usize));
+    let counter = Arc::new(RwLock::new(0usize));
+
+    for &threads in THREADS_N.iter() {
+        let copy_counter = counter.clone();
+        mioco::start_threads(threads, move || {
+            for _ in 0..(threads * 1) {
+                let counter = copy_counter.clone();
+                mioco::spawn(move || {
+                    let counter = counter.clone();
+                    loop {
+                        let counter = counter.read().unwrap();
+                        if *counter != 0 {
+                            break;
+                        }
+                        mioco::sleep(100)
+                    }
+                    let mut counter = counter.write().unwrap();
+                    *counter = *counter + 1;
+                    Ok(())
+                });
+            }
+            mioco::sleep(200);
+            let mut counter = copy_counter.write().unwrap();
+            *counter = 1;
+            Ok(())
+        });
+
+
+        assert_eq!(*counter.native_lock().read().unwrap(), (threads * 4) + 1);
+    }
+}
