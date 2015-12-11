@@ -1931,14 +1931,14 @@ impl HandlerShared {
 ///
 /// Custom implementations of this trait allow users to change the order in
 /// which Coroutines are being scheduled.
-pub trait Scheduler {
+pub trait Scheduler : Sync+Send {
     /// Spawn per-thread Scheduler
-    fn spawn_thread(&mut self) -> Box<SchedulerThread + 'static>;
+    fn spawn_thread(&self) -> Box<SchedulerThread + 'static>;
 }
 
 
 /// Per-thread Scheduler
-pub trait SchedulerThread : Send {
+pub trait SchedulerThread {
     /// New coroutine was spawned.
     ///
     /// This can be used to run it immediately (see
@@ -1991,14 +1991,16 @@ impl FifoScheduler {
 struct FifoSchedulerThread {
     thread_i : usize,
     thread_num : Arc<AtomicUsize>,
+    delayed : VecDeque<CoroutineControl>,
 }
 
 impl Scheduler for FifoScheduler {
-    fn spawn_thread(&mut self) -> Box<SchedulerThread> {
+    fn spawn_thread(&self) -> Box<SchedulerThread> {
         self.thread_num.fetch_add(1, Ordering::Relaxed);
         Box::new(FifoSchedulerThread{
             thread_i: 0,
             thread_num: self.thread_num.clone(),
+            delayed: VecDeque::new(),
         })
     }
 }
@@ -2024,11 +2026,25 @@ impl SchedulerThread for FifoSchedulerThread {
         coroutine_ctrl.migrate(event_loop, thread_i);
     }
 
-    fn ready(&mut self, event_loop: &mut mio::EventLoop<Handler>, coroutine_ctrl: CoroutineControl) {
-        coroutine_ctrl.resume(event_loop);
+    fn ready(
+        &mut self,
+        event_loop: &mut mio::EventLoop<Handler>,
+        coroutine_ctrl: CoroutineControl
+             ) {
+        if coroutine_ctrl.is_yielding() {
+            self.delayed.push_back(coroutine_ctrl);
+        } else {
+            coroutine_ctrl.resume(event_loop);
+        }
     }
 
-    fn tick(&mut self, _: &mut mio::EventLoop<Handler>) {}
+    fn tick(&mut self, event_loop : &mut mio::EventLoop<Handler>) {
+        let len = self.delayed.len();
+        for _ in 0..len {
+            let coroutine_ctrl = self.delayed.pop_front().unwrap();
+            coroutine_ctrl.resume(event_loop);
+        }
+    }
 }
 
 /// Mioco event loop `Handler`
@@ -2192,13 +2208,14 @@ impl Mioco {
             let first_event_loop = event_loops.pop_front().unwrap();
 
             for i in 1..self.config.thread_num {
-                let sched = self.config.scheduler.spawn_thread();
 
+                let scheduler = self.config.scheduler.clone();
                 let stack_size = self.config.stack_size;
                 let event_loop = event_loops.pop_front().unwrap();
                 let senders = senders.clone();
                 let thread_shared = thread_shared.clone();
                 let join = std::thread::Builder::new().name(format!("mioco_thread_{}", i)).spawn(move || {
+                    let sched = scheduler.spawn_thread();
                     Mioco::thread_loop::<F>(None, sched, event_loop, senders, thread_shared, stack_size);
                 });
 
@@ -2468,7 +2485,7 @@ pub fn start_threads<F>(thread_num : usize, f : F)
 /// Mioco builder
 pub struct Config {
     thread_num : usize,
-    scheduler : Box<Scheduler + 'static>,
+    scheduler : Arc<Box<Scheduler>>,
     event_loop_config : EventLoopConfig,
     stack_size : usize,
 }
@@ -2482,7 +2499,7 @@ impl Config {
     pub fn new() -> Self {
         Config {
             thread_num: num_cpus::get(),
-            scheduler: Box::new(FifoScheduler::new()),
+            scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
             stack_size: 2 * 1024 * 1024,
         }
@@ -2506,7 +2523,7 @@ impl Config {
     ///
     /// See private `FifoSchedule` source for details.
     pub fn set_scheduler(&mut self, scheduler : Box<Scheduler + 'static>) -> &mut Self {
-        self.scheduler = scheduler;
+        self.scheduler = Arc::new(scheduler);
         self
     }
 
