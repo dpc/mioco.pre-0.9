@@ -2501,12 +2501,14 @@ impl Config {
     ///
     /// See `start` and `start_threads` for convenience wrappers.
     pub fn new() -> Self {
-        Config {
+        let mut config = Config {
             thread_num: num_cpus::get(),
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
             stack_size: 2 * 1024 * 1024,
-        }
+        };
+        config.event_loop_config.tick_ms(Some(1000));
+        config
     }
 
     /// Set numer of threads to run mioco with
