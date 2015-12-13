@@ -4,7 +4,7 @@ extern crate env_logger;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::{Read, Write};
-use mioco::mio::tcp::TcpListener;
+use mioco::tcp::TcpListener;
 
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
 
@@ -22,13 +22,13 @@ fn main() {
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
-        let listener = mioco::wrap(listener);
+        let listener = listener;
 
         loop {
             let conn = try!(listener.accept());
 
             mioco::spawn(|| {
-                let mut conn = mioco::wrap(conn);
+                let mut conn = conn;
 
                 let mut buf = [0u8; 1024 * 16];
                 loop {

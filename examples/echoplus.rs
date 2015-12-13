@@ -1,10 +1,11 @@
+#[macro_use]
 extern crate mioco;
 extern crate env_logger;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::io::{Read, Write};
-use mioco::mio::tcp::TcpListener;
+use mioco::tcp::TcpListener;
 
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
 
@@ -22,32 +23,29 @@ fn main() {
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
-        let listener = mioco::wrap(listener);
-
         loop {
             let conn = try!(listener.accept());
 
             mioco::spawn(move || {
-                let mut conn = mioco::wrap(conn);
+                let mut conn = conn;
 
                 let mut buf = [0u8; 1024 * 16];
-                let timer_id = mioco::timer().id();
                 loop {
-                    mioco::timer().set_timeout(5000);
-
-                    let ev = mioco::select_read_from(&[conn.id(), timer_id]);
-                    if ev.id() == conn.id() {
-                        let size = try!(conn.read(&mut buf));
-                        if size == 0 {
-                            /* eof */
-                            break;
-                        }
-                        try!(conn.write_all(&mut buf[0..size]));
-                    } else {
-                        conn.with_raw_mut(|conn| {
-                            conn.shutdown(mioco::mio::tcp::Shutdown::Both).unwrap();
-                        });
-                    }
+                    let timer = mioco::timer();
+                    timer.set_timeout(5000);
+                    select!(
+                        conn:r => {
+                            let size = try!(conn.read(&mut buf));
+                            if size == 0 {
+                                /* eof */
+                                break;
+                            }
+                            try!(conn.write_all(&mut buf[0..size]));
+                        },
+                        timer:r => {
+                            conn.shutdown(mioco::tcp::Shutdown::Both).unwrap();
+                        },
+                        );
                 }
 
                 Ok(())

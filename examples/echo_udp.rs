@@ -2,7 +2,7 @@ extern crate mioco;
 extern crate env_logger;
 
 use std::net::{SocketAddr, SocketAddrV4};
-use mioco::mio::udp::{UdpSocket};
+use mioco::udp::{UdpSocket};
 use mioco::mio::Ipv4Addr;
 
 const START_PORT : u16 = 60000;
@@ -21,7 +21,7 @@ fn main() {
 
                 let sock = try!(UdpSocket::v4());
                 try!(sock.bind(&addr));
-                let mut sock = mioco::wrap(sock);
+                let mut sock = sock;
 
                 let mut buf = [0u8; 1024 * 16];
                 loop {
