@@ -798,4 +798,162 @@ fn tcp_basic_client_server() {
     }
 }
 
+#[test]
+fn simple_userdata()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_userdata(42 as u32);
+            assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
+                       42);
+            Ok(())
+        })
+    }
+}
 
+#[test]
+fn userdata_wrong_type()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_userdata(42 as u32);
+            assert_eq!(mioco::get_userdata::<i32>(), None);
+            Ok(())
+        })
+    }
+}
+
+#[test]
+fn userdata_scheduler()
+{
+    struct TestScheduler;
+    struct TestSchedulerThread;
+
+    impl mioco::Scheduler for TestScheduler
+    {
+        fn spawn_thread(&self) -> Box<mioco::SchedulerThread>
+        {
+            Box::new(TestSchedulerThread)
+        }
+    }
+
+    impl mioco::SchedulerThread for TestSchedulerThread
+    {
+        fn spawned(&mut self,
+                   _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                   _coroutine_ctrl: mioco::CoroutineControl)
+        {
+            assert_eq!(*_coroutine_ctrl.get_userdata::<u32>().unwrap(),
+                       42)
+            // drop
+        }
+
+        fn ready(&mut self,
+                 _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                 _coroutine_ctrl: mioco::CoroutineControl)
+        {
+            // drop
+        }
+    }
+
+    let mut config = mioco::Config::new();
+    config.set_userdata(42 as u32);
+    config.set_scheduler(Box::new(TestScheduler));
+
+    let mut mioco = mioco::Mioco::new_configured(config);
+
+    let finished_ok = Arc::new(Mutex::new(false));
+
+    let finished_copy = finished_ok.clone();
+    mioco.start(move || {
+        let mut lock = finished_copy.lock().unwrap();
+        *lock = true;
+        Ok(())
+    });
+
+    assert!(!*finished_ok.lock().unwrap());
+}
+
+#[test]
+fn simple_userdata_inheritance()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_children_userdata(Some(42 as u32));
+            mioco::spawn(|| {
+                assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
+                           42);
+                Ok(())
+            });
+            Ok(())
+        })
+    }
+}
+
+#[test]
+fn no_userdata_inheritance()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::spawn(|| {
+                assert_eq!(mioco::get_userdata::<u32>(), None);
+                Ok(())
+            });
+            Ok(())
+        })
+    }
+}
+
+#[test]
+fn userdata_multi_inheritance()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_children_userdata(Some(42 as u32));
+            mioco::spawn(|| {
+                mioco::spawn(|| {
+                    assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
+                               42);
+                    Ok(())
+                });
+                Ok(())
+            });
+            Ok(())
+        })
+    }
+}
+
+#[test]
+fn userdata_inheritance_reset()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_children_userdata(Some(42 as u32));
+            mioco::spawn(|| {
+                mioco::set_children_userdata::<u32>(None);
+                mioco::spawn(|| {
+                    assert_eq!(mioco::get_userdata::<u32>(), None);
+                    Ok(())
+                });
+                Ok(())
+            });
+            Ok(())
+        })
+    }
+}
+
+#[test]
+fn userdata_no_reference_invalidation()
+{
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, || {
+            mioco::set_userdata(42 as u32);
+            let reference = mioco::get_userdata::<u32>().unwrap();
+            mioco::set_userdata(41 as u32);
+            assert_eq!(*reference, 42);
+            assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
+                       41);
+            Ok(())
+        })
+    }
+}
