@@ -30,7 +30,7 @@ num_cpus = "*"
 libc = "^0.1.10"
 thread-scoped = "*"
 context = "*"
-slab = { git = "https://github.com/dpc/slab" }
+slab = "*"
 
 [dev-dependencies]
 env_logger = "*"
