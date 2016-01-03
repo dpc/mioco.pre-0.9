@@ -320,6 +320,12 @@ pub trait Evented : prv::EventedPrv {
     /// Add event source to next select operation.
     ///
     /// Use `select!` macro instead.
+    ///
+    /// This is unsafe as the `Select::wait()` has to be called afterwards,
+    /// and registered EventSource must not be send to different
+    /// thread/coroutine before `Select::wait()`.
+    ///
+    /// Use `select!` macro instead.
     unsafe fn select_add(&self, rw : RW) {
         let coroutine = tl_coroutine_current();
 
@@ -1432,104 +1438,57 @@ pub fn yield_now() {
     debug_assert!(coroutine.state.is_running());
 }
 
-fn select_add_impl<T>(io : &T, rw : RW)
-where T : Evented {
-    let coroutine = tl_coroutine_current();
-
-    if !coroutine.io.has_remaining() {
-        let count = coroutine.io.count();
-        coroutine.io.grow(count);
-    }
-
-    coroutine.io.insert_with(|id| {
-        io.shared().0.borrow_mut().common.id = Some(id);
-        io.shared().0.borrow_mut().common.blocked_on = rw;
-        io.shared().to_trait()
-    }).unwrap();
-}
-
-/// A Select handling struct
+/// Wait till an event is ready
 ///
 /// Use `select!` macro instead.
-pub struct Select;
+///
+/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+/// not block when actually attempting to `read` or `write`. You must
+/// use `try_read` and `try_write` instead.
+///
+/// The returned value contains event type and the id of the `EventSource`.
+/// See `EventSource::id()`.
+pub fn select_wait() -> Event {
+    let coroutine = tl_coroutine_current();
+    coroutine.state = State::Blocked;
 
-impl Select {
-    /// Create new instance.
-    pub fn new() -> Self {
-        Select
-    }
+    trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
+    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
 
-    /// Register for read.
-    ///
-    /// This is unsafe as the `Select::wait()` has to be called afterwards,
-    /// and registered EventSource must not be send to different
-    /// thread/coroutine before `Select::wait()`.
-    ///
-    /// Use `select!` macro instead.
-    pub unsafe fn add_r<T>(&self, io : &T)
-    where T : Evented {
-        select_add_impl(io, RW::read())
-    }
-
-    /// Use `select!` macro instead.
-    pub unsafe fn add_w<T>(&self, io : &T)
-    where T : Evented {
-        select_add_impl(io, RW::write())
-    }
-
-
-    /// Use `select!` macro instead.
-    pub unsafe fn add_rw<T>(&self, io : &T)
-    where T : Evented {
-        select_add_impl(io, RW::write())
-    }
-
-    /// Wait till an event is ready
-    ///
-    /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
-    /// not block when actually attempting to `read` or `write`. You must
-    /// use `try_read` and `try_write` instead.
-    ///
-    /// The returned value contains event type and the id of the `EventSource`.
-    /// See `EventSource::id()`.
-    pub fn wait(self) -> Event {
-        let coroutine = tl_coroutine_current();
-        coroutine.state = State::Blocked;
-
-        trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
-        coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-
-        entry_point(&coroutine.self_rc.as_ref().unwrap());
-        trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
-        debug_assert!(coroutine.state.is_running());
-        let e = coroutine.last_event;
-        e
-    }
+    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
+    debug_assert!(coroutine.state.is_running());
+    let e = coroutine.last_event;
+    e
 }
 
+/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+/// not block when actually attempting to `read` or `write`. You must
+/// use `try_read` and `try_write` instead.
+///
 #[macro_export]
 macro_rules! select {
-    (@wrap1 $sel:ident) => {};
-    (@wrap1 $sel:ident $rx:ident:r => $code:expr, $($tail:tt)*) => {
+    (@wrap1 ) => {};
+    (@wrap1 $rx:ident:r => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::read());
         }
-        select!(@wrap1 $sel $($tail)*)
+        select!(@wrap1 $($tail)*)
     };
-    (@wrap1 $sel:ident $rx:ident:w => $code:expr, $($tail:tt)*) => {
+    (@wrap1 $rx:ident:w => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::write());
         }
-        select!(@wrap1 $sel $($tail)*)
+        select!(@wrap1 $($tail)*)
     };
-    (@wrap1 $sel:ident $rx:ident:rw => $code:expr, $($tail:tt)*) => {
+    (@wrap1 $rx:ident:rw => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::both());
         }
-        select!(@wrap1 $sel $($tail)*)
+        select!(@wrap1 $($tail)*)
     };
     (@wrap2 $ret:ident) => {
         // end code
@@ -1550,9 +1509,8 @@ macro_rules! select {
         select!(@wrap2 $ret $($tail)*);
     }};
     ($($tail:tt)*) => {{
-        let sel = mioco::Select::new();
-        select!(@wrap1 sel $($tail)*);
-        let ret = sel.wait();
+        select!(@wrap1 $($tail)*);
+        let ret = mioco::select_wait();
         select!(@wrap2 ret $($tail)*);
     }};
 }
