@@ -41,11 +41,11 @@
 //! [mio-api]: ../mioco/mio/index.html
 
 #![cfg_attr(test, feature(convert))]
-#![feature(catch_panic)]
-#![feature(drain)]
+#![feature(recover)]
 #![feature(fnbox)]
 #![feature(cell_extras)]
 #![warn(missing_docs)]
+#![allow(private_in_public)]
 
 #[cfg(test)]
 extern crate env_logger;
@@ -982,7 +982,7 @@ impl Coroutine {
         extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx : &Context = {
 
-                let res = thread::catch_panic(
+                let res = std::panic::recover(
                     move|| {
                         let coroutine : &mut Coroutine = unsafe { transmute(arg) };
                         trace!("Coroutine({}): started", {

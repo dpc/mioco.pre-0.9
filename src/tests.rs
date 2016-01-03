@@ -777,7 +777,10 @@ fn tcp_basic_client_server() {
                 let listener = mioco::tcp::TcpListener::bind(&addr).unwrap();
 
                 out.send(listener.local_addr().unwrap());
-                listener.accept();
+                listener.accept().unwrap();
+
+                let mut lock = finished_copy.lock().unwrap();
+                *lock = true;
 
                 Ok(())
             });
@@ -788,10 +791,6 @@ fn tcp_basic_client_server() {
                 let _ = mioco::tcp::TcpStream::connect(&addr).unwrap();
                 Ok(())
             });
-
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-
             Ok(())
         });
 
