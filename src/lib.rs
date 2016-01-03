@@ -1039,8 +1039,6 @@ impl Coroutine {
             };
 
             Context::load(ctx);
-
-            unreachable!();
         }
 
         {
