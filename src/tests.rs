@@ -760,3 +760,43 @@ fn simple_rwlock() {
         assert_eq!(*counter.native_lock().read().unwrap(), (threads * 4) + 1);
     }
 }
+
+#[test]
+fn tcp_basic_client_server() {
+    use std::str::FromStr;
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let (out, inn) = mioco::mail::mailbox();
+
+            mioco::spawn(move || {
+                let addr = FromStr::from_str("127.0.0.1:0").unwrap();
+                let listener = mioco::tcp::TcpListener::bind(&addr).unwrap();
+
+                out.send(listener.local_addr().unwrap());
+                listener.accept();
+
+                Ok(())
+            });
+
+            mioco::spawn(move || {
+                let addr = inn.read();
+
+                let _ = mioco::tcp::TcpStream::connect(&addr).unwrap();
+                Ok(())
+            });
+
+            let mut lock = finished_copy.lock().unwrap();
+            *lock = true;
+
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+
