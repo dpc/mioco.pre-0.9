@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-797' class='srclink' href='../src/mioco/lib.rs.html#353-376' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-799' class='srclink' href='../src/mioco/lib.rs.html#357-386' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Evented: EventedPrv {
     fn <a href='#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a> { ... }
     unsafe fn <a href='#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../mioco/struct.RW.html' title='mioco::RW'>RW</a>) { ... }
@@ -58,6 +58,12 @@
             <div class='methods'>
         <h3 id='method.id' class='method stab '><code>fn <a href='#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h3><div class='docblock'><p>Temporary ID used in select operation.</p>
 </div><h3 id='method.select_add' class='method stab '><code>unsafe fn <a href='#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../mioco/struct.RW.html' title='mioco::RW'>RW</a>)</code></h3><div class='docblock'><p>Add event source to next select operation.</p>
+
+<p>Use <code>select!</code> macro instead.</p>
+
+<p>This is unsafe as the <code>Select::wait()</code> has to be called afterwards,
+and registered EventSource must not be send to different
+thread/coroutine before <code>Select::wait()</code>.</p>
 
 <p>Use <code>select!</code> macro instead.</p>
 </div></div>

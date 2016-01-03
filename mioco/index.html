@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2056' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2088' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -190,7 +190,10 @@
                         <td><a class='macro' href='macro.select!.html'
                                title='mioco::select!'>select!</a></td>
                         <td class='docblock short'>
-                             
+                             <p><strong>Warning</strong>: Mioco can&#39;t guarantee that the returned <code>EventSource</code> will
+not block when actually attempting to <code>read</code> or <code>write</code>. You must
+use <code>try_read</code> and <code>try_write</code> instead.</p>
+
                         </td>
                     </tr>
                 </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
@@ -284,15 +287,6 @@
 
                         </td>
                     </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Select.html'
-                               title='mioco::Select'>Select</a></td>
-                        <td class='docblock short'>
-                             <p>A Select handling struct</p>
-
-                        </td>
-                    </tr>
                 </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
 <table>
                     <tr class=' module-item'>
@@ -342,6 +336,42 @@
                     </tr>
                 </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.get_userdata.html'
+                               title='mioco::get_userdata'>get_userdata</a></td>
+                        <td class='docblock short'>
+                             <p>Gets a reference to the user data set through <code>set_userdata</code>. Returns <code>None</code> if <code>T</code> does not match or if no data was set</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.select_wait.html'
+                               title='mioco::select_wait'>select_wait</a></td>
+                        <td class='docblock short'>
+                             <p>Wait till an event is ready</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.set_children_userdata.html'
+                               title='mioco::set_children_userdata'>set_children_userdata</a></td>
+                        <td class='docblock short'>
+                             <p>Sets new user data that will inherit to newly spawned coroutines. Use <code>None</code> to clear.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.set_userdata.html'
+                               title='mioco::set_userdata'>set_userdata</a></td>
+                        <td class='docblock short'>
+                             <p>Sets new user data for the current coroutine</p>
+
+                        </td>
+                    </tr>
+                
                     <tr class=' module-item'>
                         <td><a class='fn' href='fn.sleep.html'
                                title='mioco::sleep'>sleep</a></td>

@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1059' class='srclink' href='../src/mioco/lib.rs.html#844-850' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1063' class='srclink' href='../src/mioco/lib.rs.html#860-866' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CoroutineControl {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine control block</p>
@@ -65,6 +65,8 @@ given <code>thread_id</code>.</p>
 <p>Will panic if <code>thread_id</code> is not valid.</p>
 </div><h4 id='method.is_yielding' class='method'><code>fn <a href='#method.is_yielding' class='fnname'>is_yielding</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is this Coroutine ready after <code>yield_now()</code>?</p>
+</div><h4 id='method.get_userdata' class='method'><code>fn <a href='#method.get_userdata' class='fnname'>get_userdata</a>&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt;(&amp;'a self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;'a T&gt;</code></h4>
+<div class='docblock'><p>Gets a reference to the user data set through <code>set_userdata</code>. Returns <code>None</code> if <code>T</code> does not match or if no data was set</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#method.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
