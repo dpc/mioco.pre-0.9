@@ -29,7 +29,6 @@ mio = { git = "https://github.com/dpc/mio", rev="c4a5b9e" }
 num_cpus = "*"
 libc = "^0.1.10"
 thread-scoped = "*"
-bit-vec = "*"
 context = "*"
 slab = { git = "https://github.com/dpc/slab" }
 
