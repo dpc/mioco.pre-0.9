@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-0.1.3/src/sys.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-0.1.4/src/sys.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>sys.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -326,7 +327,6 @@
     <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
         <span class='kw'>return</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>);
 
-        <span class='comment'>// x86-64</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>,
                   <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>)))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
@@ -351,7 +351,6 @@
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq $0, %fs:32&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;volatile&quot;</span>)
         }
 
-        <span class='comment'>// x86</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>,
                   <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>)))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
@@ -359,8 +358,7 @@
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movl $$0x48+90*4, %eax
                   movl $0, %gs:(%eax)&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) : <span class='string'>&quot;eax&quot;</span> : <span class='string'>&quot;volatile&quot;</span>)
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>,
-                  <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>)))]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movl $0, %gs:48&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;volatile&quot;</span>)
@@ -369,8 +367,8 @@
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {
         }
 
-        <span class='comment'>// mips, arm - Some brave soul can port these to inline asm, but it&#39;s over</span>
-        <span class='comment'>//             my head personally</span>
+        <span class='comment'>// mips, arm - The implementations are a bit big for inline asm!</span>
+        <span class='comment'>//             They can be found in src/rt/arch/$target_arch/record_sp.S</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mips&quot;</span>,
                   <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mipsel&quot;</span>,
                   <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;arm&quot;</span>, <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>))))]</span>
@@ -386,11 +384,14 @@
         <span class='comment'>// aarch64 - FIXME(AARCH64): missing...</span>
         <span class='comment'>// powerpc - FIXME(POWERPC): missing...</span>
         <span class='comment'>// arm-ios - iOS segmented stack is disabled for now, see related notes</span>
-        <span class='comment'>// openbsd - segmented stack is disabled</span>
+        <span class='comment'>// openbsd/bitrig/netbsd - no segmented stacks.</span>
+        <span class='comment'>// x86-freebsd - no segmented stacks.</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;aarch64&quot;</span>,
                   <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;powerpc&quot;</span>,
                   <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;arm&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>),
+                  <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>),
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;bitrig&quot;</span>,
+                  <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>,
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {
         }
@@ -408,7 +409,6 @@
     <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='kw'>return</span> <span class='ident'>target_get_sp_limit</span>();
 
-        <span class='comment'>// x86-64</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>,
                   <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>)))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
@@ -442,7 +442,6 @@
             <span class='kw'>return</span> <span class='ident'>limit</span>;
         }
 
-        <span class='comment'>// x86</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>,
                   <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>)))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
@@ -452,8 +451,7 @@
                   movl %gs:(%eax), $0&quot;</span> : <span class='string'>&quot;=r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;eax&quot;</span> : <span class='string'>&quot;volatile&quot;</span>);
             <span class='kw'>return</span> <span class='ident'>limit</span>;
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>,
-                  <span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>)))]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>let</span> <span class='ident'>limit</span>;
@@ -465,8 +463,8 @@
             <span class='kw'>return</span> <span class='number'>1024</span>;
         }
 
-        <span class='comment'>// mips, arm - Some brave soul can port these to inline asm, but it&#39;s over</span>
-        <span class='comment'>//             my head personally</span>
+        <span class='comment'>// mips, arm - The implementations are a bit big for inline asm!</span>
+        <span class='comment'>//             They can be found in src/rt/arch/$target_arch/record_sp.S</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mips&quot;</span>,
                   <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;mipsel&quot;</span>,
                   <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;arm&quot;</span>, <span class='ident'>not</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>))))]</span>
@@ -481,15 +479,18 @@
 
         <span class='comment'>// aarch64 - FIXME(AARCH64): missing...</span>
         <span class='comment'>// powerpc - FIXME(POWERPC): missing...</span>
-        <span class='comment'>// arm-ios - iOS doesn&#39;t support segmented stacks yet.</span>
-        <span class='comment'>// openbsd - OpenBSD doesn&#39;t support segmented stacks.</span>
+        <span class='comment'>// arm-ios - no segmented stacks.</span>
+        <span class='comment'>// openbsd/bitrig/netbsd - no segmented stacks.</span>
+        <span class='comment'>// x86-freebsd - no segmented stacks..</span>
         <span class='comment'>//</span>
         <span class='comment'>// This function might be called by runtime though</span>
         <span class='comment'>// so it is unsafe to unreachable, let&#39;s return a fixed constant.</span>
         <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;aarch64&quot;</span>,
                   <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;powerpc&quot;</span>,
                   <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;arm&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;ios&quot;</span>),
+                  <span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>),
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;bitrig&quot;</span>,
+                  <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>,
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
         <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {

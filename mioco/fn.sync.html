@@ -9,6 +9,7 @@
 
     <title>mioco::sync - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,8 +46,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-899' class='srclink' href='../src/mioco/lib.rs.html#1540-1569' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn sync&lt;'b, F, R&gt;(f: F) -&gt; R <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>() -&gt; R + 'b</span></pre><div class='docblock'><p>Execute a block of synchronous operations</p>
+        </span><a id='src-1325' class='srclink' href='../src/mioco/lib.rs.html#1314-1342' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn sync&lt;'b, F, R&gt;(f: F) -&gt; R <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; R + 'b</span></pre><div class='docblock'><p>Execute a block of synchronous operations</p>
 
 <p>This will execute a block of synchronous operations without blocking
 cooperative coroutine scheduling. This is done by offloading the

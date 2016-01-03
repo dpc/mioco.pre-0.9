@@ -9,6 +9,7 @@
 
     <title>mioco::Handler - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,17 +46,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1104' class='srclink' href='../src/mioco/lib.rs.html#2056-2059' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1497' class='srclink' href='../src/mioco/lib.rs.html#1759-1762' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Handler {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco event loop <code>Handler</code></p>
 
-<p>Registered in <code>mio::EventLoop</code> and implementing <code>mio::Handler</code>.  This <code>struct</code> is quite
+<p>Registered in <code>mio_orig::EventLoop</code> and implementing <code>mio_orig::Handler</code>.  This <code>struct</code> is quite
 internal so you should not have to worry about it.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Handler</a> for <a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a></code></h3><div class='impl-items'><h4 id='assoc_type.Timeout' class='type'><code>type Timeout = <a class='struct' href='../mioco/mio/struct.Token.html' title='mioco::mio::Token'>Token</a></code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Handler</a> for <a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a></code></h3><div class='impl-items'><h4 id='assoc_type.Timeout' class='type'><code>type Timeout = <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a></code></h4>
 <h4 id='assoc_type.Message' class='type'><code>type Message = <a class='enum' href='../mioco/enum.Message.html' title='mioco::Message'>Message</a></code></h4>
 <h4 id='method.tick' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.tick' class='fnname'>tick</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h4>
-<h4 id='method.ready' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, token: <a class='struct' href='../mioco/mio/struct.Token.html' title='mioco::mio::Token'>Token</a>, events: <a class='struct' href='../mioco/mio/struct.EventSet.html' title='mioco::mio::EventSet'>EventSet</a>)</code></h4>
+<h4 id='method.ready' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>, events: <a class='struct' href='../mio/event/struct.EventSet.html' title='mio::event::EventSet'>EventSet</a>)</code></h4>
 <h4 id='method.notify' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.notify' class='fnname'>notify</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, msg: Self::<a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Message</a>)</code></h4>
 <h4 id='method.timeout' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.timeout' class='fnname'>timeout</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;Self&gt;, msg: Self::<a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Timeout</a>)</code></h4>
 <h4 id='method.interrupted' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.interrupted' class='fnname'>interrupted</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h4>

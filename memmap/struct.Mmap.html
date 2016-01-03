@@ -9,6 +9,7 @@
 
     <title>memmap::Mmap - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -147,7 +148,7 @@ dereferencing the pointer.</p>
 </div><h4 id='method.as_mut_slice' class='method'><code>unsafe fn <a href='#method.as_mut_slice' class='fnname'>as_mut_slice</a>(&amp;mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
 <div class='docblock'><p>Returns the memory mapped file as a mutable slice.</p>
 
-<h2 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h2>
+<h2 id='unsafety-1' class='section-header'><a href='#unsafety-1'>Unsafety</a></h2>
 <p>The caller must ensure that the file is not concurrently accessed.</p>
 </div><h4 id='method.into_view' class='method'><code>fn <a href='#method.into_view' class='fnname'>into_view</a>(self) -&gt; <a class='struct' href='../memmap/struct.MmapView.html' title='memmap::MmapView'>MmapView</a></code></h4>
 <div class='docblock'><p>Creates a splittable mmap view from the mmap.</p>

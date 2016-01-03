@@ -45,8 +45,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-949' class='srclink' href='../src/mioco/lib.rs.html#1632-1657' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn unwrap&lt;T: 'static&gt;(io: <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt;) -&gt; T <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></pre><div class='docblock'><p>Deregister <code>mio</code>&#39;s native io type from owning <code>mioco</code> coroutine</p>
+        </span><a id='src-1013' class='srclink' href='../src/mioco/lib.rs.html#1670-1686' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn unwrap&lt;T: 'static&gt;(event_source: <a class='struct' href='../mioco/struct.EventSource.html' title='mioco::EventSource'>EventSource</a>&lt;T&gt;) -&gt; T <span class='where'>where T: <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a></span></pre><div class='docblock'><p>Deregister <code>mio</code>&#39;s native io type from owning <code>mioco</code> coroutine</p>
 
 <p>Consumes the wrapped <code>io</code>, returns the original <code>io</code>.</p>
 

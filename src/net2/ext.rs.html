@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/net2-0.2.19/src/ext.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/net2-0.2.20/src/ext.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>ext.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     <link rel="shortcut icon" href="https://doc.rust-lang.org/favicon.ico">
@@ -2125,22 +2126,22 @@
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ret</span>: <span class='ident'>in6_addr</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>zeroed</span>() };
     <span class='kw'>let</span> <span class='ident'>seg</span> <span class='op'>=</span> <span class='ident'>ip</span>.<span class='ident'>segments</span>();
     <span class='ident'>ret</span>.<span class='ident'>s6_addr</span> <span class='op'>=</span> [
-        (<span class='ident'>seg</span>[<span class='number'>0</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>0</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>1</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>0</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>1</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>2</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>1</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>2</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>3</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>2</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>3</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>4</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>3</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>4</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>5</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>4</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>5</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>6</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>5</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>6</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
-        (<span class='ident'>seg</span>[<span class='number'>7</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>6</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
         (<span class='ident'>seg</span>[<span class='number'>7</span>] <span class='op'>&gt;&gt;</span> <span class='number'>8</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
+        (<span class='ident'>seg</span>[<span class='number'>7</span>] <span class='op'>&gt;&gt;</span> <span class='number'>0</span>) <span class='kw'>as</span> <span class='ident'>u8</span>,
     ];
     <span class='kw'>return</span> <span class='ident'>ret</span>
 }

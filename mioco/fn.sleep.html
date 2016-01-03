@@ -9,6 +9,7 @@
 
     <title>mioco::sleep - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,13 +46,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-971' class='srclink' href='../src/mioco/lib.rs.html#1707-1712' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1359' class='srclink' href='../src/mioco/lib.rs.html#1392-1397' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn sleep(time_ms: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</pre><div class='docblock'><p>Block coroutine for a given time</p>
 
 <p>Warning: The precision of this call (and other <code>timer()</code> like
 functionality) is limited by <code>mio</code> event loop settings. Any small
 value of <code>time_ms</code> will effectively be rounded up to
-<code>mio::EventLoop::timer_tick_ms()</code>.</p>
+<code>mio_orig::EventLoop::timer_tick_ms()</code>.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

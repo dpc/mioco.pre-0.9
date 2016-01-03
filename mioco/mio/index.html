@@ -9,6 +9,7 @@
 
     <title>mioco::mio - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -45,50 +46,11 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../..//mio/index.html?gotosrc=0' title='goto source code'>[src]</a></span></h1>
-<h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='prelude/index.html'
-                               title='mioco::mio::prelude'>prelude</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='tcp/index.html'
-                               title='mioco::mio::tcp'>tcp</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='udp/index.html'
-                               title='mioco::mio::udp'>udp</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='unix/index.html'
-                               title='mioco::mio::unix'>unix</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='util/index.html'
-                               title='mioco::mio::util'>util</a></td>
-                        <td class='docblock short'>
-                             <p>Utilities for non-blocking IO programs</p>
+        </span><a id='src-14' class='srclink' href='../../src/mioco/lib.rs.html#111-113' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Re-export of all <code>mio</code> symbols.</p>
 
-                        </td>
-                    </tr>
-                </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<p>Use that instead this to access plain-<code>mio</code> types.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.EventLoop.html'
@@ -100,47 +62,6 @@
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.EventLoopConfig.html'
-                               title='mioco::mio::EventLoopConfig'>EventLoopConfig</a></td>
-                        <td class='docblock short'>
-                             <p>Configure EventLoop runtime details</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.EventSet.html'
-                               title='mioco::mio::EventSet'>EventSet</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Events.html'
-                               title='mioco::mio::Events'>Events</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Io.html'
-                               title='mioco::mio::Io'>Io</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.IoEvent.html'
-                               title='mioco::mio::IoEvent'>IoEvent</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.Ipv4Addr.html'
                                title='mioco::mio::Ipv4Addr'>Ipv4Addr</a></td>
                         <td class='docblock short'>
@@ -148,137 +69,11 @@
 
                         </td>
                     </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Ipv6Addr.html'
-                               title='mioco::mio::Ipv6Addr'>Ipv6Addr</a></td>
-                        <td class='docblock short'>
-                             <p>Representation of an IPv6 address.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Poll.html'
-                               title='mioco::mio::Poll'>Poll</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.PollOpt.html'
-                               title='mioco::mio::PollOpt'>PollOpt</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Selector.html'
-                               title='mioco::mio::Selector'>Selector</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Sender.html'
-                               title='mioco::mio::Sender'>Sender</a></td>
-                        <td class='docblock short'>
-                             <p>Sends messages to the EventLoop from other threads.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Timeout.html'
-                               title='mioco::mio::Timeout'>Timeout</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.TimerError.html'
-                               title='mioco::mio::TimerError'>TimerError</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Token.html'
-                               title='mioco::mio::Token'>Token</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='enum' href='enum.IpAddr.html'
-                               title='mioco::mio::IpAddr'>IpAddr</a></td>
-                        <td class='docblock short'>
-                             <p>An IP address, either a IPv4 or IPv6 address.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='enum' href='enum.NotifyError.html'
-                               title='mioco::mio::NotifyError'>NotifyError</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Evented.html'
-                               title='mioco::mio::Evented'>Evented</a></td>
-                        <td class='docblock short'>
-                             <p>A value that may be registered with an <code>EventLoop</code></p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
                         <td><a class='trait' href='trait.Handler.html'
                                title='mioco::mio::Handler'>Handler</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.TryAccept.html'
-                               title='mioco::mio::TryAccept'>TryAccept</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.TryRead.html'
-                               title='mioco::mio::TryRead'>TryRead</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.TryWrite.html'
-                               title='mioco::mio::TryWrite'>TryWrite</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='type' href='type.TimerResult.html'
-                               title='mioco::mio::TimerResult'>TimerResult</a></td>
                         <td class='docblock short'>
                              
                         </td>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Timer` struct in crate `mioco`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Timer">
+
+    <title>mioco::timer::Timer - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>mioco</a>::<wbr><a href='index.html'>timer</a></p><script>window.sidebarCurrent = {name: 'Timer', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>mioco</a>::<wbr><a href='index.html'>timer</a>::<wbr><a class='struct' href=''>Timer</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-83' class='srclink' href='../../src/mioco/timer.rs.html#16-18' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Timer {
+    // some fields omitted
+}</pre><div class='docblock'><p>A Timer generating event after a given time</p>
+
+<p>Can be used to block coroutine or to implement timeout for other <code>EventSource</code>.</p>
+
+<p>Create using <code>MiocoHandle::timeout()</code>.</p>
+
+<p>Use <code>MiocoHandle::select()</code> to wait for an event, or <code>read()</code> to block until
+done.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h4>
+<div class='docblock'><p>Create a new timer</p>
+</div></div><h3 class='impl'><code>impl <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>(&amp;mut self) -&gt; <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a></code></h4>
+<div class='docblock'><p>Read a timer to block on it until it is done.</p>
+
+<p>Returns current time</p>
+
+<p>TODO: Return wakeup time instead</p>
+</div><h4 id='method.try_read' class='method'><code>fn <a href='#method.try_read' class='fnname'>try_read</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a>&gt;</code></h4>
+<div class='docblock'><p>Try reading current time (if the timer is done)</p>
+
+<p>TODO: Return wakeup time instead</p>
+</div><h4 id='method.set_timeout' class='method'><code>fn <a href='#method.set_timeout' class='fnname'>set_timeout</a>(&amp;mut self, delay_ms: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
+<div class='docblock'><p>Set timeout for the timer</p>
+
+<p>The timeout counts from the time <code>set_timeout</code> is called.</p>
+</div><h4 id='method.set_timeout_absolute' class='method'><code>fn <a href='#method.set_timeout_absolute' class='fnname'>set_timeout_absolute</a>(&amp;mut self, timeout: <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a>)</code></h4>
+<div class='docblock'><p>Set timeout for the timer using absolute time.</p>
+</div><h4 id='method.get_timeout_absolute' class='method'><code>fn <a href='#method.get_timeout_absolute' class='fnname'>get_timeout_absolute</a>(&amp;mut self) -&gt; <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a></code></h4>
+<div class='docblock'><p>Get absolute value of the timer timeout.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'><h4 id='method.id' class='method'><code>fn <a href='../../mioco/trait.Evented.html#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h4>
+<h4 id='method.select_add' class='method'><code>unsafe fn <a href='../../mioco/trait.Evented.html#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../../mioco/struct.RW.html' title='mioco::RW'>RW</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "mioco";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

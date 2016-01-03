@@ -9,6 +9,7 @@
 
     <title>context::context::Context - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -45,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-16' class='srclink' href='../../src/context/context.rs.html#23-28' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-16' class='srclink' href='../../src/context/context.rs.html#24-29' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Context {
     // some fields omitted
 }</pre><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.empty' class='method'><code>fn <a href='#method.empty' class='fnname'>empty</a>() -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
@@ -67,7 +68,7 @@ saving the registers values of the executing thread to a Context
 then loading the registers from a previously saved Context.</p>
 </div><h4 id='method.save' class='method'><code>fn <a href='#method.save' class='fnname'>save</a>(context: &amp;mut <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>)</code></h4>
 <div class='docblock'><p>Save the current context.</p>
-</div><h4 id='method.load' class='method'><code>fn <a href='#method.load' class='fnname'>load</a>(to_context: &amp;<a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>)</code></h4>
+</div><h4 id='method.load' class='method'><code>fn <a href='#method.load' class='fnname'>load</a>(to_context: &amp;<a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>) -&gt; !</code></h4>
 <div class='docblock'><p>Load the context and switch. This function will never return.</p>
 
 <p>It is equivalent to <code>Context::swap(&amp;mut dummy_context, &amp;to_context)</code>.</p>
