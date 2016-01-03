@@ -19,20 +19,20 @@
 
 ``` rust
 fn main() {
-    mioco::start(|| {
+    mioco::start(||{
         let addr = listend_addr();
 
         let listener = TcpListener::bind(&addr).unwrap();
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
-        let listener = mioco::wrap(listener);
+        let listener = listener;
 
         loop {
             let conn = try!(listener.accept());
 
             mioco::spawn(|| {
-                let mut conn = mioco::wrap(conn);
+                let mut conn = conn;
 
                 let mut buf = [0u8; 1024 * 16];
                 loop {
