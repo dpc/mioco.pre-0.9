@@ -2097,8 +2097,6 @@
 <span id="2054">2054</span>
 <span id="2055">2055</span>
 <span id="2056">2056</span>
-<span id="2057">2057</span>
-<span id="2058">2058</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyrelectght 2015 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -2207,9 +2205,7 @@ fn main() {
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>num_cpus</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>slab</span>;
 
-<span class='doccomment'>/// Re-export of all `mio` symbols.</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// Use that instead this to access plain-`mio` types.</span>
+<span class='doccomment'>/// Re-export of some `mio` symbols.</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>mio</span> {
     <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Handler</span>, <span class='ident'>Ipv4Addr</span>};
 }
@@ -2240,13 +2236,13 @@ fn main() {
 
 <span class='doccomment'>/// Useful synchronization primitives</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>sync</span>;
-<span class='doccomment'>/// Timer</span>
+<span class='doccomment'>/// Timers</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>timer</span>;
-<span class='doccomment'>/// Unix sockets</span>
+<span class='doccomment'>/// Unix sockets IO</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>unix</span>;
-<span class='doccomment'>/// Tcp event sources</span>
+<span class='doccomment'>/// TCP IO</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>tcp</span>;
-<span class='doccomment'>/// Udp event sources</span>
+<span class='doccomment'>/// UDP IO</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>udp</span>;
 <span class='doccomment'>/// Mailboxes</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>mail</span>;

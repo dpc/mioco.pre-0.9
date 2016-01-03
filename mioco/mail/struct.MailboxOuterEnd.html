@@ -49,10 +49,10 @@
         </span><a id='src-570' class='srclink' href='../../src/mioco/mail.rs.html#92-94' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MailboxOuterEnd&lt;T&gt; {
     // some fields omitted
-}</pre><div class='docblock'><p>Mailbox Outer End</p>
+}</pre><div class='docblock'><p>Mailbox sending end</p>
 
 <p>Use this inside mioco coroutines or outside of mioco itself to send data
-asynchronously to the inner end.</p>
+asynchronously to the receiving end.</p>
 
 <p>Create with <code>mailbox()</code></p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../../mioco/mail/struct.MailboxOuterEnd.html' title='mioco::mail::MailboxOuterEnd'>MailboxOuterEnd</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.send' class='method'><code>fn <a href='#method.send' class='fnname'>send</a>(&amp;self, t: T)</code></h4>
@@ -61,8 +61,6 @@ asynchronously to the inner end.</p>
 <p>Mailbox behaves like a queue.</p>
 
 <p>This is non-blocking operation.</p>
-
-<p>See <code>EventSource&lt;MailboxInnerEnd&lt;T&gt;&gt;::read()</code>.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../../mioco/mail/struct.MailboxOuterEnd.html' title='mioco::mail::MailboxOuterEnd'>MailboxOuterEnd</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; Self</code></h4>
 <h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
 </div></section>

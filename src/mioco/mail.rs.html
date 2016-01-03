@@ -236,8 +236,6 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>EventedInner</span>, <span class='ident'>RcEvented</span>, <span class='ident'>RW</span>, <span class='ident'>Handler</span>, <span class='ident'>Evented</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>prv</span>::<span class='ident'>EventedPrv</span>;
@@ -259,7 +257,7 @@
     <span class='ident'>interest</span> : <span class='ident'>EventSet</span>,
 }
 
-<span class='doccomment'>/// Mailbox Inner End</span>
+<span class='doccomment'>/// Mailbox receiving end</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Use this only inside mioco coroutines, as an asynchronous event source.</span>
 <span class='doccomment'>///</span>
@@ -324,10 +322,10 @@
 }
 
 
-<span class='doccomment'>/// Mailbox Outer End</span>
+<span class='doccomment'>/// Mailbox sending end</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Use this inside mioco coroutines or outside of mioco itself to send data</span>
-<span class='doccomment'>/// asynchronously to the inner end.</span>
+<span class='doccomment'>/// asynchronously to the receiving end.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Create with `mailbox()`</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>MailboxOuterEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
@@ -362,8 +360,6 @@
     <span class='doccomment'>/// Mailbox behaves like a queue.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This is non-blocking operation.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// See `EventSource&lt;MailboxInnerEnd&lt;T&gt;&gt;::read()`.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>send</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>t</span> : <span class='ident'>T</span>) {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>lock</span>();
         <span class='kw'>let</span> <span class='ident'>MailboxShared</span> {
