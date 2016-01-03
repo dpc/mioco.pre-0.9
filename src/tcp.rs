@@ -59,7 +59,6 @@ impl TcpListener {
         mio_orig::tcp::TcpListener::from_listener(listener, addr).map(|t| TcpListener(RcEvented::new(t)))
     }
 
-
     /// Block on accepting a connection.
     pub fn accept(&self) -> io::Result<TcpStream> {
         loop {
