@@ -62,9 +62,7 @@ extern crate time;
 extern crate num_cpus;
 extern crate slab;
 
-/// Re-export of all `mio` symbols.
-///
-/// Use that instead this to access plain-`mio` types.
+/// Re-export of some `mio` symbols.
 pub mod mio {
     pub use super::mio_orig::{EventLoop, Handler, Ipv4Addr};
 }
@@ -95,13 +93,13 @@ use timer::Timer;
 
 /// Useful synchronization primitives
 pub mod sync;
-/// Timer
+/// Timers
 pub mod timer;
-/// Unix sockets
+/// Unix sockets IO
 pub mod unix;
-/// Tcp event sources
+/// TCP IO
 pub mod tcp;
-/// Udp event sources
+/// UDP IO
 pub mod udp;
 /// Mailboxes
 pub mod mail;

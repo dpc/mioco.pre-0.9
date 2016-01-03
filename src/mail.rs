@@ -18,7 +18,7 @@ struct MailboxShared<T> {
     interest : EventSet,
 }
 
-/// Mailbox Inner End
+/// Mailbox receiving end
 ///
 /// Use this only inside mioco coroutines, as an asynchronous event source.
 ///
@@ -83,10 +83,10 @@ impl<T> EventedInner for MailboxInnerCore<T> {
 }
 
 
-/// Mailbox Outer End
+/// Mailbox sending end
 ///
 /// Use this inside mioco coroutines or outside of mioco itself to send data
-/// asynchronously to the inner end.
+/// asynchronously to the receiving end.
 ///
 /// Create with `mailbox()`
 pub struct MailboxOuterEnd<T> {
@@ -121,8 +121,6 @@ impl<T> MailboxOuterEnd<T> {
     /// Mailbox behaves like a queue.
     ///
     /// This is non-blocking operation.
-    ///
-    /// See `EventSource<MailboxInnerEnd<T>>::read()`.
     pub fn send(&self, t : T) {
         let mut lock = self.shared.lock();
         let MailboxShared {
