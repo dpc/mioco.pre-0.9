@@ -20,11 +20,11 @@
 //! ```norust
 //! * multithreading support; (see `Config::set_thread_num()`)
 //! * user-provided scheduling; (see `Config::set_scheduler()`);
-//! * support for all native `mio` types (see `MiocoHandle::wrap()`);
 //! * timers (see `MiocoHandle::timer()`);
 //! * mailboxes (see `mailbox()`);
 //! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
 //! * synchronous operations support (see `MiocoHandle::sync()`).
+//! * synchronization primitives (see `RwLock`).
 //! ```
 //!
 //! # <a name="example"/></a> Example:
