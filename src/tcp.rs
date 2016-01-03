@@ -3,6 +3,7 @@ use super::prv::EventedPrv;
 use std::io;
 use std::net::SocketAddr;
 use super::mio_orig;
+use std;
 
 pub use mio_orig::tcp::Shutdown;
 
@@ -36,6 +37,11 @@ impl TcpListener {
         self.shared().0.borrow().io.local_addr()
     }
 
+    /// TODO: document
+    pub fn take_socket_error(&self) -> io::Result<()> {
+        self.shared().0.borrow().io.take_socket_error()
+    }
+
     /// Try cloning the listener descriptor.
     pub fn try_clone(&self) -> io::Result<TcpListener> {
         self.shared().0.borrow().io.try_clone().map(|t| TcpListener(RcEvented::new(t)))
@@ -47,6 +53,12 @@ impl TcpListener {
     pub fn bind(addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpListener::bind(addr).map(|t| TcpListener(RcEvented::new(t)))
     }
+
+    /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
+    pub fn from_listener(listener : std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
+        mio_orig::tcp::TcpListener::from_listener(listener, addr).map(|t| TcpListener(RcEvented::new(t)))
+    }
+
 
     /// Block on accepting a connection.
     pub fn accept(&self) -> io::Result<TcpStream> {
@@ -81,14 +93,57 @@ impl TcpListener {
 }
 
 impl TcpStream {
+    /// Create a new TCP stream an issue a non-blocking connect to the specified address.
+    pub fn connect(addr : &SocketAddr) -> io::Result<Self> {
+        mio_orig::tcp::TcpStream::connect(addr).map(|t| TcpStream(RcEvented::new(t)))
+    }
+
+    /// Creates a new TcpStream from the pending socket inside the given
+    /// `std::net::TcpBuilder`, connecting it to the address specified.
+    pub fn connect_stream(stream : std::net::TcpStream, addr : &SocketAddr) -> io::Result<Self> {
+        mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| TcpStream(RcEvented::new(t)))
+    }
+
     /// Local address of connection.
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
         self.shared().0.borrow().io.local_addr()
     }
 
+    /// Peer address of connection.
+    pub fn peer_addr(&self) -> io::Result<SocketAddr> {
+        self.shared().0.borrow().io.peer_addr()
+    }
+
     /// Shutdown the connection.
     pub fn shutdown(&self, how : mio_orig::tcp::Shutdown) -> io::Result<()> {
         self.shared().0.borrow().io.shutdown(how)
+    }
+
+    /// Set `no_delay`.
+    pub fn set_nodelay(&self, nodelay : bool) -> io::Result<()> {
+        self.shared().0.borrow().io.set_nodelay(nodelay)
+    }
+
+    /// Set keepalive.
+    pub fn set_keepalive(&self, seconds : Option<u32>) -> io::Result<()> {
+        self.shared().0.borrow().io.set_keepalive(seconds)
+    }
+
+    /// TODO: document
+    pub fn take_socket_error(&self) -> io::Result<()> {
+        self.shared().0.borrow().io.take_socket_error()
+    }
+
+    /// Try writing a data from the buffer.
+    ///
+    /// This will not block.
+    pub fn try_write(&self, buf: &[u8]) -> io::Result<Option<usize>> {
+        self.shared().try_write(buf)
+    }
+
+    /// Try cloning the socket descriptor.
+    pub fn try_clone(&self) -> io::Result<TcpStream> {
+        self.shared().0.borrow().io.try_clone().map(|t| TcpStream(RcEvented::new(t)))
     }
 }
 
@@ -145,20 +200,6 @@ impl io::Write for TcpStream {
     // TODO: ?
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
-    }
-}
-
-impl TcpStream {
-    /// Try writing a data from the buffer.
-    ///
-    /// This will not block.
-    pub fn try_write(&self, buf: &[u8]) -> io::Result<Option<usize>> {
-        self.shared().try_write(buf)
-    }
-
-    /// Try cloning the socket descriptor.
-    pub fn try_clone(&self) -> io::Result<TcpStream> {
-        self.shared().0.borrow().io.try_clone().map(|t| TcpStream(RcEvented::new(t)))
     }
 }
 

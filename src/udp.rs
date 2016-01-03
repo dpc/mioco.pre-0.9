@@ -4,6 +4,8 @@ use super::mio_orig;
 use std::io;
 use std::net::SocketAddr;
 
+pub use mio_orig::IpAddr;
+
 /// Udp Socket
 pub struct UdpSocket(RcEvented<mio_orig::udp::UdpSocket>);
 
@@ -99,6 +101,31 @@ impl UdpSocket {
     /// This will not block.
     pub fn try_write(&self, buf: &[u8], target : &SocketAddr) -> io::Result<Option<usize>> {
         self.shared().0.borrow().io.send_to(buf, target)
+    }
+
+    /// Set broadcast flag.
+    pub fn set_broadcast(&self, on : bool) -> io::Result<()> {
+        self.shared().0.borrow().io.set_broadcast(on)
+    }
+
+    /// Set multicast loop flag.
+    pub fn set_multicast_loop(&self, on : bool) -> io::Result<()> {
+        self.shared().0.borrow().io.set_multicast_loop(on)
+    }
+
+    /// Join multicast.
+    pub fn join_multicast(&self, multi : &IpAddr) -> io::Result<()> {
+        self.shared().0.borrow().io.join_multicast(multi)
+    }
+
+    /// Leave multicast.
+    pub fn leave_multicast(&self, multi : &IpAddr) -> io::Result<()> {
+        self.shared().0.borrow().io.leave_multicast(multi)
+    }
+
+    /// Set multicast TTL.
+    pub fn set_multicast_time_to_live(&self, ttl: i32) -> io::Result<()> {
+        self.shared().0.borrow().io.set_multicast_time_to_live(ttl)
     }
 }
 
