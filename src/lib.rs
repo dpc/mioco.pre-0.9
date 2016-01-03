@@ -44,6 +44,8 @@
 #![feature(recover)]
 #![feature(fnbox)]
 #![feature(cell_extras)]
+#![feature(as_unsafe_cell)]
+#![feature(reflect_marker)]
 #![warn(missing_docs)]
 #![allow(private_in_public)]
 
@@ -67,11 +69,13 @@ pub mod mio {
     pub use super::mio_orig::{EventLoop, Handler, Ipv4Addr};
 }
 
+use std::any::Any;
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
 use std::io;
 use std::thread;
-use std::mem::{transmute};
+use std::marker::Reflect;
+use std::mem::{self, transmute};
 
 use std::boxed::FnBox;
 
@@ -613,6 +617,12 @@ pub struct Coroutine {
     timer : Option<Timer>,
 
     sync_mailbox: Option<(mail::MailboxOuterEnd<()>, mail::MailboxInnerEnd<()>)>,
+
+    /// Userdata of the coroutine
+    user_data: Option<Arc<Box<Any+Send+Sync>>>,
+
+    /// Userdata meant for inheritance
+    inherited_user_data: Option<Arc<Box<Any+Send+Sync>>>,
 }
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
@@ -926,11 +936,27 @@ impl CoroutineControl {
     pub fn is_yielding(&self) -> bool {
         self.is_yielding
     }
+
+    /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+    pub fn get_userdata<'a, T: Any>(&'a self) -> Option<&'a T> {
+        let coroutine_ref = unsafe {
+            &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine
+        };
+
+        match coroutine_ref.user_data {
+            Some(ref arc) => {
+                let boxed_any: &Box<Any+Send+Sync> = arc.as_ref();
+                let any: &Any = boxed_any.as_ref();
+                any.downcast_ref::<T>()
+            },
+            None => None,
+        }
+    }
 }
 
 impl Coroutine {
     /// Spawn a new Coroutine
-    fn spawn<F>(handler_shared : RcHandlerShared, f : F) -> RcCoroutine
+    fn spawn<F>(handler_shared : RcHandlerShared, inherited_user_data: Option<Arc<Box<Any+Send+Sync>>>, f : F) -> RcCoroutine
     where F : FnOnce() -> io::Result<()> + Send + 'static {
         trace!("Coroutine: spawning");
         let stack_size = handler_shared.borrow().stack_size;
@@ -958,6 +984,8 @@ impl Coroutine {
                     self_rc: None,
                     timer: None,
                     sync_mailbox: None,
+                    user_data: inherited_user_data.clone(),
+                    inherited_user_data: inherited_user_data,
                 };
 
                 CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
@@ -1247,6 +1275,7 @@ where F : FnOnce() -> io::Result<()> + Send + 'static {
 
     let coroutine_ref = Coroutine::spawn(
         coroutine.handler_shared.as_ref().unwrap().clone(),
+        coroutine.inherited_user_data.clone(),
         f
         );
     let ret = CoroutineHandle {
@@ -1294,6 +1323,37 @@ where F : FnOnce() -> R + 'b {
 
     let FakeSend(res) = join.join();
     res
+}
+
+/// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+pub fn get_userdata<'a, T: Any>() -> Option<&'a T>
+{
+    let coroutine = tl_coroutine_current();
+    match coroutine.user_data {
+        Some(ref arc) => {
+            let boxed_any: &Box<Any+Send+Sync> = arc.as_ref();
+            let any: &Any = boxed_any.as_ref();
+            any.downcast_ref::<T>()
+        },
+        None => None,
+    }
+}
+
+/// Sets new user data for the current coroutine
+pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T)
+{
+    let mut coroutine = tl_coroutine_current();
+    coroutine.user_data = Some(Arc::new(Box::new(data)));
+}
+
+/// Sets new user data that will inherit to newly spawned coroutines. Use `None` to clear.
+pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>)
+{
+    let mut coroutine = tl_coroutine_current();
+    coroutine.inherited_user_data = match data {
+        Some(data) => Some(Arc::new(Box::new(data))),
+        None => None,
+    }
 }
 
 /// Get number of threads of the Mioco instance that coroutine is
@@ -1877,7 +1937,7 @@ impl Mioco {
                 let thread_shared = thread_shared.clone();
                 let join = std::thread::Builder::new().name(format!("mioco_thread_{}", i)).spawn(move || {
                     let sched = scheduler.spawn_thread();
-                    Mioco::thread_loop::<F>(None, sched, event_loop, senders, thread_shared, stack_size);
+                    Mioco::thread_loop::<F>(None, sched, event_loop, senders, thread_shared, stack_size, None);
                 });
 
                 match join {
@@ -1886,7 +1946,9 @@ impl Mioco {
                 }
             }
 
-            Mioco::thread_loop(Some(f), sched, first_event_loop, senders, thread_shared, self.config.stack_size);
+            let mut user_data = None;
+            mem::swap(&mut user_data, &mut self.config.user_data);
+            Mioco::thread_loop(Some(f), sched, first_event_loop, senders, thread_shared, self.config.stack_size, user_data);
 
             for join in self.join_handles.drain(..) {
                 let _ = join.join(); // TODO: Do something with it
@@ -1900,6 +1962,7 @@ impl Mioco {
         senders : Vec<MioSender>,
         thread_shared : ArcHandlerThreadShared,
         stack_size: usize,
+        userdata: Option<Arc<Box<Any + Send + Sync>>>,
         )
         where F : FnOnce() -> io::Result<()> + Send + 'static,
               F : Send
@@ -1907,7 +1970,7 @@ impl Mioco {
             let handler_shared = HandlerShared::new(senders, thread_shared, stack_size);
             let shared = Rc::new(RefCell::new(handler_shared));
             if let Some(f) = f {
-                let coroutine_rc = Coroutine::spawn(shared.clone(), f);
+                let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
                 let coroutine_ctrl = CoroutineControl::new(coroutine_rc);
                 scheduler.spawned(&mut event_loop, coroutine_ctrl);
                 // Mark started only after first coroutine is spawned so that
@@ -1947,6 +2010,7 @@ pub struct Config {
     scheduler : Arc<Box<Scheduler>>,
     event_loop_config : EventLoopConfig,
     stack_size : usize,
+    user_data : Option<Arc<Box<Any + Send + Sync>>>,
 }
 
 impl Config {
@@ -1961,6 +2025,7 @@ impl Config {
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
             stack_size: 2 * 1024 * 1024,
+            user_data: None,
         };
         config.event_loop_config.tick_ms(Some(1000));
         config
@@ -2000,6 +2065,15 @@ impl Config {
     /// which is two 64KB pages.
     pub unsafe fn set_stack_size(&mut self, stack_size : usize) -> &mut Self {
         self.stack_size = stack_size;
+        self
+    }
+
+    /// Set the user data of the first spawned coroutine
+    ///
+    /// Default is no Userdata
+    pub fn set_userdata<T: Reflect + Send + Sync + 'static>(&mut self, data: T) -> &mut Self
+    {
+        self.user_data = Some(Arc::new(Box::new(data)));
         self
     }
 
