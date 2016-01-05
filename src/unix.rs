@@ -3,7 +3,7 @@ use super::prv::EventedPrv;
 use std::io;
 use super::mio_orig;
 use std::path::Path;
-use std::os::unix::io::RawFd;
+use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 /// Unix pipe reader
 pub struct PipeReader(RcEvented<mio_orig::unix::PipeReader>);
@@ -49,6 +49,19 @@ impl PipeReader {
         self.shared().try_read(buf)
     }
 }
+
+impl FromRawFd for PipeReader {
+    unsafe fn from_raw_fd(fd: RawFd) -> PipeReader {
+        PipeReader(RcEvented::new(mio_orig::unix::PipeReader::from_raw_fd(fd)))
+    }
+}
+
+impl AsRawFd for PipeReader {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
+    }
+}
+
 
 /// Unix pipe writer
 pub struct PipeWriter(RcEvented<mio_orig::unix::PipeWriter>);
@@ -97,6 +110,18 @@ impl io::Write for PipeWriter {
     // TODO: ?
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
+    }
+}
+
+impl FromRawFd for PipeWriter {
+    unsafe fn from_raw_fd(fd: RawFd) -> PipeWriter {
+        PipeWriter(RcEvented::new(mio_orig::unix::PipeWriter::from_raw_fd(fd)))
+    }
+}
+
+impl AsRawFd for PipeWriter {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 
@@ -157,6 +182,19 @@ impl UnixListener {
     }
 }
 
+impl FromRawFd for UnixListener {
+    unsafe fn from_raw_fd(fd: RawFd) -> UnixListener {
+        UnixListener(RcEvented::new(mio_orig::unix::UnixListener::from_raw_fd(fd)))
+    }
+}
+
+impl AsRawFd for UnixListener {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
+    }
+}
+
+
 /// Unix socket
 pub struct UnixSocket(RcEvented<mio_orig::unix::UnixSocket>);
 
@@ -197,6 +235,17 @@ impl UnixSocket {
     }
 }
 
+impl FromRawFd for UnixSocket {
+    unsafe fn from_raw_fd(fd: RawFd) -> UnixSocket {
+        UnixSocket(RcEvented::new(mio_orig::unix::UnixSocket::from_raw_fd(fd)))
+    }
+}
+
+impl AsRawFd for UnixSocket {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
+    }
+}
 
 /// Unix stream
 pub struct UnixStream(RcEvented<mio_orig::unix::UnixStream>);
@@ -226,14 +275,14 @@ impl UnixStream {
     /// Try reading data into a buffer.
     ///
     /// This will not block.
-    pub fn try_read(&mut self, buf: &mut [u8]) -> io::Result<Option<(usize, Option<RawFd>)>> {
+    pub fn try_read_recv_fd(&mut self, buf: &mut [u8]) -> io::Result<Option<(usize, Option<RawFd>)>> {
         self.shared().0.borrow_mut().io.try_read_recv_fd(buf)
     }
 
     /// Block on read.
-    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<(usize, Option<RawFd>)> {
+    pub fn read_recv_fd(&mut self, buf: &mut [u8]) -> io::Result<(usize, Option<RawFd>)> {
         loop {
-            let res = self.try_read(buf);
+            let res = self.try_read_recv_fd(buf);
 
             match res {
                 Ok(None) => {
@@ -252,14 +301,14 @@ impl UnixStream {
     /// Try writing a data from the buffer.
     ///
     /// This will not block.
-    pub fn try_write(&self, buf: &[u8], fd : RawFd) -> io::Result<Option<usize>> {
+    pub fn try_write_send_fd(&self, buf: &[u8], fd : RawFd) -> io::Result<Option<usize>> {
         self.shared().0.borrow_mut().io.try_write_send_fd(buf, fd)
     }
 
     /// Block on write
-    pub fn write(&mut self, buf: &[u8], fd : RawFd) -> io::Result<usize> {
+    pub fn write_send_fd(&mut self, buf: &[u8], fd : RawFd) -> io::Result<usize> {
         loop {
-            let res = self.try_write(buf, fd);
+            let res = self.try_write_send_fd(buf, fd);
 
             match res {
                 Ok(None) => {
@@ -275,6 +324,80 @@ impl UnixStream {
         }
     }
 
+    /// Try reading data into a buffer.
+    ///
+    /// This will not block.
+    pub fn try_read(&mut self, buf: &mut [u8]) -> io::Result<Option<usize>> {
+        self.shared().try_read(buf)
+    }
+
+    /// Try writing a data from the buffer.
+    ///
+    /// This will not block.
+    pub fn try_write(&self, buf: &[u8]) -> io::Result<Option<usize>> {
+        self.shared().try_write(buf)
+    }
+
+
+}
+
+impl io::Read for UnixStream {
+    /// Block on read.
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        loop {
+            let res = self.shared().try_read(buf);
+
+            match res {
+                Ok(None) => {
+                    self.block_on(RW::read())
+                },
+                Ok(Some(r))  => {
+                    return Ok(r);
+                },
+                Err(e) => {
+                    return Err(e)
+                }
+            }
+        }
+    }
+}
+
+impl FromRawFd for UnixStream {
+    unsafe fn from_raw_fd(fd: RawFd) -> UnixStream {
+        UnixStream(RcEvented::new(mio_orig::unix::UnixStream::from_raw_fd(fd)))
+    }
+}
+
+impl AsRawFd for UnixStream {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
+    }
+}
+
+impl io::Write for UnixStream {
+    /// Block on write.
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        loop {
+            let res = self.shared().try_write(buf);
+
+            match res {
+                Ok(None) => {
+                    self.block_on(RW::write())
+                },
+                Ok(Some(r))  => {
+                    return Ok(r);
+                },
+                Err(e) => {
+                    return Err(e)
+                }
+            }
+        }
+    }
+
+    // TODO: ?
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 /// Create a pair of unix pipe (reader and writer)
