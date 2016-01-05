@@ -93,7 +93,7 @@ In Cargo.toml:
 
 ```
 [dependencies]
-mioco = "*'
+mioco = "*"
 ```
 
 In your `main.rs`:
