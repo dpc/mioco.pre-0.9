@@ -94,6 +94,22 @@ For daily work:
 [nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
 [multirust]: https://github.com/brson/multirust
 
+# Using in your project
+
+In Cargo.toml:
+
+```
+[dependencies]
+mioco = "*'
+```
+
+In your `main.rs`:
+
+```
+#[macro_use]
+extern crate mioco;
+```
+
 # Projects using mioco:
 
 * [colerr][colerr] - colorize stderr;
