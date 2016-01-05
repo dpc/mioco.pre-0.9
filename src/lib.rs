@@ -1,4 +1,4 @@
-// Copyrelectght 2015 Dawid Ciężarkiewicz <dpc@dpc.pw>
+// Copyright 2015-2016 Dawid Ciężarkiewicz <dpc@dpc.pw>
 // See LICENSE-MPL2 file for more information.
 
 //! # Mioco
@@ -6,14 +6,14 @@
 //! Scalable, coroutine-based, asynchronous IO handling library for Rust
 //! programming language.
 //!
-//! Using `mioco` you can handle asynchronous [`mio`][mio]-based IO, using
-//! set of synchronous-IO handling functions. Based on [`mio`][mio] events
-//! `mioco` will cooperatively schedule your handlers.
+//! Mioco uses asynchronous event loop, to cooperatively switch between
+//! coroutines (aka. green threads), depending on data availability. You
+//! can think of `mioco` as of *Node.js for Rust* or Rust *[green
+//! threads][green threads] on top of [`mio`][mio]*.
 //!
-//! You can think of `mioco` as of *Node.js for Rust* or *[green threads][green threads] on top of [`mio`][mio]*.
-//!
-//! `Mioco` is a library building on top of [`mio`][mio]. Mio API is
-//! re-exported as [`mioco::mio`][mio-api].
+//! Mioco coroutines should not use any native blocking-IO operations.
+//! Instead mioco provides it's own IO. Any long-running operations, or
+//! blocking IO should be executed in `mioco::sync()` blocks.
 //!
 //! # <a name="features"></a> Features:
 //!
@@ -91,7 +91,6 @@ use context::{Context, Stack};
 
 
 use std::ptr;
-thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
 
 use timer::Timer;
 
@@ -1249,272 +1248,6 @@ impl CoroutineHandle {
     }
 }
 
-/// Spawn a `mioco` coroutine
-///
-/// If called inside an existing coroutine spawns a new coroutine. If called
-/// outside of existing coroutine, it's the same as `mioco::start()`.
-///
-/// `f` is routine handling connection. It must not use any real blocking-IO operations, only
-/// `mioco` provided types (`EventSource`) and `MiocoHandle` functions. Otherwise `mioco`
-/// cooperative scheduling can block on real blocking-IO which defeats using mioco.
-pub fn spawn<F>(f : F)
-where F : FnOnce() -> io::Result<()> + Send + 'static {
-    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
-    if coroutine == ptr::null_mut() {
-        start(f)
-    } else {
-        spawn_ext(f);
-    }
-}
-
-/// Spawn a `mioco` coroutine
-///
-/// Can't be used outside of existing coroutine.
-///
-/// Returns a `CoroutineHandle` that can be used to perform
-/// additional operations.
-// TODO: Could this be unified with `spawn()` so the return type
-// can be simply ignored?
-pub fn spawn_ext<F>(f : F) -> CoroutineHandle
-where F : FnOnce() -> io::Result<()> + Send + 'static {
-    let coroutine = tl_coroutine_current();
-
-    let coroutine_ref = Coroutine::spawn(
-        coroutine.handler_shared.as_ref().unwrap().clone(),
-        coroutine.inherited_user_data.clone(),
-        f
-        );
-    let ret = CoroutineHandle {
-        coroutine: coroutine_ref.clone(),
-    };
-    coroutine.children_to_start.push(coroutine_ref);
-
-    ret
-}
-
-/// Execute a block of synchronous operations
-///
-/// This will execute a block of synchronous operations without blocking
-/// cooperative coroutine scheduling. This is done by offloading the
-/// synchronous operations to a separate thread, a notifying the
-/// coroutine when the result is available.
-///
-/// TODO: find some wise people to confirm if this is sound
-/// TODO: use threadpool to prevent potential system starvation?
-pub fn sync<'b, F, R>(f : F) -> R
-where F : FnOnce() -> R + 'b {
-
-    struct FakeSend<F>(F);
-
-    unsafe impl<F> Send for FakeSend<F> { };
-
-    let f = FakeSend(f);
-
-    let coroutine = tl_coroutine_current();
-
-    if coroutine.sync_mailbox.is_none() {
-        let (send, recv) = mail::mailbox();
-        coroutine.sync_mailbox = Some((send, recv));
-    }
-
-    let &(ref mail_send, ref mail_recv) = coroutine.sync_mailbox.as_ref().unwrap();
-    let join = unsafe {thread_scoped::scoped(move || {
-        let FakeSend(f) = f;
-        let res = f();
-        mail_send.send(());
-        FakeSend(res)
-    })};
-
-    mail_recv.read();
-
-    let FakeSend(res) = join.join();
-    res
-}
-
-/// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
-pub fn get_userdata<'a, T: Any>() -> Option<&'a T>
-{
-    let coroutine = tl_coroutine_current();
-    match coroutine.user_data {
-        Some(ref arc) => {
-            let boxed_any: &Box<Any+Send+Sync> = arc.as_ref();
-            let any: &Any = boxed_any.as_ref();
-            any.downcast_ref::<T>()
-        },
-        None => None,
-    }
-}
-
-/// Sets new user data for the current coroutine
-pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T)
-{
-    let mut coroutine = tl_coroutine_current();
-    coroutine.user_data = Some(Arc::new(Box::new(data)));
-}
-
-/// Sets new user data that will inherit to newly spawned coroutines. Use `None` to clear.
-pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>)
-{
-    let mut coroutine = tl_coroutine_current();
-    coroutine.inherited_user_data = match data {
-        Some(data) => Some(Arc::new(Box::new(data))),
-        None => None,
-    }
-}
-
-/// Get number of threads of the Mioco instance that coroutine is
-/// running in.
-///
-/// This is useful for load balancing: spawning as many coroutines as
-/// there is handling threads that can run them.
-pub fn thread_num() -> usize {
-    let coroutine = tl_coroutine_current();
-
-    let handler_shared = coroutine.handler_shared.as_ref().unwrap().borrow();
-    handler_shared.thread_num()
-}
-
-/// Get mutable reference to a timer source io for this coroutine
-///
-/// Each coroutine has one internal Timer source, that will become readable
-/// when it's timeout (see `set_timeout()` ) expire.
-pub fn timer() -> &'static mut Timer {
-    let coroutine = tl_coroutine_current();
-
-    match coroutine.timer {
-        Some(ref mut timer) => timer,
-        None => {
-            coroutine.timer = Some(Timer::new());
-            coroutine.timer.as_mut().unwrap()
-        }
-    }
-}
-
-// TODO: Technically this leaks unsafe, but only within
-// internals of the module. Any function calling `tl_coroutine_current()`
-// must not pass the reference anywhere outside!
-//
-// It might be possible to use a type system to enforce this. Eg. maybe this
-// should return `Ref` or `RefCell`.
-fn tl_coroutine_current() -> &'static mut Coroutine {
-    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
-    if coroutine == ptr::null_mut() {
-        panic!("mioco function called outside of coroutine, use `RUST_BACKTRACE=1` to pinpoint");
-    }
-    unsafe { &mut *coroutine }
-}
-
-/// Block coroutine for a given time
-///
-/// Warning: The precision of this call (and other `timer()` like
-/// functionality) is limited by `mio` event loop settings. Any small
-/// value of `time_ms` will effectively be rounded up to
-/// `mio_orig::EventLoop::timer_tick_ms()`.
-pub fn sleep(time_ms : i64) {
-    let prev_timeout = timer().get_timeout_absolute();
-    timer().set_timeout(time_ms);
-    let _ = timer().read();
-    timer().set_timeout_absolute(prev_timeout);
-}
-
-
-/// Yield coroutine execution
-///
-/// Coroutine can yield execution without blocking on anything
-/// particular to allow scheduler to run other coroutines before
-/// resuming execution of the current one.
-///
-/// For this to be effective, custom scheduler must be implemented.
-/// See `trait Scheduler`.
-///
-/// Note: named `yield_now` as `yield` is reserved word.
-pub fn yield_now() {
-    let coroutine = tl_coroutine_current();
-    coroutine.state = State::Yielding;
-    trace!("Coroutine({}): yield", coroutine.id.as_usize());
-    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-    entry_point(&coroutine.self_rc.as_ref().unwrap());
-    trace!("Coroutine({}): resumed after yield ", coroutine.id.as_usize());
-    debug_assert!(coroutine.state.is_running());
-}
-
-/// Wait till an event is ready
-///
-/// Use `select!` macro instead.
-///
-/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
-/// not block when actually attempting to `read` or `write`. You must
-/// use `try_read` and `try_write` instead.
-///
-/// The returned value contains event type and the id of the `EventSource`.
-/// See `EventSource::id()`.
-pub fn select_wait() -> Event {
-    let coroutine = tl_coroutine_current();
-    coroutine.state = State::Blocked;
-
-    trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
-    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-
-    entry_point(&coroutine.self_rc.as_ref().unwrap());
-    trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
-    debug_assert!(coroutine.state.is_running());
-    let e = coroutine.last_event;
-    e
-}
-
-/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
-/// not block when actually attempting to `read` or `write`. You must
-/// use `try_read` and `try_write` instead.
-///
-#[macro_export]
-macro_rules! select {
-    (@wrap1 ) => {};
-    (@wrap1 $rx:ident:r => $code:expr, $($tail:tt)*) => {
-        unsafe {
-            use $crate::Evented;
-            $rx.select_add($crate::RW::read());
-        }
-        select!(@wrap1 $($tail)*)
-    };
-    (@wrap1 $rx:ident:w => $code:expr, $($tail:tt)*) => {
-        unsafe {
-            use $crate::Evented;
-            $rx.select_add($crate::RW::write());
-        }
-        select!(@wrap1 $($tail)*)
-    };
-    (@wrap1 $rx:ident:rw => $code:expr, $($tail:tt)*) => {
-        unsafe {
-            use $crate::Evented;
-            $rx.select_add($crate::RW::both());
-        }
-        select!(@wrap1 $($tail)*)
-    };
-    (@wrap2 $ret:ident) => {
-        // end code
-    };
-    (@wrap2 $ret:ident $rx:ident:r => $code:expr, $($tail:tt)*) => {{
-        use $crate::Evented;
-        if $ret.id() == $rx.id() { $code }
-        select!(@wrap2 $ret $($tail)*);
-    }};
-    (@wrap2 $ret:ident $rx:ident:w => $code:expr, $($tail:tt)*) => {{
-        use $crate::Evented;
-        if $ret.id() == $rx.id() { $code }
-        select!(@wrap2 $ret $($tail)*);
-    }};
-    (@wrap2 $ret:ident $rx:ident:rw => $code:expr, $($tail:tt)*) => {{
-        use $crate::Evented;
-        if ret.id() == $rx.id() { $code }
-        select!(@wrap2 $ret $($tail)*);
-    }};
-    ($($tail:tt)*) => {{
-        select!(@wrap1 $($tail)*);
-        let ret = mioco::select_wait();
-        select!(@wrap2 ret $($tail)*);
-    }};
-}
-
 struct HandlerThreadShared {
     mioco_started: AtomicUsize,
     coroutines_num : AtomicUsize,
@@ -1943,26 +1676,8 @@ impl Mioco {
     }
 }
 
-/// Shorthand for creating new `Mioco` instance and starting it right away.
-pub fn start<F>(f : F)
-    where F : FnOnce() -> io::Result<()> + Send + 'static,
-          F : Send
-{
-    Mioco::new().start(f);
-}
 
-/// Shorthand for creating new `Mioco` instance with a fixed number of
-/// threads and starting it right away.
-pub fn start_threads<F>(thread_num : usize, f : F)
-    where F : FnOnce() -> io::Result<()> + Send + 'static,
-          F : Send
-{
-    let mut config = Config::new();
-    config.set_thread_num(thread_num);
-    Mioco::new_configured(config).start(f);
-}
-
-/// Mioco builder
+/// Mioco instance builder.
 pub struct Config {
     thread_num : usize,
     scheduler : Arc<Box<Scheduler>>,
@@ -2039,6 +1754,313 @@ impl Config {
     pub fn even_loop(&mut self) -> &mut EventLoopConfig {
         &mut self.event_loop_config
     }
+}
+
+/// Current coroutine thread-local reference
+///
+/// This reference is used to store a reference to a currently executing
+/// mioco coroutine.
+///
+/// Should not be used directly, use `tl_coroutine_current()` instead.
+thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
+
+// TODO: Technically this leaks unsafe, but only within
+// internals of the module. Any function calling `tl_coroutine_current()`
+// must not pass the reference anywhere outside!
+//
+// It might be possible to use a type system to enforce this. Eg. maybe this
+// should return `Ref` or `RefCell`.
+fn tl_coroutine_current() -> &'static mut Coroutine {
+    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    if coroutine == ptr::null_mut() {
+        panic!("mioco API function called outside of coroutine, use `RUST_BACKTRACE=1` to pinpoint");
+    }
+    unsafe { &mut *coroutine }
+}
+
+/// Start mioco instance.
+///
+/// Will start new mioco instance and return only after it's done.
+///
+/// Shorthand for creating new `Mioco` instance with default settings and
+/// starting it right away.
+pub fn start<F>(f : F)
+    where F : FnOnce() -> io::Result<()> + Send + 'static,
+          F : Send
+{
+    Mioco::new().start(f);
+}
+
+/// Start mioco instance using a given number of threads.
+///
+/// Returns after mioco instance exits.
+///
+/// Shorthand for `mioco::start()` running given number of threads.
+pub fn start_threads<F>(thread_num : usize, f : F)
+    where F : FnOnce() -> io::Result<()> + Send + 'static,
+          F : Send
+{
+    let mut config = Config::new();
+    config.set_thread_num(thread_num);
+    Mioco::new_configured(config).start(f);
+}
+
+/// Spawn a mioco coroutine.
+///
+/// If called inside an existing mioco instance - spawn and run a new coroutine
+/// in it.
+///
+/// If called outside of existing mioco instance - spawn a new mioco instance
+/// in a separate thread or use existing mioco instance to run new mioco
+/// coroutine. The API intention is to guarantee:
+/// * this call will not block
+/// * coroutine will be executing in some mioco instance
+/// the exact details might change.
+pub fn spawn<F>(f : F)
+where F : FnOnce() -> io::Result<()> + Send + 'static {
+    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    if coroutine == ptr::null_mut() {
+        thread::spawn(|| {
+            start(f);
+        });
+    } else {
+        spawn_ext(f);
+    }
+}
+
+/// Spawn a `mioco` coroutine
+///
+/// Can't be used outside of existing coroutine.
+///
+/// Returns a `CoroutineHandle` that can be used to perform
+/// additional operations.
+// TODO: Could this be unified with `spawn()` so the return type
+// can be simply ignored?
+pub fn spawn_ext<F>(f : F) -> CoroutineHandle
+where F : FnOnce() -> io::Result<()> + Send + 'static {
+    let coroutine = tl_coroutine_current();
+
+    let coroutine_ref = Coroutine::spawn(
+        coroutine.handler_shared.as_ref().unwrap().clone(),
+        coroutine.inherited_user_data.clone(),
+        f
+        );
+    let ret = CoroutineHandle {
+        coroutine: coroutine_ref.clone(),
+    };
+    coroutine.children_to_start.push(coroutine_ref);
+
+    ret
+}
+
+/// Execute a block of synchronous operations
+///
+/// This will execute a block of synchronous operations without blocking
+/// cooperative coroutine scheduling. This is done by offloading the
+/// synchronous operations to a separate thread, a notifying the
+/// coroutine when the result is available.
+///
+/// TODO: find some wise people to confirm if this is sound
+/// TODO: use threadpool to prevent potential system starvation?
+pub fn sync<'b, F, R>(f : F) -> R
+where F : FnOnce() -> R + 'b {
+
+    struct FakeSend<F>(F);
+
+    unsafe impl<F> Send for FakeSend<F> { };
+
+    let f = FakeSend(f);
+
+    let coroutine = tl_coroutine_current();
+
+    if coroutine.sync_mailbox.is_none() {
+        let (send, recv) = mail::mailbox();
+        coroutine.sync_mailbox = Some((send, recv));
+    }
+
+    let &(ref mail_send, ref mail_recv) = coroutine.sync_mailbox.as_ref().unwrap();
+    let join = unsafe {thread_scoped::scoped(move || {
+        let FakeSend(f) = f;
+        let res = f();
+        mail_send.send(());
+        FakeSend(res)
+    })};
+
+    mail_recv.read();
+
+    let FakeSend(res) = join.join();
+    res
+}
+
+/// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+pub fn get_userdata<'a, T: Any>() -> Option<&'a T>
+{
+    let coroutine = tl_coroutine_current();
+    match coroutine.user_data {
+        Some(ref arc) => {
+            let boxed_any: &Box<Any+Send+Sync> = arc.as_ref();
+            let any: &Any = boxed_any.as_ref();
+            any.downcast_ref::<T>()
+        },
+        None => None,
+    }
+}
+
+/// Sets new user data for the current coroutine
+pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T)
+{
+    let mut coroutine = tl_coroutine_current();
+    coroutine.user_data = Some(Arc::new(Box::new(data)));
+}
+
+/// Sets new user data that will inherit to newly spawned coroutines. Use `None` to clear.
+pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>)
+{
+    let mut coroutine = tl_coroutine_current();
+    coroutine.inherited_user_data = match data {
+        Some(data) => Some(Arc::new(Box::new(data))),
+        None => None,
+    }
+}
+
+/// Get number of threads of the Mioco instance that coroutine is
+/// running in.
+///
+/// This is useful for load balancing: spawning as many coroutines as
+/// there is handling threads that can run them.
+pub fn thread_num() -> usize {
+    let coroutine = tl_coroutine_current();
+
+    let handler_shared = coroutine.handler_shared.as_ref().unwrap().borrow();
+    handler_shared.thread_num()
+}
+
+/// Get mutable reference to a timer source io for this coroutine
+///
+/// Each coroutine has one internal Timer source, that will become readable
+/// when it's timeout (see `set_timeout()` ) expire.
+pub fn timer() -> &'static mut Timer {
+    let coroutine = tl_coroutine_current();
+
+    match coroutine.timer {
+        Some(ref mut timer) => timer,
+        None => {
+            coroutine.timer = Some(Timer::new());
+            coroutine.timer.as_mut().unwrap()
+        }
+    }
+}
+
+
+/// Block coroutine for a given time
+///
+/// Warning: The precision of this call (and other `timer()` like
+/// functionality) is limited by `mio` event loop settings. Any small
+/// value of `time_ms` will effectively be rounded up to
+/// `mio_orig::EventLoop::timer_tick_ms()`.
+pub fn sleep(time_ms : i64) {
+    let prev_timeout = timer().get_timeout_absolute();
+    timer().set_timeout(time_ms);
+    let _ = timer().read();
+    timer().set_timeout_absolute(prev_timeout);
+}
+
+
+/// Yield coroutine execution
+///
+/// Coroutine can yield execution without blocking on anything
+/// particular to allow scheduler to run other coroutines before
+/// resuming execution of the current one.
+///
+/// For this to be effective, custom scheduler must be implemented.
+/// See `trait Scheduler`.
+///
+/// Note: named `yield_now` as `yield` is reserved word.
+pub fn yield_now() {
+    let coroutine = tl_coroutine_current();
+    coroutine.state = State::Yielding;
+    trace!("Coroutine({}): yield", coroutine.id.as_usize());
+    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
+    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    trace!("Coroutine({}): resumed after yield ", coroutine.id.as_usize());
+    debug_assert!(coroutine.state.is_running());
+}
+
+/// Wait till an event is ready
+///
+/// Use `select!` macro instead.
+///
+/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+/// not block when actually attempting to `read` or `write`. You must
+/// use `try_read` and `try_write` instead.
+///
+/// The returned value contains event type and the id of the `EventSource`.
+/// See `EventSource::id()`.
+pub fn select_wait() -> Event {
+    let coroutine = tl_coroutine_current();
+    coroutine.state = State::Blocked;
+
+    trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
+    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
+
+    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    trace!("Coroutine({}): resumed due to event {:?}", coroutine.id.as_usize(), coroutine.last_event);
+    debug_assert!(coroutine.state.is_running());
+    let e = coroutine.last_event;
+    e
+}
+
+/// **Warning**: Mioco can't guarantee that the returned `EventSource` will
+/// not block when actually attempting to `read` or `write`. You must
+/// use `try_read` and `try_write` instead.
+///
+#[macro_export]
+macro_rules! select {
+    (@wrap1 ) => {};
+    (@wrap1 $rx:ident:r => $code:expr, $($tail:tt)*) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::read());
+        }
+        select!(@wrap1 $($tail)*)
+    };
+    (@wrap1 $rx:ident:w => $code:expr, $($tail:tt)*) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::write());
+        }
+        select!(@wrap1 $($tail)*)
+    };
+    (@wrap1 $rx:ident:rw => $code:expr, $($tail:tt)*) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::both());
+        }
+        select!(@wrap1 $($tail)*)
+    };
+    (@wrap2 $ret:ident) => {
+        // end code
+    };
+    (@wrap2 $ret:ident $rx:ident:r => $code:expr, $($tail:tt)*) => {{
+        use $crate::Evented;
+        if $ret.id() == $rx.id() { $code }
+        select!(@wrap2 $ret $($tail)*);
+    }};
+    (@wrap2 $ret:ident $rx:ident:w => $code:expr, $($tail:tt)*) => {{
+        use $crate::Evented;
+        if $ret.id() == $rx.id() { $code }
+        select!(@wrap2 $ret $($tail)*);
+    }};
+    (@wrap2 $ret:ident $rx:ident:rw => $code:expr, $($tail:tt)*) => {{
+        use $crate::Evented;
+        if ret.id() == $rx.id() { $code }
+        select!(@wrap2 $ret $($tail)*);
+    }};
+    ($($tail:tt)*) => {{
+        select!(@wrap1 $($tail)*);
+        let ret = mioco::select_wait();
+        select!(@wrap2 ret $($tail)*);
+    }};
 }
 
 #[cfg(test)]

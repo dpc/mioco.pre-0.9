@@ -695,6 +695,7 @@ fn spawn_as_start() {
         Ok(())
     });
 
+    thread::sleep(std::time::Duration::from_secs(1));
     assert!(*finished_ok.lock().unwrap());
 }
 
