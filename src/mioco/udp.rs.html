@@ -173,12 +173,26 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>RW</span>, <span class='ident'>RcEvented</span>, <span class='ident'>Evented</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>prv</span>::<span class='ident'>EventedPrv</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::<span class='ident'>SocketAddr</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::{<span class='ident'>RawFd</span>, <span class='ident'>FromRawFd</span>, <span class='ident'>AsRawFd</span>};
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mio_orig</span>::<span class='ident'>IpAddr</span>;
 
@@ -302,6 +316,18 @@
     <span class='doccomment'>/// Set multicast TTL.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_multicast_time_to_live</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ttl</span>: <span class='ident'>i32</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>shared</span>().<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>set_multicast_time_to_live</span>(<span class='ident'>ttl</span>)
+    }
+}
+
+<span class='kw'>impl</span> <span class='ident'>FromRawFd</span> <span class='kw'>for</span> <span class='ident'>UdpSocket</span> {
+    <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_fd</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>) <span class='op'>-&gt;</span> <span class='ident'>UdpSocket</span> {
+        <span class='ident'>UdpSocket</span>(<span class='ident'>RcEvented</span>::<span class='ident'>new</span>(<span class='ident'>mio_orig</span>::<span class='ident'>udp</span>::<span class='ident'>UdpSocket</span>::<span class='ident'>from_raw_fd</span>(<span class='ident'>fd</span>)))
+    }
+}
+
+<span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>UdpSocket</span> {
+    <span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
+        <span class='self'>self</span>.<span class='ident'>shared</span>().<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>as_raw_fd</span>()
     }
 }
 

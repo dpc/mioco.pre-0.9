@@ -46,30 +46,30 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2088' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2106' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
  programming language.</p>
 
-<p>Using <code>mioco</code> you can handle asynchronous <a href="https://github.com/carllerche/mio"><code>mio</code></a>-based IO, using
- set of synchronous-IO handling functions. Based on <a href="https://github.com/carllerche/mio"><code>mio</code></a> events
- <code>mioco</code> will cooperatively schedule your handlers.</p>
+<p>Mioco uses asynchronous event loop, to cooperatively switch between
+ coroutines (aka. green threads), depending on data availability. You
+ can think of <code>mioco</code> as of <em>Node.js for Rust</em> or Rust <em><a href="https://en.wikipedia.org/wiki/Green_threads">green
+ threads</a> on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a></em>.</p>
 
-<p>You can think of <code>mioco</code> as of <em>Node.js for Rust</em> or <em><a href="https://en.wikipedia.org/wiki/Green_threads">green threads</a> on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a></em>.</p>
-
-<p><code>Mioco</code> is a library building on top of <a href="https://github.com/carllerche/mio"><code>mio</code></a>. Mio API is
- re-exported as <a href="../mioco/mio/index.html"><code>mioco::mio</code></a>.</p>
+<p>Mioco coroutines should not use any native blocking-IO operations.
+ Instead mioco provides it&#39;s own IO. Any long-running operations, or
+ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
 
 <p># <a name="features"></a> Features:</p>
 
 <pre><code class="language-norust"> * multithreading support; (see `Config::set_thread_num()`)
  * user-provided scheduling; (see `Config::set_scheduler()`);
- * support for all native `mio` types (see `MiocoHandle::wrap()`);
  * timers (see `MiocoHandle::timer()`);
  * mailboxes (see `mailbox()`);
  * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
  * synchronous operations support (see `MiocoHandle::sync()`).
+ * synchronization primitives (see `RwLock`).
 </code></pre>
 
 <p># <a name="example"/></a> Example:</p>
@@ -100,14 +100,10 @@
 
         <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Starting tcp echo server on {:?}&quot;</span>, <span class='ident'>listener</span>.<span class='ident'>local_addr</span>().<span class='ident'>unwrap</span>());
 
-        <span class='kw'>let</span> <span class='ident'>listener</span> <span class='op'>=</span> <span class='ident'>listener</span>;
-
         <span class='kw'>loop</span> {
-            <span class='kw'>let</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>listener</span>.<span class='ident'>accept</span>());
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>listener</span>.<span class='ident'>accept</span>());
 
-            <span class='ident'>mioco</span>::<span class='ident'>spawn</span>(<span class='op'>||</span> {
-                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>conn</span>;
-
+            <span class='ident'>mioco</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
                 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>16</span>];
                 <span class='kw'>loop</span> {
                     <span class='kw'>let</span> <span class='ident'>size</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>conn</span>.<span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>));
@@ -202,7 +198,7 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td><a class='struct' href='struct.Config.html'
                                title='mioco::Config'>Config</a></td>
                         <td class='docblock short'>
-                             <p>Mioco builder</p>
+                             <p>Mioco instance builder.</p>
 
                         </td>
                     </tr>
@@ -385,7 +381,7 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td><a class='fn' href='fn.spawn.html'
                                title='mioco::spawn'>spawn</a></td>
                         <td class='docblock short'>
-                             <p>Spawn a <code>mioco</code> coroutine</p>
+                             <p>Spawn a mioco coroutine.</p>
 
                         </td>
                     </tr>
@@ -403,7 +399,7 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td><a class='fn' href='fn.start.html'
                                title='mioco::start'>start</a></td>
                         <td class='docblock short'>
-                             <p>Shorthand for creating new <code>Mioco</code> instance and starting it right away.</p>
+                             <p>Start mioco instance.</p>
 
                         </td>
                     </tr>
@@ -412,8 +408,7 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td><a class='fn' href='fn.start_threads.html'
                                title='mioco::start_threads'>start_threads</a></td>
                         <td class='docblock short'>
-                             <p>Shorthand for creating new <code>Mioco</code> instance with a fixed number of
-threads and starting it right away.</p>
+                             <p>Start mioco instance using a given number of threads.</p>
 
                         </td>
                     </tr>
