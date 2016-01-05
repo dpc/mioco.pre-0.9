@@ -38,14 +38,9 @@ fn main() {
         for _ in 0..mioco::thread_num() {
             let listener = try!(listener.try_clone());
             mioco::spawn(move || {
-
-                let listener = listener;
-
                 loop {
-                    let conn = try!(listener.accept());
+                    let mut conn = try!(listener.accept());
                     mioco::spawn(move || {
-                        let mut conn = conn;
-
                         let mut buf_i = 0;
                         let mut buf = [0u8; 1024];
 

@@ -24,11 +24,9 @@ fn main() {
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
         loop {
-            let conn = try!(listener.accept());
+            let mut conn = try!(listener.accept());
 
             mioco::spawn(move || {
-                let mut conn = conn;
-
                 let mut buf = [0u8; 1024 * 16];
                 loop {
                     let timer = mioco::timer();

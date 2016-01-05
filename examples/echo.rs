@@ -22,14 +22,10 @@ fn main() {
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
-        let listener = listener;
-
         loop {
-            let conn = try!(listener.accept());
+            let mut conn = try!(listener.accept());
 
-            mioco::spawn(|| {
-                let mut conn = conn;
-
+            mioco::spawn(move || {
                 let mut buf = [0u8; 1024 * 16];
                 loop {
                     let size = try!(conn.read(&mut buf));
