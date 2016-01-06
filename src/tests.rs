@@ -260,8 +260,8 @@ fn timer_times_out() {
 
             mioco::spawn(move || {
                 let reader = reader;
-                let timer = mioco::timer();
-                mioco::timer().set_timeout(500);
+                let mut timer = mioco::timer::Timer::new();
+                timer.set_timeout(500);
 
                 select!(
                     reader:r => { panic!("reader fired first!") },
@@ -301,7 +301,7 @@ fn timer_default_timeout() {
         mioco::start_threads(threads, move || {
 
             mioco::spawn(move || {
-                let timer = mioco::timer();
+                let timer = mioco::timer::Timer::new();
                 select!(
                     timer:r => {},
                     );
@@ -337,7 +337,7 @@ fn timer_select_takes_time() {
         let starting_time = SteadyTime::now();
 
         mioco::start_threads(threads, move || {
-            let timer = mioco::timer();
+            let mut timer = mioco::timer::Timer::new();
             timer.set_timeout(500);
 
             select!(

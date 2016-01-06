@@ -619,8 +619,6 @@ pub struct Coroutine {
     /// In case Rc to self is needed
     self_rc : Option<RcCoroutine>,
 
-    timer : Option<Timer>,
-
     sync_mailbox: Option<(mail::MailboxOuterEnd<()>, mail::MailboxInnerEnd<()>)>,
 
     /// Userdata of the coroutine
@@ -987,7 +985,6 @@ impl Coroutine {
                     stack: Stack::new(stack_size),
                     coroutine_func: Some(Box::new(f)),
                     self_rc: None,
-                    timer: None,
                     sync_mailbox: None,
                     user_data: inherited_user_data.clone(),
                     inherited_user_data: inherited_user_data,
@@ -1935,23 +1932,6 @@ pub fn thread_num() -> usize {
     handler_shared.thread_num()
 }
 
-/// Get mutable reference to a timer source io for this coroutine
-///
-/// Each coroutine has one internal Timer source, that will become readable
-/// when it's timeout (see `set_timeout()` ) expire.
-pub fn timer() -> &'static mut Timer {
-    let coroutine = tl_coroutine_current();
-
-    match coroutine.timer {
-        Some(ref mut timer) => timer,
-        None => {
-            coroutine.timer = Some(Timer::new());
-            coroutine.timer.as_mut().unwrap()
-        }
-    }
-}
-
-
 /// Block coroutine for a given time
 ///
 /// Warning: The precision of this call (and other `timer()` like
@@ -1959,12 +1939,10 @@ pub fn timer() -> &'static mut Timer {
 /// value of `time_ms` will effectively be rounded up to
 /// `mio_orig::EventLoop::timer_tick_ms()`.
 pub fn sleep(time_ms : i64) {
-    let prev_timeout = timer().get_timeout_absolute();
-    timer().set_timeout(time_ms);
-    let _ = timer().read();
-    timer().set_timeout_absolute(prev_timeout);
+    let mut timer = Timer::new();
+    timer.set_timeout(time_ms);
+    let _ = timer.read();
 }
-
 
 /// Yield coroutine execution
 ///

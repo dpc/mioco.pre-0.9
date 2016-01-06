@@ -29,7 +29,7 @@ fn main() {
             mioco::spawn(move || {
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let timer = mioco::timer();
+                    let mut timer = mioco::timer::Timer::new();
                     timer.set_timeout(5000);
                     select!(
                         conn:r => {
