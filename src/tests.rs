@@ -695,8 +695,14 @@ fn spawn_as_start() {
         Ok(())
     });
 
-    thread::sleep(std::time::Duration::from_secs(1));
-    assert!(*finished_ok.lock().unwrap());
+    for _ in 0..60 {
+        thread::sleep(std::time::Duration::from_secs(1));
+        if *finished_ok.lock().unwrap() {
+            return;
+        }
+    }
+
+    panic!("Coroutine never started?");
 }
 
 #[ignore]
