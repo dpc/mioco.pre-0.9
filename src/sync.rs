@@ -1,4 +1,5 @@
 use std::sync as ssync;
+use std::fmt;
 
 mod mioco {
     pub use super::super::*;
@@ -87,5 +88,62 @@ impl<T : ?Sized> RwLock<T> {
     /// Determines whether the lock is poisoned.
     pub fn is_poisoned(&self) -> bool {
         self.lock.is_poisoned()
+    }
+}
+
+/// A Mutex
+///
+/// Based on `std::sync::Mutex`. Calls `mioco::yield_now()` on contention.
+pub struct Mutex<T: ?Sized> {
+    lock : ssync::Mutex<T>
+}
+
+impl<T: ?Sized + fmt::Debug + 'static> fmt::Debug for Mutex<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.lock.fmt(f)
+    }
+}
+
+impl<T> Mutex<T> {
+    /// Creates a new instance of an Mutex<T> which is unlocked.
+    pub fn new(t : T) -> Self {
+        Mutex {
+            lock: ssync::Mutex::new(t),
+        }
+    }
+}
+
+impl<T : ?Sized> Mutex<T> {
+    /// Get a reference to raw `std::sync::Mutex`.
+    ///
+    /// Use it to perform operations outside of mioco coroutines.
+    pub fn native_lock(&self) -> &ssync::Mutex<T> {
+        &self.lock
+    }
+
+    /// Acquire a mutex, blocking the current coroutine until it is able to do so.
+    pub fn lock(&self) -> ssync::LockResult<ssync::MutexGuard<T>> {
+        loop {
+            match self.lock.try_lock() {
+                Ok(guard)  => {
+                    return Ok(guard)
+                },
+                Err(try_error) => {
+                    match try_error {
+                        ssync::TryLockError::Poisoned(p_err) => {
+                            return Err(p_err);
+                        },
+                        ssync::TryLockError::WouldBlock => {
+                            mioco::yield_now()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Attempt to acquire this lock.
+    pub fn try_lock(&self) -> ssync::TryLockResult<ssync::MutexGuard<T>> {
+        self.lock.try_lock()
     }
 }

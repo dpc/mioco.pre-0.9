@@ -769,6 +769,41 @@ fn simple_rwlock() {
 }
 
 #[test]
+fn simple_mutex() {
+    for &threads in THREADS_N.iter() {
+        let counter = Arc::new(mioco::sync::Mutex::new(0usize));
+        let copy_counter = counter.clone();
+        mioco::start_threads(threads, move || {
+            for _ in 0..(threads * 4) {
+                let counter = copy_counter.clone();
+                mioco::spawn(move || {
+                    let counter = counter.clone();
+                    loop {
+                        {
+                            let counter = counter.lock().unwrap();
+                            if *counter != 0 {
+                                break;
+                            }
+                        }
+                        mioco::sleep(10)
+                    }
+                    let mut counter = counter.lock().unwrap();
+                    *counter = *counter + 1;
+                    Ok(())
+                });
+            }
+            mioco::sleep(200);
+            let mut counter = copy_counter.lock().unwrap();
+            *counter = 1;
+            Ok(())
+        });
+
+
+        assert_eq!(*counter.native_lock().lock().unwrap(), (threads * 4) + 1);
+    }
+}
+
+#[test]
 fn tcp_basic_client_server() {
     use std::str::FromStr;
     for &threads in THREADS_N.iter() {
