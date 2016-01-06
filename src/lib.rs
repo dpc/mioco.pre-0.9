@@ -1850,6 +1850,12 @@ where F : FnOnce() -> io::Result<()> + Send + 'static {
     ret
 }
 
+/// Returns true when executing inside a mioco coroutine, false otherwise.
+pub fn in_coroutine() -> bool {
+    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    coroutine != ptr::null_mut()
+}
+
 /// Execute a block of synchronous operations
 ///
 /// This will execute a block of synchronous operations without blocking

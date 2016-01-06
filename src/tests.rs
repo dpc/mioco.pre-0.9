@@ -964,3 +964,17 @@ fn userdata_no_reference_invalidation()
         })
     }
 }
+
+#[test]
+fn in_coroutine_true() {
+    mioco::start(|| {
+        assert!(mioco::in_coroutine());
+        Ok(())
+    });
+}
+
+#[test]
+fn in_coroutine_false() {
+    assert!(! mioco::in_coroutine());
+}
+
