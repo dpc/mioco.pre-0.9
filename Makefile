@@ -44,12 +44,7 @@ $(EXAMPLES):
 	cargo build --example $@ $(CARGO_FLAGS)
 
 doc: FORCE
-	cp src/lib.rs src/lib.rs.orig
-	sed -e 's/^/\/\/! /' examples/echo.rs > target/echo.rs.mod
-	sed -e '/\/\/! MAKE_DOC_REPLACEME/{ r target/echo.rs.mod' -e 'd  }' src/lib.rs > src/lib.rs.new
-	mv src/lib.rs.new src/lib.rs
-	-cargo doc
-	mv src/lib.rs.orig src/lib.rs
+	cargo doc
 
 publishdoc: doc
 	echo '<meta http-equiv="refresh" content="0;url='${DOCS_DEFAULT_MODULE}'/index.html">' > target/doc/index.html

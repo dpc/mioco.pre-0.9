@@ -31,11 +31,6 @@
 //!
 //! See `examples/echo.rs` for an example TCP echo server:
 //!
-//!
-//! ```
-//! MAKE_DOC_REPLACEME
-//! ```
-//!
 
 
 //! [green threads]: https://en.wikipedia.org/wiki/Green_threads
