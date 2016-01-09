@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RwLock","A reader-writer lock"]]});
+initSidebarItems({"struct":[["Mutex","A Mutex"],["RwLock","A reader-writer lock"]]});

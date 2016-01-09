@@ -235,7 +235,6 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>EventedInner</span>, <span class='ident'>RcEvented</span>, <span class='ident'>RW</span>, <span class='ident'>Handler</span>, <span class='ident'>Evented</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>prv</span>::<span class='ident'>EventedPrv</span>;
@@ -251,10 +250,10 @@
 <span class='kw'>type</span> <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>MailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>;
 
 <span class='kw'>struct</span> <span class='ident'>MailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>token</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Token</span><span class='op'>&gt;</span>,
-    <span class='ident'>sender</span> : <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>MioSender</span><span class='op'>&gt;</span>,
-    <span class='ident'>inn</span> : <span class='ident'>VecDeque</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
-    <span class='ident'>interest</span> : <span class='ident'>EventSet</span>,
+    <span class='ident'>token</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Token</span><span class='op'>&gt;</span>,
+    <span class='ident'>sender</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>MioSender</span><span class='op'>&gt;</span>,
+    <span class='ident'>inn</span>: <span class='ident'>VecDeque</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
+    <span class='ident'>interest</span>: <span class='ident'>EventSet</span>,
 }
 
 <span class='doccomment'>/// Mailbox receiving end</span>
@@ -266,8 +265,8 @@
 
 <span class='kw'>struct</span> <span class='ident'>MailboxInnerCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>);
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventedPrv</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
-<span class='kw'>where</span> <span class='ident'>T</span> : <span class='lifetime'>&#39;static</span> {
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventedPrv</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='lifetime'>&#39;static</span>
+{
     <span class='kw'>type</span> <span class='ident'>Raw</span> <span class='op'>=</span> <span class='ident'>MailboxInnerCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>;
 
     <span class='kw'>fn</span> <span class='ident'>shared</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>RcEvented</span><span class='op'>&lt;</span><span class='ident'>MailboxInnerCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
@@ -275,11 +274,11 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Evented</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
-<span class='kw'>where</span> <span class='ident'>T</span> : <span class='lifetime'>&#39;static</span> {}
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Evented</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='lifetime'>&#39;static</span>
+{}
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventedInner</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span> : <span class='ident'>Token</span>, <span class='ident'>interest</span> : <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxInnerEnd({}): register&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lock</span>();
 
@@ -288,13 +287,14 @@
         <span class='ident'>lock</span>.<span class='ident'>interest</span> <span class='op'>=</span> <span class='ident'>interest</span>;
 
         <span class='kw'>if</span> <span class='ident'>interest</span>.<span class='ident'>is_readable</span>() <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ident'>lock</span>.<span class='ident'>inn</span>.<span class='ident'>is_empty</span>() {
-            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxInnerEnd({}): not empty; self notify&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
+            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxInnerEnd({}): not empty; self notify&quot;</span>,
+                   <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
             <span class='ident'>lock</span>.<span class='ident'>interest</span> <span class='op'>=</span> <span class='ident'>EventSet</span>::<span class='ident'>none</span>();
             <span class='ident'>sender_retry</span>(<span class='ident'>lock</span>.<span class='ident'>sender</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>(), <span class='ident'>Message</span>::<span class='ident'>MailboxMsg</span>(<span class='ident'>token</span>));
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>_event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span> : <span class='ident'>Token</span>, <span class='ident'>interest</span> : <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>_event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxInnerEnd({}): reregister&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lock</span>();
 
@@ -306,7 +306,7 @@
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>_event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span> : <span class='ident'>Token</span>) {
+    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>_event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>) {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxInnerEnd({}): dereregister&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lock</span>();
         <span class='ident'>lock</span>.<span class='ident'>token</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
@@ -329,27 +329,23 @@
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Create with `mailbox()`</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>MailboxOuterEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>shared</span> : <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
+    <span class='ident'>shared</span>: <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>MailboxOuterEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='ident'>MailboxOuterEnd</span> {
-            <span class='ident'>shared</span>: <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>clone</span>()
-        }
+        <span class='ident'>MailboxOuterEnd</span> { <span class='ident'>shared</span>: <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>clone</span>() }
     }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>MailboxOuterEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span> : <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='ident'>MailboxOuterEnd</span> {
-            <span class='ident'>shared</span>: <span class='ident'>shared</span>
-        }
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+        <span class='ident'>MailboxOuterEnd</span> { <span class='ident'>shared</span>: <span class='ident'>shared</span> }
     }
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span> : <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcMailboxShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>MailboxInnerEnd</span>(<span class='ident'>RcEvented</span>::<span class='ident'>new</span>(<span class='ident'>MailboxInnerCore</span>(<span class='ident'>shared</span>)))
     }
 }
@@ -360,7 +356,7 @@
     <span class='doccomment'>/// Mailbox behaves like a queue.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This is non-blocking operation.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>send</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>t</span> : <span class='ident'>T</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>send</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>t</span>: <span class='ident'>T</span>) {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>lock</span>();
         <span class='kw'>let</span> <span class='ident'>MailboxShared</span> {
             <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>sender</span>,
@@ -371,7 +367,8 @@
 
         <span class='ident'>inn</span>.<span class='ident'>push_back</span>(<span class='ident'>t</span>);
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>inn</span>.<span class='ident'>is_empty</span>());
-        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxOuterEnd: putting message in a queue; new len: {}&quot;</span>, <span class='ident'>inn</span>.<span class='ident'>len</span>());
+        <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;MailboxOuterEnd: putting message in a queue; new len: {}&quot;</span>,
+               <span class='ident'>inn</span>.<span class='ident'>len</span>());
 
         <span class='kw'>if</span> <span class='ident'>interest</span>.<span class='ident'>is_readable</span>() {
             <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='ident'>token</span>.<span class='ident'>unwrap</span>();
@@ -382,15 +379,15 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
-<span class='kw'>where</span> <span class='ident'>T</span> : <span class='lifetime'>&#39;static</span> {
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='lifetime'>&#39;static</span>
+{
     <span class='doccomment'>/// Receive `T` sent using corresponding `MailboxOuterEnd::send()`.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Will block coroutine if no elements are available.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>T</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>) <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>() {
-                <span class='kw'>return</span> <span class='ident'>t</span>
+                <span class='kw'>return</span> <span class='ident'>t</span>;
             }
 
             <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>read</span>())
@@ -427,11 +424,12 @@
 
     <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>));
 
-    (<span class='ident'>MailboxOuterEnd</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>()), <span class='ident'>MailboxInnerEnd</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>))
+    (<span class='ident'>MailboxOuterEnd</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>()),
+     <span class='ident'>MailboxInnerEnd</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>))
 }
 
 
-<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> { }
+<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>MailboxInnerEnd</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {}
 </pre>
 </section>
     <section id='search' class="content hidden"></section>
