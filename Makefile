@@ -45,7 +45,9 @@ $(EXAMPLES):
 
 doc: FORCE
 	cp src/lib.rs src/lib.rs.orig
-	sed -i -e '/\/\/ MAKE_DOC_REPLACEME/{ r examples/echo.rs' -e 'd  }' src/lib.rs
+	sed -e 's/^/\/\/! /' examples/echo.rs > target/echo.rs.mod
+	sed -e '/\/\/! MAKE_DOC_REPLACEME/{ r target/echo.rs.mod' -e 'd  }' src/lib.rs > src/lib.rs.new
+	mv src/lib.rs.new src/lib.rs
 	-cargo doc
 	mv src/lib.rs.orig src/lib.rs
 

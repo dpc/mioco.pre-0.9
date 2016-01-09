@@ -10,7 +10,7 @@ pub struct PipeReader(RcEvented<mio_orig::unix::PipeReader>);
 
 impl Evented for PipeReader {}
 
-unsafe impl Send for PipeReader { }
+unsafe impl Send for PipeReader {}
 
 impl EventedPrv for PipeReader {
     type Raw = mio_orig::unix::PipeReader;
@@ -27,15 +27,11 @@ impl io::Read for PipeReader {
             let res = self.shared().try_read(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -68,7 +64,7 @@ pub struct PipeWriter(RcEvented<mio_orig::unix::PipeWriter>);
 
 impl Evented for PipeWriter {}
 
-unsafe impl Send for PipeWriter { }
+unsafe impl Send for PipeWriter {}
 
 impl EventedPrv for PipeWriter {
     type Raw = mio_orig::unix::PipeWriter;
@@ -94,15 +90,11 @@ impl io::Write for PipeWriter {
             let res = self.shared().try_write(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::write())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::write()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -137,7 +129,7 @@ impl EventedPrv for UnixListener {
 }
 
 impl Evented for UnixListener {}
-unsafe impl Send for UnixListener { }
+unsafe impl Send for UnixListener {}
 
 impl UnixListener {
     /// Bind to a port
@@ -151,17 +143,11 @@ impl UnixListener {
             let res = self.shared().try_accept();
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
-                    return Ok(
-                        UnixStream(RcEvented::new(r))
-                        );
-                },
-                Err(e) => {
-                    return Err(e)
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
+                    return Ok(UnixStream(RcEvented::new(r)));
                 }
+                Err(e) => return Err(e),
             }
         }
 
@@ -171,7 +157,8 @@ impl UnixListener {
     ///
     /// This will not block.
     pub fn try_accept(&self) -> io::Result<Option<UnixStream>> {
-        self.shared().try_accept()
+        self.shared()
+            .try_accept()
             .map(|t| t.map(|t| UnixStream(RcEvented::new(t))))
 
     }
@@ -199,7 +186,7 @@ impl AsRawFd for UnixListener {
 pub struct UnixSocket(RcEvented<mio_orig::unix::UnixSocket>);
 
 impl Evented for UnixSocket {}
-unsafe impl Send for UnixSocket { }
+unsafe impl Send for UnixSocket {}
 
 impl EventedPrv for UnixSocket {
     type Raw = mio_orig::unix::UnixSocket;
@@ -217,10 +204,12 @@ impl UnixSocket {
 
     /// Connect the socket to the specified address
     pub fn connect<P: AsRef<Path> + ?Sized>(self, addr: &P) -> io::Result<(UnixStream, bool)> {
-        self.shared().0.borrow().io.try_clone()
-            .and_then(|t|
-                    mio_orig::unix::UnixSocket::connect(t, addr)
-                    )
+        self.shared()
+            .0
+            .borrow()
+            .io
+            .try_clone()
+            .and_then(|t| mio_orig::unix::UnixSocket::connect(t, addr))
             .map(|(t, b)| (UnixStream(RcEvented::new(t)), b))
     }
 
@@ -251,7 +240,7 @@ impl AsRawFd for UnixSocket {
 pub struct UnixStream(RcEvented<mio_orig::unix::UnixStream>);
 
 impl Evented for UnixStream {}
-unsafe impl Send for UnixStream { }
+unsafe impl Send for UnixStream {}
 
 impl EventedPrv for UnixStream {
     type Raw = mio_orig::unix::UnixStream;
@@ -275,7 +264,9 @@ impl UnixStream {
     /// Try reading data into a buffer.
     ///
     /// This will not block.
-    pub fn try_read_recv_fd(&mut self, buf: &mut [u8]) -> io::Result<Option<(usize, Option<RawFd>)>> {
+    pub fn try_read_recv_fd(&mut self,
+                            buf: &mut [u8])
+                            -> io::Result<Option<(usize, Option<RawFd>)>> {
         self.shared().0.borrow_mut().io.try_read_recv_fd(buf)
     }
 
@@ -285,15 +276,11 @@ impl UnixStream {
             let res = self.try_read_recv_fd(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -301,25 +288,21 @@ impl UnixStream {
     /// Try writing a data from the buffer.
     ///
     /// This will not block.
-    pub fn try_write_send_fd(&self, buf: &[u8], fd : RawFd) -> io::Result<Option<usize>> {
+    pub fn try_write_send_fd(&self, buf: &[u8], fd: RawFd) -> io::Result<Option<usize>> {
         self.shared().0.borrow_mut().io.try_write_send_fd(buf, fd)
     }
 
     /// Block on write
-    pub fn write_send_fd(&mut self, buf: &[u8], fd : RawFd) -> io::Result<usize> {
+    pub fn write_send_fd(&mut self, buf: &[u8], fd: RawFd) -> io::Result<usize> {
         loop {
             let res = self.try_write_send_fd(buf, fd);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::write())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::write()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -337,8 +320,6 @@ impl UnixStream {
     pub fn try_write(&self, buf: &[u8]) -> io::Result<Option<usize>> {
         self.shared().try_write(buf)
     }
-
-
 }
 
 impl io::Read for UnixStream {
@@ -348,15 +329,11 @@ impl io::Read for UnixStream {
             let res = self.shared().try_read(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -381,15 +358,11 @@ impl io::Write for UnixStream {
             let res = self.shared().try_write(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::write())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::write()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -404,13 +377,7 @@ impl io::Write for UnixStream {
 pub fn pipe() -> io::Result<(PipeReader, PipeWriter)> {
     let (raw_reader, raw_writer) = try!(mio_orig::unix::pipe());
 
-    Ok((
-        PipeReader(
-            RcEvented::new(raw_reader),
-        ),
-        PipeWriter(
-            RcEvented::new(raw_writer),
-        ),
-    ))
+    Ok((PipeReader(RcEvented::new(raw_reader)),
+        PipeWriter(RcEvented::new(raw_writer))))
 
 }

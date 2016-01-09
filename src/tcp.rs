@@ -55,8 +55,9 @@ impl TcpListener {
     }
 
     /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
-    pub fn from_listener(listener : std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::from_listener(listener, addr).map(|t| TcpListener(RcEvented::new(t)))
+    pub fn from_listener(listener: std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
+        mio_orig::tcp::TcpListener::from_listener(listener, addr)
+            .map(|t| TcpListener(RcEvented::new(t)))
     }
 
     /// Block on accepting a connection.
@@ -65,17 +66,11 @@ impl TcpListener {
             let res = self.shared().try_accept();
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
-                    return Ok(
-                        TcpStream(RcEvented::new(r))
-                        );
-                },
-                Err(e) => {
-                    return Err(e)
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
+                    return Ok(TcpStream(RcEvented::new(r)));
                 }
+                Err(e) => return Err(e),
             }
         }
 
@@ -85,13 +80,14 @@ impl TcpListener {
     ///
     /// This will not block.
     pub fn try_accept(&self) -> io::Result<Option<TcpStream>> {
-        self.shared().try_accept()
+        self.shared()
+            .try_accept()
             .map(|t| t.map(|t| TcpStream(RcEvented::new(t))))
 
     }
 }
 
-unsafe impl Send for TcpListener { }
+unsafe impl Send for TcpListener {}
 
 /// TCP Stream
 pub struct TcpStream(RcEvented<mio_orig::tcp::TcpStream>);
@@ -104,7 +100,7 @@ impl EventedPrv for TcpStream {
     }
 }
 
-impl Evented for TcpStream { }
+impl Evented for TcpStream {}
 
 
 impl FromRawFd for TcpStream {
@@ -121,13 +117,13 @@ impl AsRawFd for TcpStream {
 
 impl TcpStream {
     /// Create a new TCP stream an issue a non-blocking connect to the specified address.
-    pub fn connect(addr : &SocketAddr) -> io::Result<Self> {
+    pub fn connect(addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpStream::connect(addr).map(|t| TcpStream(RcEvented::new(t)))
     }
 
     /// Creates a new TcpStream from the pending socket inside the given
     /// `std::net::TcpBuilder`, connecting it to the address specified.
-    pub fn connect_stream(stream : std::net::TcpStream, addr : &SocketAddr) -> io::Result<Self> {
+    pub fn connect_stream(stream: std::net::TcpStream, addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| TcpStream(RcEvented::new(t)))
     }
 
@@ -142,17 +138,17 @@ impl TcpStream {
     }
 
     /// Shutdown the connection.
-    pub fn shutdown(&self, how : mio_orig::tcp::Shutdown) -> io::Result<()> {
+    pub fn shutdown(&self, how: mio_orig::tcp::Shutdown) -> io::Result<()> {
         self.shared().0.borrow().io.shutdown(how)
     }
 
     /// Set `no_delay`.
-    pub fn set_nodelay(&self, nodelay : bool) -> io::Result<()> {
+    pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
         self.shared().0.borrow().io.set_nodelay(nodelay)
     }
 
     /// Set keepalive.
-    pub fn set_keepalive(&self, seconds : Option<u32>) -> io::Result<()> {
+    pub fn set_keepalive(&self, seconds: Option<u32>) -> io::Result<()> {
         self.shared().0.borrow().io.set_keepalive(seconds)
     }
 
@@ -181,15 +177,11 @@ impl io::Read for TcpStream {
             let res = self.shared().try_read(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::read())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -211,15 +203,11 @@ impl io::Write for TcpStream {
             let res = self.shared().try_write(buf);
 
             match res {
-                Ok(None) => {
-                    self.block_on(RW::write())
-                },
-                Ok(Some(r))  => {
+                Ok(None) => self.block_on(RW::write()),
+                Ok(Some(r)) => {
                     return Ok(r);
-                },
-                Err(e) => {
-                    return Err(e)
                 }
+                Err(e) => return Err(e),
             }
         }
     }
@@ -230,4 +218,4 @@ impl io::Write for TcpStream {
     }
 }
 
-unsafe impl Send for TcpStream { }
+unsafe impl Send for TcpStream {}

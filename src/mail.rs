@@ -12,10 +12,10 @@ type MailboxQueue<T> = Option<T>;
 type ArcMailboxShared<T> = Arc<Mutex<MailboxShared<T>>>;
 
 struct MailboxShared<T> {
-    token : Option<Token>,
-    sender : Option<MioSender>,
-    inn : VecDeque<T>,
-    interest : EventSet,
+    token: Option<Token>,
+    sender: Option<MioSender>,
+    inn: VecDeque<T>,
+    interest: EventSet,
 }
 
 /// Mailbox receiving end
@@ -27,8 +27,8 @@ pub struct MailboxInnerEnd<T>(RcEvented<MailboxInnerCore<T>>);
 
 struct MailboxInnerCore<T>(ArcMailboxShared<T>);
 
-impl<T> EventedPrv for MailboxInnerEnd<T>
-where T : 'static {
+impl<T> EventedPrv for MailboxInnerEnd<T> where T: 'static
+{
     type Raw = MailboxInnerCore<T>;
 
     fn shared(&self) -> &RcEvented<MailboxInnerCore<T>> {
@@ -36,11 +36,11 @@ where T : 'static {
     }
 }
 
-impl<T> Evented for MailboxInnerEnd<T>
-where T : 'static {}
+impl<T> Evented for MailboxInnerEnd<T> where T: 'static
+{}
 
 impl<T> EventedInner for MailboxInnerCore<T> {
-    fn register(&self, event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         trace!("MailboxInnerEnd({}): register", token.as_usize());
         let mut lock = self.0.lock();
 
@@ -49,13 +49,14 @@ impl<T> EventedInner for MailboxInnerCore<T> {
         lock.interest = interest;
 
         if interest.is_readable() && !lock.inn.is_empty() {
-            trace!("MailboxInnerEnd({}): not empty; self notify", token.as_usize());
+            trace!("MailboxInnerEnd({}): not empty; self notify",
+                   token.as_usize());
             lock.interest = EventSet::none();
             sender_retry(lock.sender.as_ref().unwrap(), Message::MailboxMsg(token));
         }
     }
 
-    fn reregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token, interest : EventSet) {
+    fn reregister(&self, _event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         trace!("MailboxInnerEnd({}): reregister", token.as_usize());
         let mut lock = self.0.lock();
 
@@ -67,7 +68,7 @@ impl<T> EventedInner for MailboxInnerCore<T> {
         }
     }
 
-    fn deregister(&self, _event_loop : &mut EventLoop<Handler>, token : Token) {
+    fn deregister(&self, _event_loop: &mut EventLoop<Handler>, token: Token) {
         trace!("MailboxInnerEnd({}): dereregister", token.as_usize());
         let mut lock = self.0.lock();
         lock.token = None;
@@ -90,27 +91,23 @@ impl<T> EventedInner for MailboxInnerCore<T> {
 ///
 /// Create with `mailbox()`
 pub struct MailboxOuterEnd<T> {
-    shared : ArcMailboxShared<T>,
+    shared: ArcMailboxShared<T>,
 }
 
 impl<T> Clone for MailboxOuterEnd<T> {
     fn clone(&self) -> Self {
-        MailboxOuterEnd {
-            shared: self.shared.clone()
-        }
+        MailboxOuterEnd { shared: self.shared.clone() }
     }
 }
 
 impl<T> MailboxOuterEnd<T> {
-    fn new(shared : ArcMailboxShared<T>) -> Self {
-        MailboxOuterEnd {
-            shared: shared
-        }
+    fn new(shared: ArcMailboxShared<T>) -> Self {
+        MailboxOuterEnd { shared: shared }
     }
 }
 
 impl<T> MailboxInnerEnd<T> {
-    fn new(shared : ArcMailboxShared<T>) -> Self {
+    fn new(shared: ArcMailboxShared<T>) -> Self {
         MailboxInnerEnd(RcEvented::new(MailboxInnerCore(shared)))
     }
 }
@@ -121,7 +118,7 @@ impl<T> MailboxOuterEnd<T> {
     /// Mailbox behaves like a queue.
     ///
     /// This is non-blocking operation.
-    pub fn send(&self, t : T) {
+    pub fn send(&self, t: T) {
         let mut lock = self.shared.lock();
         let MailboxShared {
             ref mut sender,
@@ -132,7 +129,8 @@ impl<T> MailboxOuterEnd<T> {
 
         inn.push_back(t);
         debug_assert!(!inn.is_empty());
-        trace!("MailboxOuterEnd: putting message in a queue; new len: {}", inn.len());
+        trace!("MailboxOuterEnd: putting message in a queue; new len: {}",
+               inn.len());
 
         if interest.is_readable() {
             let token = token.unwrap();
@@ -143,15 +141,15 @@ impl<T> MailboxOuterEnd<T> {
     }
 }
 
-impl<T> MailboxInnerEnd<T>
-where T : 'static {
+impl<T> MailboxInnerEnd<T> where T: 'static
+{
     /// Receive `T` sent using corresponding `MailboxOuterEnd::send()`.
     ///
     /// Will block coroutine if no elements are available.
     pub fn read(&self) -> T {
         loop {
             if let Some(t) = self.try_read() {
-                return t
+                return t;
             }
 
             self.block_on(RW::read())
@@ -188,8 +186,9 @@ pub fn mailbox<T>() -> (MailboxOuterEnd<T>, MailboxInnerEnd<T>) {
 
     let shared = Arc::new(Mutex::new(shared));
 
-    (MailboxOuterEnd::new(shared.clone()), MailboxInnerEnd::new(shared))
+    (MailboxOuterEnd::new(shared.clone()),
+     MailboxInnerEnd::new(shared))
 }
 
 
-unsafe impl<T> Send for MailboxInnerEnd<T> { }
+unsafe impl<T> Send for MailboxInnerEnd<T> {}

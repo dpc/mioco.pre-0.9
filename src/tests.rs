@@ -10,7 +10,7 @@ use time::{SteadyTime, Duration};
 
 use std::thread;
 
-const THREADS_N : [usize; 4] = [1, 2, 5, 21];
+const THREADS_N: [usize; 4] = [1, 2, 5, 21];
 
 #[test]
 fn empty_handler() {
@@ -63,9 +63,7 @@ fn contain_panics() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
-        mioco::start_threads(threads, move || {
-            panic!()
-        });
+        mioco::start_threads(threads, move || panic!());
 
         assert!(!*finished_ok.lock().unwrap());
     }
@@ -80,9 +78,7 @@ fn contain_panics_in_subcoroutines() {
         mioco::start_threads(threads, move || {
 
             for _ in 0..512 {
-                mioco::spawn(|| {
-                    panic!()
-                });
+                mioco::spawn(|| panic!());
             }
 
             let mut lock = finished_copy.lock().unwrap();
@@ -324,7 +320,8 @@ fn sleep_takes_time() {
         let starting_time = SteadyTime::now();
 
         mioco::start_threads(threads, move || {
-            mioco::sleep(500); Ok(())
+            mioco::sleep(500);
+            Ok(())
         });
 
         assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
@@ -379,9 +376,7 @@ fn exit_notifier_simple() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || {
-                Ok(())
-            }).exit_notificator();
+            let notify = mioco::spawn_ext(move || Ok(())).exit_notificator();
 
             let notify = notify;
 
@@ -404,9 +399,7 @@ fn exit_notifier_simple_panic() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || {
-                panic!()
-            }).exit_notificator();
+            let notify = mioco::spawn_ext(move || panic!()).exit_notificator();
 
             let notify = notify;
 
@@ -429,9 +422,7 @@ fn exit_notifier_wrap_after_finish() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let handle1 = mioco::spawn_ext(move || {
-                panic!()
-            });
+            let handle1 = mioco::spawn_ext(move || panic!());
 
             mioco::sleep(1000);
             let notify1 = handle1.exit_notificator();
@@ -470,7 +461,9 @@ fn tiny_stacks() {
         let mut config = mioco::Config::new();
 
         config.set_thread_num(threads);
-        unsafe { config.set_stack_size(1024 * 128); }
+        unsafe {
+            config.set_stack_size(1024 * 128);
+        }
 
         let mut mioco = mioco::Mioco::new_configured(config);
 
@@ -534,7 +527,8 @@ fn basic_sync_in_loop() {
             let mut counter = 0i32;
             for i in 0..10000 {
                 let res = mioco::sync(|| {
-                    if i & 0xf == 0 { // cut the wait
+                    if i & 0xf == 0 {
+                        // cut the wait
                         thread::sleep(std::time::Duration::from_millis(1));
                     }
                     counter += 1;
@@ -561,11 +555,15 @@ fn scheduler_kill_on_initial_drop() {
     }
 
     impl mioco::SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
+        fn spawned(&mut self,
+                   _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                   _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
 
-        fn ready(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
+        fn ready(&mut self,
+                 _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                 _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
     }
@@ -599,11 +597,15 @@ fn scheduler_kill_on_drop() {
     }
 
     impl mioco::SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
+        fn spawned(&mut self,
+                   event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                   coroutine_ctrl: mioco::CoroutineControl) {
             coroutine_ctrl.resume(event_loop);
         }
 
-        fn ready(&mut self, _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, _coroutine_ctrl: mioco::CoroutineControl) {
+        fn ready(&mut self,
+                 _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                 _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
     }
@@ -645,12 +647,16 @@ fn simple_yield() {
     }
 
     impl mioco::SchedulerThread for TestSchedulerThread {
-        fn spawned(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
+        fn spawned(&mut self,
+                   event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                   coroutine_ctrl: mioco::CoroutineControl) {
             assert!(!coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
 
-        fn ready(&mut self, event_loop: &mut mioco::mio::EventLoop<mioco::Handler>, coroutine_ctrl: mioco::CoroutineControl) {
+        fn ready(&mut self,
+                 event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
+                 coroutine_ctrl: mioco::CoroutineControl) {
             assert!(coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
@@ -710,7 +716,9 @@ fn spawn_as_start() {
 fn million_coroutines() {
     let mut config = mioco::Config::new();
 
-    unsafe { config.set_stack_size(1024 * 128); }
+    unsafe {
+        config.set_stack_size(1024 * 128);
+    }
 
     let mut mioco_server = mioco::Mioco::new_configured(config);
 
@@ -841,21 +849,18 @@ fn tcp_basic_client_server() {
 }
 
 #[test]
-fn simple_userdata()
-{
+fn simple_userdata() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
-            assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
-                       42);
+            assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
             Ok(())
         })
     }
 }
 
 #[test]
-fn userdata_wrong_type()
-{
+fn userdata_wrong_type() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
@@ -866,34 +871,27 @@ fn userdata_wrong_type()
 }
 
 #[test]
-fn userdata_scheduler()
-{
+fn userdata_scheduler() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl mioco::Scheduler for TestScheduler
-    {
-        fn spawn_thread(&self) -> Box<mioco::SchedulerThread>
-        {
+    impl mioco::Scheduler for TestScheduler {
+        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl mioco::SchedulerThread for TestSchedulerThread
-    {
+    impl mioco::SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self,
                    _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                   _coroutine_ctrl: mioco::CoroutineControl)
-        {
-            assert_eq!(*_coroutine_ctrl.get_userdata::<u32>().unwrap(),
-                       42)
+                   _coroutine_ctrl: mioco::CoroutineControl) {
+            assert_eq!(*_coroutine_ctrl.get_userdata::<u32>().unwrap(), 42)
             // drop
         }
 
         fn ready(&mut self,
                  _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                 _coroutine_ctrl: mioco::CoroutineControl)
-        {
+                 _coroutine_ctrl: mioco::CoroutineControl) {
             // drop
         }
     }
@@ -917,14 +915,12 @@ fn userdata_scheduler()
 }
 
 #[test]
-fn simple_userdata_inheritance()
-{
+fn simple_userdata_inheritance() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_children_userdata(Some(42 as u32));
             mioco::spawn(|| {
-                assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
-                           42);
+                assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
                 Ok(())
             });
             Ok(())
@@ -933,8 +929,7 @@ fn simple_userdata_inheritance()
 }
 
 #[test]
-fn no_userdata_inheritance()
-{
+fn no_userdata_inheritance() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::spawn(|| {
@@ -947,15 +942,13 @@ fn no_userdata_inheritance()
 }
 
 #[test]
-fn userdata_multi_inheritance()
-{
+fn userdata_multi_inheritance() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_children_userdata(Some(42 as u32));
             mioco::spawn(|| {
                 mioco::spawn(|| {
-                    assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
-                               42);
+                    assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
                     Ok(())
                 });
                 Ok(())
@@ -966,8 +959,7 @@ fn userdata_multi_inheritance()
 }
 
 #[test]
-fn userdata_inheritance_reset()
-{
+fn userdata_inheritance_reset() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_children_userdata(Some(42 as u32));
@@ -985,16 +977,14 @@ fn userdata_inheritance_reset()
 }
 
 #[test]
-fn userdata_no_reference_invalidation()
-{
+fn userdata_no_reference_invalidation() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
             let reference = mioco::get_userdata::<u32>().unwrap();
             mioco::set_userdata(41 as u32);
             assert_eq!(*reference, 42);
-            assert_eq!(*mioco::get_userdata::<u32>().unwrap(),
-                       41);
+            assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 41);
             Ok(())
         })
     }
@@ -1010,6 +1000,5 @@ fn in_coroutine_true() {
 
 #[test]
 fn in_coroutine_false() {
-    assert!(! mioco::in_coroutine());
+    assert!(!mioco::in_coroutine());
 }
-
