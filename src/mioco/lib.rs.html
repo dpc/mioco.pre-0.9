@@ -2097,6 +2097,8 @@
 <span id="2054">2054</span>
 <span id="2055">2055</span>
 <span id="2056">2056</span>
+<span id="2057">2057</span>
+<span id="2058">2058</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015-2016 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -3773,7 +3775,10 @@
 
         <span class='ident'>handler</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>wait_for_start_all</span>();
         <span class='ident'>handler</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>);
-        <span class='ident'>event_loop</span>.<span class='ident'>run</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>handler</span>).<span class='ident'>unwrap</span>();
+        <span class='comment'>// Don&#39;t don&#39;t rely on steady tick to shutdown</span>
+        <span class='kw'>while</span> <span class='ident'>event_loop</span>.<span class='ident'>is_running</span>() {
+            <span class='ident'>event_loop</span>.<span class='ident'>run_once</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>handler</span>, <span class='prelude-val'>Some</span>(<span class='number'>1000</span>)).<span class='ident'>unwrap</span>();
+        }
     }
 }
 
@@ -3794,14 +3799,13 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// See `start` and `start_threads` for convenience wrappers.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>config</span> <span class='op'>=</span> <span class='ident'>Config</span> {
+        <span class='kw'>let</span> <span class='ident'>config</span> <span class='op'>=</span> <span class='ident'>Config</span> {
             <span class='ident'>thread_num</span>: <span class='ident'>num_cpus</span>::<span class='ident'>get</span>(),
             <span class='ident'>scheduler</span>: <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>FifoScheduler</span>::<span class='ident'>new</span>())),
             <span class='ident'>event_loop_config</span>: <span class='ident'>Default</span>::<span class='ident'>default</span>(),
             <span class='ident'>stack_size</span>: <span class='number'>2</span> <span class='op'>*</span> <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>1024</span>,
             <span class='ident'>user_data</span>: <span class='prelude-val'>None</span>,
         };
-        <span class='ident'>config</span>.<span class='ident'>event_loop_config</span>.<span class='ident'>tick_ms</span>(<span class='prelude-val'>Some</span>(<span class='number'>1000</span>));
         <span class='ident'>config</span>
     }
 

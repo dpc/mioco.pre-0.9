@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/mio-4cff9b923cdd6ec7/c4a5b9e/src/event_loop.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.5.0/src/event_loop.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>event_loop.rs.html -- source</title>
@@ -549,24 +549,6 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> {<span class='ident'>Handler</span>, <span class='ident'>Evented</span>, <span class='ident'>Poll</span>, <span class='ident'>NotifyError</span>, <span class='ident'>Token</span>};
 <span class='kw'>use</span> <span class='ident'>event</span>::{<span class='ident'>IoEvent</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>};
@@ -582,8 +564,6 @@
     <span class='ident'>notify_capacity</span>: <span class='ident'>usize</span>,
     <span class='ident'>messages_per_tick</span>: <span class='ident'>usize</span>,
 
-    <span class='ident'>tick_ms</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
-
     <span class='comment'>// == Timer ==</span>
     <span class='ident'>timer_tick_ms</span>: <span class='ident'>u64</span>,
     <span class='ident'>timer_wheel_size</span>: <span class='ident'>usize</span>,
@@ -597,7 +577,6 @@
         <span class='ident'>EventLoopConfig</span> {
             <span class='ident'>notify_capacity</span>: <span class='number'>4_096</span>,
             <span class='ident'>messages_per_tick</span>: <span class='number'>256</span>,
-            <span class='ident'>tick_ms</span>: <span class='prelude-val'>None</span>,
             <span class='ident'>timer_tick_ms</span>: <span class='number'>100</span>,
             <span class='ident'>timer_wheel_size</span>: <span class='number'>1_024</span>,
             <span class='ident'>timer_capacity</span>: <span class='number'>65_536</span>,
@@ -619,20 +598,6 @@
     <span class='doccomment'>/// The default value for this is 256.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>messages_per_tick</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>messages</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>messages_per_tick</span> <span class='op'>=</span> <span class='ident'>messages</span>;
-        <span class='self'>self</span>
-    }
-
-    <span class='doccomment'>/// Sets the tick frequency.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// If `None` event loop will call `Handler::tick()` only</span>
-    <span class='doccomment'>/// when some events were delivered.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// If `Some(ms)` the `Handler::tick()` will by called at least</span>
-    <span class='doccomment'>/// every `ms` milliseconds.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The default value for this is `None`.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tick_ms</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>ms</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
-        <span class='self'>self</span>.<span class='ident'>tick_ms</span> <span class='op'>=</span> <span class='ident'>ms</span>;
         <span class='self'>self</span>
     }
 
@@ -829,10 +794,9 @@
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>run</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>handler</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>H</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>run</span> <span class='op'>=</span> <span class='boolval'>true</span>;
 
-        <span class='kw'>let</span> <span class='ident'>tick_ms</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>config</span>.<span class='ident'>tick_ms</span>;
         <span class='kw'>while</span> <span class='self'>self</span>.<span class='ident'>run</span> {
             <span class='comment'>// Execute ticks as long as the event loop is running</span>
-            <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>run_once</span>(<span class='ident'>handler</span>, <span class='ident'>tick_ms</span>));
+            <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>run_once</span>(<span class='ident'>handler</span>, <span class='prelude-val'>None</span>));
         }
 
         <span class='prelude-val'>Ok</span>(())
