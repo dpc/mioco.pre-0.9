@@ -1673,7 +1673,10 @@ impl Mioco {
 
         handler.shared.borrow().wait_for_start_all();
         handler.deliver_to_scheduler(&mut event_loop);
-        event_loop.run(&mut handler).unwrap();
+        // Don't don't rely on steady tick to shutdown
+        while event_loop.is_running() {
+            event_loop.run_once(&mut handler, Some(1000)).unwrap();
+        }
     }
 }
 
@@ -1694,14 +1697,13 @@ impl Config {
     ///
     /// See `start` and `start_threads` for convenience wrappers.
     pub fn new() -> Self {
-        let mut config = Config {
+        let config = Config {
             thread_num: num_cpus::get(),
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
             stack_size: 2 * 1024 * 1024,
             user_data: None,
         };
-        config.event_loop_config.tick_ms(Some(1000));
         config
     }
 

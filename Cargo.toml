@@ -25,7 +25,7 @@ nix = "*"
 log = "*"
 spin = "*"
 time = "*"
-mio = { git = "https://github.com/dpc/mio", rev="c4a5b9e" }
+mio = "*"
 num_cpus = "*"
 libc = "^0.1.10"
 thread-scoped = "*"
