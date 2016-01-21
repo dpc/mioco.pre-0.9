@@ -70,6 +70,3 @@ Benchmarks used:
 
 * `bench1` - https://github.com/dpc/benchmark-echo ; `PARAMS='-t64 -c10 -e10000 -fdata.json'`;
 * `bench2` - https://gist.github.com/dpc/8cacd3b6fa5273ffdcce ; `GOMAXPROCS=64 ./tcp_bench  -c=128 -t=30 -a=""`;
-
-Machine used:
-
