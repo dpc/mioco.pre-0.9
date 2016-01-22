@@ -44,7 +44,7 @@ fn main() {
 }
 ```
 
-## Contributions welcome!
+## Contributors welcome!
 
 Mioco is looking for contributors. See
 [Contributing page](https://github.com/dpc/mioco/wiki/Contributing)
