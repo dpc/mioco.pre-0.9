@@ -44,6 +44,12 @@ fn main() {
 }
 ```
 
+## Contributions welcome!
+
+Mioco is looking for contributors. See
+[Contributing page](https://github.com/dpc/mioco/wiki/Contributing)
+for details.
+
 ## Introduction
 
 Scalable, coroutine-based, asynchronous IO handling library for Rust
