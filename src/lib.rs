@@ -966,7 +966,7 @@ impl Coroutine {
                               exit_notificators: Vec::new(),
                               io: Slab::new(4),
                               children_to_start: Vec::new(),
-                              stack: Stack::new(stack_size),
+                              stack: Stack::new(stack_size).unwrap(),
                               coroutine_func: Some(Box::new(f)),
                               self_rc: None,
                               sync_mailbox: None,
