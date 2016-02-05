@@ -1,3 +1,4 @@
+
 mod mioco {
     pub use super::super::*;
 }
@@ -9,6 +10,8 @@ use std::sync::{Arc, Mutex};
 use time::{SteadyTime, Duration};
 
 use std::thread;
+use std::net::SocketAddr;
+use net2::TcpBuilder;
 
 const THREADS_N: [usize; 4] = [1, 2, 5, 21];
 
@@ -827,10 +830,16 @@ fn tcp_basic_client_server() {
                 let listener = mioco::tcp::TcpListener::bind(&addr).unwrap();
 
                 out.send(listener.local_addr().unwrap());
-                listener.accept().unwrap();
 
-                let mut lock = finished_copy.lock().unwrap();
-                *lock = true;
+                for i in 0..2 {
+                    let mut conn = listener.accept().unwrap();
+                    let mut buf = [0u8; 1024];
+                    let size = try!(conn.read(&mut buf));
+                    assert_eq!(size, 11);
+
+                    let mut lock = finished_copy.lock().unwrap();
+                    *lock = i == 1;
+                }
 
                 Ok(())
             });
@@ -838,7 +847,15 @@ fn tcp_basic_client_server() {
             mioco::spawn(move || {
                 let addr = inn.read();
 
-                let _ = mioco::tcp::TcpStream::connect(&addr).unwrap();
+                let stream = mioco::tcp::TcpStream::connect(&addr).unwrap();
+                stream.try_write(b"Hello world").unwrap().unwrap();
+
+                let sock = try!(match addr {
+                    SocketAddr::V4(..) => TcpBuilder::new_v4(),
+                    SocketAddr::V6(..) => TcpBuilder::new_v6(),
+                });
+                let stream = mioco::tcp::TcpStream::connect_stream(try!(sock.to_tcp_stream()), &addr).unwrap();
+                stream.try_write(b"Hello world").unwrap().unwrap();
                 Ok(())
             });
             Ok(())
