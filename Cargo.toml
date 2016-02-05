@@ -35,3 +35,4 @@ slab = "*"
 [dev-dependencies]
 env_logger = "*"
 httparse = "*"
+net2 = "0.2.21"

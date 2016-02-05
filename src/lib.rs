@@ -48,6 +48,8 @@
 
 #[cfg(test)]
 extern crate env_logger;
+#[cfg(test)]
+extern crate net2;
 
 extern crate thread_scoped;
 extern crate libc;

@@ -118,13 +118,21 @@ impl AsRawFd for TcpStream {
 impl TcpStream {
     /// Create a new TCP stream an issue a non-blocking connect to the specified address.
     pub fn connect(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpStream::connect(addr).map(|t| TcpStream(RcEvented::new(t)))
+        mio_orig::tcp::TcpStream::connect(addr).map(|t| {
+            let stream = TcpStream(RcEvented::new(t));
+            stream.block_on(RW::write());
+            stream
+        })
     }
 
     /// Creates a new TcpStream from the pending socket inside the given
     /// `std::net::TcpBuilder`, connecting it to the address specified.
     pub fn connect_stream(stream: std::net::TcpStream, addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| TcpStream(RcEvented::new(t)))
+        mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| {
+            let stream = TcpStream(RcEvented::new(t));
+            stream.block_on(RW::write());
+            stream
+        })
     }
 
     /// Local address of connection.
