@@ -39,6 +39,7 @@
 
 #![feature(recover)]
 #![feature(std_panic)]
+#![feature(panic_propagate)]
 #![feature(fnbox)]
 #![feature(cell_extras)]
 #![feature(as_unsafe_cell)]
@@ -238,7 +239,6 @@ fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
     debug_assert!(io_id.as_usize() <= EVENT_SOURCE_TOKEN_MASK);
     Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_SHIFT) | io_id.as_usize())
 }
-
 
 /// Id of an event source used to enumerate them
 ///
@@ -605,6 +605,7 @@ impl Mioco {
                                Mioco::thread_loop::<F>(None,
                                                        sched,
                                                        event_loop,
+                                                       i,
                                                        senders,
                                                        thread_shared,
                                                        stack_size,
@@ -623,6 +624,7 @@ impl Mioco {
         Mioco::thread_loop(Some(f),
                            sched,
                            first_event_loop,
+                           0,
                            senders,
                            thread_shared,
                            self.config.stack_size,
@@ -637,6 +639,7 @@ impl Mioco {
     fn thread_loop<F>(f: Option<F>,
                       mut scheduler: Box<SchedulerThread + 'static>,
                       mut event_loop: EventLoop<thread::Handler>,
+                      thread_id: usize,
                       senders: Vec<thread::MioSender>,
                       thread_shared: thread::ArcHandlerThreadShared,
                       stack_size: usize,
@@ -645,7 +648,7 @@ impl Mioco {
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        let handler_shared = thread::HandlerShared::new(senders, thread_shared, stack_size);
+        let handler_shared = thread::HandlerShared::new(senders, thread_shared, stack_size, thread_id);
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
             let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f, catch_panics);
