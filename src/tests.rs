@@ -95,6 +95,21 @@ fn contain_panics_in_subcoroutines() {
 }
 
 #[test]
+#[should_panic]
+fn contain_uncatched_panic() {
+    use ::{Mioco, Config};
+
+    Mioco::new_configured({
+        let mut config = Config::new();
+        config.set_catch_panics(false);
+        config.set_thread_num(1);
+        config
+    }).start(|| {
+        panic!()
+    });
+}
+
+#[test]
 fn long_chain() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
