@@ -594,6 +594,7 @@ impl Mioco {
 
             let scheduler = self.config.scheduler.clone();
             let stack_size = self.config.stack_size;
+            let catch_panics = self.config.catch_panics;
             let event_loop = event_loops.pop_front().unwrap();
             let senders = senders.clone();
             let thread_shared = thread_shared.clone();
@@ -607,7 +608,8 @@ impl Mioco {
                                                        senders,
                                                        thread_shared,
                                                        stack_size,
-                                                       None);
+                                                       None,
+                                                       catch_panics);
                            });
 
             match join {
@@ -624,7 +626,8 @@ impl Mioco {
                            senders,
                            thread_shared,
                            self.config.stack_size,
-                           user_data);
+                           user_data,
+                           self.config.catch_panics);
 
         for join in self.join_handles.drain(..) {
             let _ = join.join(); // TODO: Do something with it
@@ -637,14 +640,15 @@ impl Mioco {
                       senders: Vec<thread::MioSender>,
                       thread_shared: thread::ArcHandlerThreadShared,
                       stack_size: usize,
-                      userdata: Option<Arc<Box<Any + Send + Sync>>>)
+                      userdata: Option<Arc<Box<Any + Send + Sync>>>,
+                      catch_panics: bool)
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
         let handler_shared = thread::HandlerShared::new(senders, thread_shared, stack_size);
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
-            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
+            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f, catch_panics);
             let coroutine_ctrl = CoroutineControl::new(coroutine_rc);
             scheduler.spawned(&mut event_loop, coroutine_ctrl);
             // Mark started only after first coroutine is spawned so that
@@ -670,6 +674,7 @@ pub struct Config {
     event_loop_config: EventLoopConfig,
     stack_size: usize,
     user_data: Option<Arc<Box<Any + Send + Sync>>>,
+    catch_panics: bool,
 }
 
 impl Config {
@@ -685,6 +690,7 @@ impl Config {
             event_loop_config: Default::default(),
             stack_size: 2 * 1024 * 1024,
             user_data: None,
+            catch_panics: true,
         };
         config
     }
@@ -737,6 +743,12 @@ impl Config {
     /// Configure `mio::EvenLoop` for all the threads
     pub fn even_loop(&mut self) -> &mut EventLoopConfig {
         &mut self.event_loop_config
+    }
+
+    /// Set if this Instance will be catching panics, that occure within the coroutines
+    pub fn set_catch_panics(&mut self, catch_panics: bool) -> &mut Self {
+        self.catch_panics = catch_panics;
+        self
     }
 }
 
@@ -818,7 +830,6 @@ pub fn spawn_ext<F>(f: F) -> CoroutineHandle
     where F: FnOnce() -> io::Result<()> + Send + 'static
 {
     let coroutine = tl_coroutine_current();
-
     CoroutineHandle { coroutine: coroutine.spawn_child(f) }
 }
 
