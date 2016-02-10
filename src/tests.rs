@@ -96,6 +96,7 @@ fn contain_panics_in_subcoroutines() {
 
 #[test]
 #[should_panic]
+#[cfg(debug_assertions)]
 fn contain_uncatched_panic() {
     use ::{Mioco, Config};
 
