@@ -562,15 +562,22 @@ impl<T> EventedInner for RcEvented<T> where T: EventedInner
 fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
     let mut msg = Some(msg);
     let mut warning_printed = false;
+    let mut counter = 0;
     loop {
         match sender.send(msg.take().expect("sender_retry")) {
             Ok(()) => break,
             Err(mio_orig::NotifyError::Closed(_)) => panic!("Closed channel on sender.send()."),
             Err(mio_orig::NotifyError::Io(_)) => panic!("IO error on sender.send()."),
             Err(mio_orig::NotifyError::Full(retry_msg)) => {
+                counter += 1;
                 msg = Some(retry_msg);
             }
         }
+
+        if counter > 20000 {
+            panic!("Mio Queue Full, process hangs. consider increasing `EventLoopConfig::notify_capacity");
+        }
+
         if !warning_printed {
             warning_printed = true;
             warn!("send_retry: retry; consider increasing `EventLoopConfig::notify_capacity`");
