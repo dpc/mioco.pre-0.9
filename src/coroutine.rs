@@ -236,6 +236,7 @@ impl Coroutine {
         extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx: &Context = {
 
+                //never panic inside init_fn, that causes a SIGILL
                 let res = panic::recover(move || {
                     let coroutine: &mut Coroutine = unsafe { mem::transmute(arg) };
                     trace!("Coroutine({}): started", {

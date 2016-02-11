@@ -96,8 +96,8 @@ fn contain_panics_in_subcoroutines() {
 
 #[test]
 #[should_panic]
-#[cfg(debug_assertions)]
-fn contain_uncatched_panic() {
+#[cfg(debug_assertions)] //optimizations seem to let this test fail. lets disable that for now.
+fn propagate_uncatched_panic() {
     use ::{Mioco, Config};
 
     Mioco::new_configured({
