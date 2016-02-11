@@ -1702,7 +1702,11 @@ impl Config {
         let config = Config {
             thread_num: num_cpus::get(),
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
-            event_loop_config: Default::default(),
+            event_loop_config: {
+                let mut conf: EventLoopConfig = Default::default();
+                conf.notify_capacity(8192);
+                conf
+            },
             stack_size: 2 * 1024 * 1024,
             user_data: None,
         };
