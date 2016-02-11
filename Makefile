@@ -35,9 +35,15 @@ check:
 bench:
 	cargo $@ $(filter-out --release,$(CARGO_FLAGS))
 
+.PHONY: travistest
+travistest:
+	for i in `seq 10`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
+
 .PHONY: longtest
 longtest:
-	for i in `seq 10`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
+	@echo "Running mioco longtest. Press Ctrl+C to stop at any time"
+	@sleep 2
+	@i=0; while i=$$((i + 1)) && echo "Iteration $$i" && cargo test $(CARGO_FLAGS) ; do :; done
 
 .PHONY: $(EXAMPLES)
 $(EXAMPLES):
