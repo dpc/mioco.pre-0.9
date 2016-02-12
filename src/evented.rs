@@ -183,6 +183,42 @@ where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
     }
 }
 
+impl<MT, O> MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
+      O : mio_orig::Evented+'static
+{
+    /// Attempt to accept a pending connection.
+    ///
+    /// This will not block.
+    pub fn try_accept(&self) -> io::Result<Option<MioAdapter<O>>> {
+        self.shared()
+            .try_accept()
+            .map(|t| t.map(|t| MioAdapter::new(t)))
+    }
+}
+
+impl<MT, O> MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
+      O : mio_orig::Evented+'static
+{
+    /// Block on accepting a connection.
+    pub fn accept(&self) -> io::Result<MioAdapter<O>> {
+        loop {
+            let res = self.shared().try_accept();
+
+            match res {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
+                    return Ok(MioAdapter::new(r));
+                }
+                Err(e) => return Err(e),
+            }
+        }
+
+    }
+}
+
+//    type Output = MioAdapter<MT::Output>;
 impl<MT> FromRawFd for MioAdapter<MT>
 where MT : mio_orig::Evented+'static + FromRawFd {
     unsafe fn from_raw_fd(fd: RawFd) -> Self {

@@ -29,32 +29,6 @@ impl UnixListener {
         mio_orig::unix::UnixListener::bind(addr).map(|t| UnixListener(RcEvented::new(t)))
     }
 
-    /// Block on accepting a connection.
-    pub fn accept(&self) -> io::Result<UnixStream> {
-        loop {
-            let res = self.shared().try_accept();
-
-            match res {
-                Ok(None) => self.block_on(RW::read()),
-                Ok(Some(r)) => {
-                    return Ok(MioAdapter::new(r));
-                }
-                Err(e) => return Err(e),
-            }
-        }
-
-    }
-
-    /// Attempt to accept a pending connection.
-    ///
-    /// This will not block.
-    pub fn try_accept(&self) -> io::Result<Option<UnixStream>> {
-        self.shared()
-            .try_accept()
-            .map(|t| t.map(|t| MioAdapter::new(t)))
-
-    }
-
     /// Try cloning the socket descriptor.
     pub fn try_clone(&self) -> io::Result<Self> {
         self.shared().io_ref().try_clone().map(|t| UnixListener(RcEvented::new(t)))

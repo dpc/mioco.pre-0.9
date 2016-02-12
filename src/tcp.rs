@@ -38,32 +38,6 @@ impl TcpListener {
         mio_orig::tcp::TcpListener::from_listener(listener, addr)
             .map(|t| MioAdapter::new(t))
     }
-
-    /// Block on accepting a connection.
-    pub fn accept(&self) -> io::Result<TcpStream> {
-        loop {
-            let res = self.shared().try_accept();
-
-            match res {
-                Ok(None) => self.block_on(RW::read()),
-                Ok(Some(r)) => {
-                    return Ok(MioAdapter::new(r));
-                }
-                Err(e) => return Err(e),
-            }
-        }
-
-    }
-
-    /// Attempt to accept a pending connection.
-    ///
-    /// This will not block.
-    pub fn try_accept(&self) -> io::Result<Option<TcpStream>> {
-        self.shared()
-            .try_accept()
-            .map(|t| t.map(|t| MioAdapter::new(t)))
-
-    }
 }
 
 /// TCP Stream
