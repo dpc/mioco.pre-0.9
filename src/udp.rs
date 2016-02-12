@@ -1,4 +1,4 @@
-use super::{RW, RcEvented, EventedPrv, MioAdapter};
+use super::{RW, EventedPrv, MioAdapter};
 use super::mio_orig;
 use std::io;
 use std::net::SocketAddr;
@@ -11,17 +11,17 @@ pub type UdpSocket = MioAdapter<mio_orig::udp::UdpSocket>;
 impl UdpSocket {
     /// Return a new unbound IPv4 UDP Socket.
     pub fn v4() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v4().map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::v4().map(|t| MioAdapter::new(t))
     }
 
     /// Return a new unbound IPv6 UDP Socket.
     pub fn v6() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v6().map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::v6().map(|t| MioAdapter::new(t))
     }
 
     /// Return a new bound UDP Socket.
     pub fn bound(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::bound(addr).map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::bound(addr).map(|t| MioAdapter::new(t))
     }
 
     /// Bind the unbound UDP Socket.
@@ -37,7 +37,7 @@ impl UdpSocket {
 
     /// Try cloning the socket.
     pub fn try_clone(&self) -> io::Result<UdpSocket> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
     }
 
     /// Block on read.

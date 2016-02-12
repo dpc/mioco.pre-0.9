@@ -55,7 +55,7 @@ impl UnixListener {
     pub fn try_accept(&self) -> io::Result<Option<UnixStream>> {
         self.shared()
             .try_accept()
-            .map(|t| t.map(|t| MioAdapter(RcEvented::new(t))))
+            .map(|t| t.map(|t| MioAdapter::new(t)))
 
     }
 
@@ -73,7 +73,7 @@ unsafe impl Send for UnixSocket {}
 impl UnixSocket {
     /// Returns a new, unbound, Unix domain socket
     pub fn stream() -> io::Result<UnixSocket> {
-        mio_orig::unix::UnixSocket::stream().map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::unix::UnixSocket::stream().map(|t| MioAdapter::new(t))
     }
 
     /// Connect the socket to the specified address
@@ -84,7 +84,7 @@ impl UnixSocket {
             .io
             .try_clone()
             .and_then(|t| mio_orig::unix::UnixSocket::connect(t, addr))
-            .map(|(t, b)| (MioAdapter(RcEvented::new(t)), b))
+            .map(|(t, b)| (MioAdapter::new(t), b))
     }
 
     /// Bind the socket to the specified address
@@ -94,7 +94,7 @@ impl UnixSocket {
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
     }
 }
 
@@ -107,12 +107,12 @@ unsafe impl Send for UnixStream {}
 impl UnixStream {
     /// Connect UnixStream to `path`
     pub fn connect<P: AsRef<Path> + ?Sized>(path: &P) -> io::Result<UnixStream> {
-        mio_orig::unix::UnixStream::connect(path).map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::unix::UnixStream::connect(path).map(|t| MioAdapter::new(t))
     }
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
     }
 
     /// Try reading data into a buffer.

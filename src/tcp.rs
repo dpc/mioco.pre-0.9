@@ -22,20 +22,20 @@ impl TcpListener {
 
     /// Try cloning the listener descriptor.
     pub fn try_clone(&self) -> io::Result<TcpListener> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
     }
 }
 
 impl TcpListener {
     /// Bind to a port
     pub fn bind(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::bind(addr).map(|t| MioAdapter(RcEvented::new(t)))
+        mio_orig::tcp::TcpListener::bind(addr).map(|t| MioAdapter::new(t))
     }
 
     /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
     pub fn from_listener(listener: std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpListener::from_listener(listener, addr)
-            .map(|t| MioAdapter(RcEvented::new(t)))
+            .map(|t| MioAdapter::new(t))
     }
 
     /// Block on accepting a connection.
@@ -60,7 +60,7 @@ impl TcpListener {
     pub fn try_accept(&self) -> io::Result<Option<TcpStream>> {
         self.shared()
             .try_accept()
-            .map(|t| t.map(|t| MioAdapter(RcEvented::new(t))))
+            .map(|t| t.map(|t| MioAdapter::new(t)))
 
     }
 }
@@ -74,7 +74,7 @@ impl TcpStream {
     /// Create a new TCP stream an issue a non-blocking connect to the specified address.
     pub fn connect(addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpStream::connect(addr).map(|t| {
-            let stream = MioAdapter(RcEvented::new(t));
+            let stream = MioAdapter::new(t);
             stream.block_on(RW::write());
             stream
         })
@@ -84,7 +84,7 @@ impl TcpStream {
     /// `std::net::TcpBuilder`, connecting it to the address specified.
     pub fn connect_stream(stream: std::net::TcpStream, addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| {
-            let stream = MioAdapter(RcEvented::new(t));
+            let stream = MioAdapter::new(t);
             stream.block_on(RW::write());
             stream
         })
@@ -122,7 +122,7 @@ impl TcpStream {
 
     /// Try cloning the socket descriptor.
     pub fn try_clone(&self) -> io::Result<TcpStream> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
     }
 }
 

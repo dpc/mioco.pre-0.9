@@ -350,7 +350,16 @@ trait EventedPrv {
         }
 }
 
-struct MioAdapter<MT>(RcEvented<MT>);
+/// Raw `mio` types adapter to mioco IO
+pub struct MioAdapter<MT>(RcEvented<MT>);
+
+impl<MT> MioAdapter<MT>
+where MT : mio_orig::Evented+'static {
+    /// Create `MioAdapter` from raw mio type.
+    pub fn new(mio_type : MT) -> Self {
+        MioAdapter(RcEvented::new(mio_type))
+    }
+}
 
 impl<MT> EventedPrv for MioAdapter<MT>
 where MT : mio_orig::Evented+'static {
@@ -370,7 +379,6 @@ where MT : mio_orig::Evented+'static + mio_orig::TryRead {
         self.shared().try_read(buf)
     }
 }
-
 
 impl<MT> io::Read for MioAdapter<MT>
 where MT : mio_orig::Evented+'static + mio_orig::TryRead {
