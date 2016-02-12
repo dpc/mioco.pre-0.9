@@ -1,5 +1,4 @@
-use super::{EventedInner, EventedShared, RcEvented, RW, Handler, Evented};
-use super::prv::EventedPrv;
+use super::{EventedInner, EventedShared, RcEvented, RW, Handler, Evented, EventedPrv};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
 use std::cell::RefCell;
@@ -40,8 +39,6 @@ impl EventedPrv for Timer {
         &self.rc
     }
 }
-
-impl Evented for Timer {}
 
 impl Timer {
     /// Read a timer to block on it until it is done.
