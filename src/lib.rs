@@ -360,6 +360,69 @@ where MT : mio_orig::Evented+'static {
     }
 }
 
+impl<MT> MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryRead {
+    /// Try reading data into a buffer.
+    ///
+    /// This will not block.
+    pub fn try_read(&mut self, buf: &mut [u8]) -> io::Result<Option<usize>> {
+        self.shared().try_read(buf)
+    }
+}
+
+
+impl<MT> io::Read for MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryRead {
+    /// Block on read.
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        loop {
+            let res = self.shared().try_read(buf);
+
+            match res {
+                Ok(None) => self.block_on(RW::read()),
+                Ok(Some(r)) => {
+                    return Ok(r);
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+}
+
+impl<MT> MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
+/// Try writing a data from the buffer.
+    ///
+    /// This will not block.
+    pub fn try_write(&self, buf: &[u8]) -> io::Result<Option<usize>> {
+        self.shared().try_write(buf)
+    }
+
+}
+
+impl<MT> io::Write for MioAdapter<MT>
+where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
+    /// Block on write.
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        loop {
+            let res = self.shared().try_write(buf);
+
+            match res {
+                Ok(None) => self.block_on(RW::write()),
+                Ok(Some(r)) => {
+                    return Ok(r);
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    // TODO: ?
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 impl<R, EP> Evented for EP
 where
 EP : EventedPrv<Raw=R>,

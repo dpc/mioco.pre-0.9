@@ -1,4 +1,4 @@
-use super::{RW, RcEvented, Evented, EventedPrv};
+use super::{RW, RcEvented, EventedPrv, MioAdapter};
 use super::mio_orig;
 use std::io;
 use std::net::SocketAddr;
@@ -7,30 +7,22 @@ use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 pub use mio_orig::IpAddr;
 
 /// Udp Socket
-pub struct UdpSocket(RcEvented<mio_orig::udp::UdpSocket>);
-
-impl EventedPrv for UdpSocket {
-    type Raw = mio_orig::udp::UdpSocket;
-
-    fn shared(&self) -> &RcEvented<Self::Raw> {
-        &self.0
-    }
-}
+pub type UdpSocket = MioAdapter<mio_orig::udp::UdpSocket>;
 
 impl UdpSocket {
     /// Return a new unbound IPv4 UDP Socket.
     pub fn v4() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v4().map(|t| UdpSocket(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::v4().map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Return a new unbound IPv6 UDP Socket.
     pub fn v6() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v6().map(|t| UdpSocket(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::v6().map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Return a new bound UDP Socket.
     pub fn bound(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::bound(addr).map(|t| UdpSocket(RcEvented::new(t)))
+        mio_orig::udp::UdpSocket::bound(addr).map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Bind the unbound UDP Socket.
@@ -46,7 +38,7 @@ impl UdpSocket {
 
     /// Try cloning the socket.
     pub fn try_clone(&self) -> io::Result<UdpSocket> {
-        self.shared().0.borrow().io.try_clone().map(|t| UdpSocket(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Block on read.
@@ -55,7 +47,7 @@ impl UdpSocket {
             let res = self.try_read(buf);
 
             match res {
-                Ok(None) => self.block_on(RW::read()),
+                Ok(None) => self.block_on_prv(RW::read()),
                 Ok(Some(r)) => {
                     return Ok(r);
                 }
@@ -77,7 +69,7 @@ impl UdpSocket {
             let res = self.try_write(buf, target);
 
             match res {
-                Ok(None) => self.block_on(RW::write()),
+                Ok(None) => self.block_on_prv(RW::write()),
                 Ok(Some(r)) => {
                     return Ok(r);
                 }
@@ -121,7 +113,7 @@ impl UdpSocket {
 
 impl FromRawFd for UdpSocket {
     unsafe fn from_raw_fd(fd: RawFd) -> UdpSocket {
-        UdpSocket(RcEvented::new(mio_orig::udp::UdpSocket::from_raw_fd(fd)))
+        MioAdapter(RcEvented::new(mio_orig::udp::UdpSocket::from_raw_fd(fd)))
     }
 }
 
