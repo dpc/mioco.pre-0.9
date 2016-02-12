@@ -1,8 +1,7 @@
-use super::{EventedInner, EventedShared, RcEvented, RW, Handler, Evented, EventedPrv};
+use super::{RW, Handler};
+use super::evented::{EventedInner, RcEvented, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
-use std::cell::RefCell;
-use std::rc::Rc;
 
 /// A Timer generating event after a given time
 ///
@@ -24,7 +23,7 @@ impl Timer {
     /// Create a new timer
     pub fn new() -> Timer {
         let timer_core = TimerCore { timeout: SteadyTime::now() };
-        Timer { rc: RcEvented(Rc::new(RefCell::new(EventedShared::new(timer_core)))) }
+        Timer { rc: RcEvented::new(timer_core) }
     }
 
     fn is_done(&self) -> bool {
@@ -32,7 +31,7 @@ impl Timer {
     }
 }
 
-impl EventedPrv for Timer {
+impl EventedImpl for Timer {
     type Raw = TimerCore;
 
     fn shared(&self) -> &RcEvented<TimerCore> {
@@ -73,20 +72,18 @@ impl Timer {
     ///
     /// The timeout counts from the time `set_timeout` is called.
     pub fn set_timeout(&mut self, delay_ms: i64) {
-        let mut timer_core = &mut self.rc.0.borrow_mut().io;
-        timer_core.timeout = SteadyTime::now() + Duration::milliseconds(delay_ms);
+        self.rc.io_mut().timeout = SteadyTime::now() + Duration::milliseconds(delay_ms);
     }
 
     /// Set timeout for the timer using absolute time.
     pub fn set_timeout_absolute(&mut self, timeout: SteadyTime) {
-        let mut timer_core = &mut self.rc.0.borrow_mut().io;
-        timer_core.timeout = timeout;
+        self.rc.io_mut().timeout = timeout;
     }
 
 
     /// Get absolute value of the timer timeout.
     pub fn get_timeout_absolute(&mut self) -> SteadyTime {
-        self.rc.0.borrow().io.timeout
+        self.rc.io_ref().timeout
     }
 }
 

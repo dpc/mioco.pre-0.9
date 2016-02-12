@@ -1,4 +1,5 @@
-use super::{EventedInner, RcEvented, RW, Handler, Evented, EventedPrv};
+use super::{RW, Handler};
+use super::evented::{EventedInner, RcEvented, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
@@ -26,7 +27,7 @@ pub struct MailboxInnerEnd<T>(RcEvented<MailboxInnerCore<T>>);
 
 struct MailboxInnerCore<T>(ArcMailboxShared<T>);
 
-impl<T> EventedPrv for MailboxInnerEnd<T> where T: 'static
+impl<T> EventedImpl for MailboxInnerEnd<T> where T: 'static
 {
     type Raw = MailboxInnerCore<T>;
 
@@ -157,8 +158,8 @@ impl<T> MailboxInnerEnd<T> where T: 'static
     /// This will not block.
     pub fn try_read(&self) -> Option<T> {
         let shared = self.shared();
-        let shared = shared.0.borrow();
-        let shared = &shared.io.0;
+        let io_ref = shared.io_ref();
+        let shared = &io_ref.0;
         let mut lock = shared.lock();
 
         lock.inn.pop_front()

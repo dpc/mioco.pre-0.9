@@ -1,4 +1,5 @@
-use super::{RW, RcEvented, Evented, EventedPrv, MioAdapter};
+use super::{RW,};
+use super::evented::{ RcEvented, Evented, EventedImpl, MioAdapter};
 use std::io;
 use super::mio_orig;
 use std::path::Path;
@@ -7,17 +8,13 @@ use std::os::unix::io::{RawFd};
 /// Unix pipe reader
 pub type PipeReader = MioAdapter<mio_orig::unix::PipeReader>;
 
-unsafe impl Send for PipeReader {}
-
 /// Unix pipe writer
 pub type PipeWriter = MioAdapter<mio_orig::unix::PipeWriter>;
-
-unsafe impl Send for PipeWriter {}
 
 /// Unix listener
 pub struct UnixListener(RcEvented<mio_orig::unix::UnixListener>);
 
-impl EventedPrv for UnixListener {
+impl EventedImpl for UnixListener {
     type Raw = mio_orig::unix::UnixListener;
 
     fn shared(&self) -> &RcEvented<Self::Raw> {
@@ -25,7 +22,6 @@ impl EventedPrv for UnixListener {
     }
 }
 
-unsafe impl Send for UnixListener {}
 
 impl UnixListener {
     /// Bind to a port
@@ -41,7 +37,7 @@ impl UnixListener {
             match res {
                 Ok(None) => self.block_on(RW::read()),
                 Ok(Some(r)) => {
-                    return Ok(MioAdapter(RcEvented::new(r)));
+                    return Ok(MioAdapter::new(r));
                 }
                 Err(e) => return Err(e),
             }
@@ -61,14 +57,12 @@ impl UnixListener {
 
     /// Try cloning the socket descriptor.
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().0.borrow().io.try_clone().map(|t| UnixListener(RcEvented::new(t)))
+        self.shared().io_ref().try_clone().map(|t| UnixListener(RcEvented::new(t)))
     }
 }
 
 /// Unix socket
 pub type UnixSocket = MioAdapter<mio_orig::unix::UnixSocket>;
-
-unsafe impl Send for UnixSocket {}
 
 impl UnixSocket {
     /// Returns a new, unbound, Unix domain socket
@@ -79,9 +73,7 @@ impl UnixSocket {
     /// Connect the socket to the specified address
     pub fn connect<P: AsRef<Path> + ?Sized>(self, addr: &P) -> io::Result<(UnixStream, bool)> {
         self.shared()
-            .0
-            .borrow()
-            .io
+            .io_ref()
             .try_clone()
             .and_then(|t| mio_orig::unix::UnixSocket::connect(t, addr))
             .map(|(t, b)| (MioAdapter::new(t), b))
@@ -89,19 +81,17 @@ impl UnixSocket {
 
     /// Bind the socket to the specified address
     pub fn bind<P: AsRef<Path> + ?Sized>(&self, addr: &P) -> io::Result<()> {
-        self.shared().0.borrow().io.bind(addr)
+        self.shared().io_ref().bind(addr)
     }
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
     }
 }
 
 /// Unix stream
 pub type UnixStream = MioAdapter<mio_orig::unix::UnixStream>;
-
-unsafe impl Send for UnixStream {}
 
 
 impl UnixStream {
@@ -112,7 +102,7 @@ impl UnixStream {
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
     }
 
     /// Try reading data into a buffer.
@@ -121,7 +111,7 @@ impl UnixStream {
     pub fn try_read_recv_fd(&mut self,
                             buf: &mut [u8])
                             -> io::Result<Option<(usize, Option<RawFd>)>> {
-        self.shared().0.borrow_mut().io.try_read_recv_fd(buf)
+        self.shared().io_mut().try_read_recv_fd(buf)
     }
 
     /// Block on read.
@@ -143,7 +133,7 @@ impl UnixStream {
     ///
     /// This will not block.
     pub fn try_write_send_fd(&self, buf: &[u8], fd: RawFd) -> io::Result<Option<usize>> {
-        self.shared().0.borrow_mut().io.try_write_send_fd(buf, fd)
+        self.shared().io_mut().try_write_send_fd(buf, fd)
     }
 
     /// Block on write
@@ -166,7 +156,7 @@ impl UnixStream {
 pub fn pipe() -> io::Result<(PipeReader, PipeWriter)> {
     let (raw_reader, raw_writer) = try!(mio_orig::unix::pipe());
 
-    Ok((MioAdapter(RcEvented::new(raw_reader)),
-        MioAdapter(RcEvented::new(raw_writer))))
+    Ok((MioAdapter::new(raw_reader),
+        MioAdapter::new(raw_writer)))
 
 }
