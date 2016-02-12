@@ -326,8 +326,8 @@ pub struct Coroutine {
     /// Coroutine stack
     stack: Stack,
 
-    /// All event sources
-    io: Slab<Box<RcEventSourceTrait + 'static>, EventSourceId>,
+    /// All event sources the coroutine is blocked on
+    blocked_on: Slab<Box<RcEventSourceTrait + 'static>, EventSourceId>,
 
     /// Newly spawned `Coroutine`-es
     children_to_start: Vec<RcCoroutine>,
@@ -396,18 +396,18 @@ impl CoroutineSlabHandle {
 
         let ready = {
             let Coroutine {
-                ref mut io,
+                ref mut blocked_on,
                 ..
             } = *self.rc.borrow_mut();
 
 
-            if let Some(mut io) = io.get_mut(io_id) {
+            if let Some(mut event_source) = blocked_on.get_mut(io_id) {
 
                 if events.is_hup() {
-                    io.hup(event_loop, token);
+                    event_source.hup(event_loop, token);
                 }
 
-                let io_rw = io.blocked_on().as_tuple();
+                let io_rw = event_source.blocked_on().as_tuple();
                 match io_rw {
                     (false, false) => {
                         debug!("spurious event for event source blocked on nothing");
@@ -428,12 +428,12 @@ impl CoroutineSlabHandle {
                         false
                     }
                     _ => {
-                        if io.should_resume() {
+                        if event_source.should_resume() {
                             true
                         } else {
                             // TODO: Actually, we can just reregister the Timer,
                             // not all sources, and in just this one case
-                            io.reregister(event_loop, co_id);
+                            event_source.reregister(event_loop, co_id);
                             false
                         }
                     }
@@ -505,7 +505,7 @@ impl CoroutineSlabHandle {
 
         let state = self.rc.borrow().state();
         if state.is_yielding() {
-            debug_assert!(self.rc.borrow().io.is_empty());
+            debug_assert!(self.rc.borrow().blocked_on.is_empty());
             let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
             coroutine_ctrl.set_is_yielding();
             self.rc.borrow_mut().state = State::Ready;
@@ -689,7 +689,7 @@ impl Coroutine {
                               context: Context::empty(),
                               handler_shared: Some(handler_shared.clone()),
                               exit_notificators: Vec::new(),
-                              io: Slab::new(4),
+                              blocked_on: Slab::new(4),
                               children_to_start: Vec::new(),
                               stack: Stack::new(stack_size).unwrap(),
                               coroutine_func: Some(Box::new(f)),
@@ -733,7 +733,7 @@ impl Coroutine {
                 });
 
                 let coroutine: &mut Coroutine = unsafe { transmute(arg) };
-                coroutine.io.clear();
+                coroutine.blocked_on.clear();
                 coroutine.self_rc = None;
 
                 let id = coroutine.id;
@@ -803,14 +803,14 @@ impl Coroutine {
     }
 
     fn deregister_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.io.iter_mut() {
+        for io in self.blocked_on.iter_mut() {
             io.deregister(event_loop, self.id);
         }
-        self.io.clear();
+        self.blocked_on.clear();
     }
 
     fn register_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.io.iter_mut() {
+        for io in self.blocked_on.iter_mut() {
             io.register(event_loop, self.id);
         }
     }

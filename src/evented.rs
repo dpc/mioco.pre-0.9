@@ -52,7 +52,7 @@ pub trait EventedImpl {
                        coroutine.id.as_usize(),
                        rw);
                 coroutine.state = State::Blocked;
-                coroutine.io.insert_with(|id| {
+                coroutine.blocked_on.insert_with(|id| {
                     self.shared().0.borrow_mut().common.id = Some(id);
                     self.shared().0.borrow_mut().common.blocked_on = rw;
                     self.shared().to_trait()
@@ -79,12 +79,12 @@ pub trait EventedImpl {
         unsafe fn select_add_prv(&self, rw: RW) {
             let coroutine = tl_coroutine_current();
 
-            if !coroutine.io.has_remaining() {
-                let count = coroutine.io.count();
-                coroutine.io.grow(count);
+            if !coroutine.blocked_on.has_remaining() {
+                let count = coroutine.blocked_on.count();
+                coroutine.blocked_on.grow(count);
             }
 
-            coroutine.io
+            coroutine.blocked_on
                 .insert_with(|id| {
                     self.shared().0.borrow_mut().common.id = Some(id);
                     self.shared().0.borrow_mut().common.blocked_on = rw;
