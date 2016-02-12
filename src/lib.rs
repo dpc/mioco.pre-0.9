@@ -37,7 +37,6 @@
 //! [mio]: https://github.com/carllerche/mio
 //! [mio-api]: ../mioco/mio/index.html
 
-#![cfg_attr(test, feature(convert))]
 #![feature(recover)]
 #![feature(fnbox)]
 #![feature(cell_extras)]
