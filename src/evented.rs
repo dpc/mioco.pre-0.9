@@ -1,5 +1,5 @@
-use super::{RW, EventSourceId, State, Handler, CoroutineId};
-use super::{tl_coroutine_current, coroutine_jump_out, entry_point};
+use super::{RW, EventSourceId, Handler, coroutine};
+use super::{tl_coroutine_current};
 use super::{token_from_ids};
 use super::mio_orig;
 
@@ -47,20 +47,10 @@ pub trait EventedImpl {
 
     fn block_on_prv(&self, rw: RW) {
             let coroutine = tl_coroutine_current();
+            coroutine.block_on(self.shared(), rw);
+            coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
             {
-                trace!("Coroutine({}): blocked on {:?}",
-                       coroutine.id.as_usize(),
-                       rw);
-                coroutine.state = State::Blocked;
-                coroutine.blocked_on.insert_with(|id| {
-                    self.shared().0.borrow_mut().common.id = Some(id);
-                    self.shared().0.borrow_mut().common.blocked_on = rw;
-                    self.shared().to_trait()
-                });
-            };
-            coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-            {
-                entry_point(&coroutine.self_rc.as_ref().unwrap());
+                coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
                 trace!("Coroutine({}): resumed due to event {:?}",
                        coroutine.id.as_usize(),
                        coroutine.last_event);
@@ -300,13 +290,13 @@ impl<T> EventSourceTrait for T where T: mio_orig::Evented
 
 pub trait RcEventSourceTrait {
     /// Reregister oneshot handler for the next event
-    fn register(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId);
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id);
 
     /// Reregister oneshot handler for the next event
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId);
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id);
 
     /// Un-reregister event we're not interested in anymore
-    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId);
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id);
 
     fn hup(&mut self, _event_loop: &mut EventLoop<Handler>, token: Token);
 
@@ -317,9 +307,9 @@ pub trait RcEventSourceTrait {
 
 /// Common control data for all event sources.
 struct EventSourceCommon {
-    id: Option<EventSourceId>,
-    blocked_on: RW,
-    peer_hup: bool,
+    pub id: Option<EventSourceId>,
+    pub blocked_on: RW,
+    pub peer_hup: bool,
 }
 
 /// Wrapped mio IO (mio_orig::Evented+TryRead+TryWrite)
@@ -368,6 +358,15 @@ impl<T> RcEventSource<T> {
     pub fn io_mut(&self) -> RefMut<T> {
         RefMut::map(self.0.borrow_mut(), |r| &mut r.io)
     }
+
+    #[allow(unused)]
+    pub fn common_ref(&self) -> Ref<EventSourceCommon> {
+        Ref::map(self.0.borrow(), |r| &r.common)
+    }
+
+    pub fn common_mut(&self) -> RefMut<EventSourceCommon> {
+        RefMut::map(self.0.borrow_mut(), |r| &mut r.common)
+    }
 }
 
 impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
@@ -387,7 +386,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     }
 
     /// Reregister oneshot handler for the next event
-    fn register(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId) {
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id) {
         let mut interest = mio_orig::EventSet::none();
 
         if !self.0.borrow().common.peer_hup {
@@ -408,7 +407,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     }
 
     /// Reregister oneshot handler for the next event
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId) {
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id) {
         let mut interest = mio_orig::EventSet::none();
 
         if !self.0.borrow().common.peer_hup {
@@ -429,7 +428,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     }
 
     /// Un-reregister event we're not interested in anymore
-    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: CoroutineId) {
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id) {
         let token = token_from_ids(co_id, self.0.borrow().common.id.unwrap());
         EventSourceTrait::deregister(&self.0.borrow().io, event_loop, token);
     }
@@ -437,7 +436,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
 
 impl<T> RcEventSource<T> where T: EventSourceTrait + 'static
 {
-    fn to_trait(&self) -> Box<RcEventSourceTrait + 'static> {
+    pub fn to_trait(&self) -> Box<RcEventSourceTrait + 'static> {
         Box::new(RcEventSource(self.0.clone()))
     }
 }

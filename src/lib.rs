@@ -38,6 +38,7 @@
 //! [mio-api]: ../mioco/mio/index.html
 
 #![feature(recover)]
+#![feature(std_panic)]
 #![feature(fnbox)]
 #![feature(cell_extras)]
 #![feature(as_unsafe_cell)]
@@ -73,9 +74,7 @@ use std::rc::Rc;
 use std::io;
 use std::thread;
 use std::marker::Reflect;
-use std::mem::{self, transmute};
-
-use std::boxed::FnBox;
+use std::mem::{self};
 
 use mio_orig::{Token, EventLoop, EventSet, EventLoopConfig};
 
@@ -85,7 +84,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use slab::Slab;
 
-use context::{Context, Stack};
+use context::{Context};
 
 
 use std::ptr;
@@ -109,10 +108,13 @@ pub use evented::{Evented, MioAdapter};
 use evented::{EventSourceTrait, RcEventSourceTrait};
 mod evented;
 
+use coroutine::{Coroutine, RcCoroutine};
+mod coroutine;
+
 use Message::*;
 
-type RcCoroutine = Rc<RefCell<Coroutine>>;
-type RcHandlerShared = Rc<RefCell<HandlerShared>>;
+/// TODO: Make private
+pub type RcHandlerShared = Rc<RefCell<HandlerShared>>;
 type ArcHandlerThreadShared = Arc<HandlerThreadShared>;
 
 /// Read/Write/Both/None
@@ -196,76 +198,6 @@ impl Event {
     }
 }
 
-/// Coroutine exit status (value returned or panic)
-#[derive(Clone, Debug)]
-pub enum ExitStatus {
-    /// Coroutine panicked
-    Panic,
-    /// Killed externally
-    Killed,
-    /// Coroutine returned some value
-    Exit(Arc<io::Result<()>>),
-}
-
-impl ExitStatus {
-    /// Is the `ExitStatus` a `Panic`?
-    pub fn is_panic(&self) -> bool {
-        match *self {
-            ExitStatus::Panic => true,
-            _ => false,
-        }
-    }
-}
-
-/// State of `mioco` coroutine
-#[derive(Clone, Debug)]
-enum State {
-    /// Blocked on EventSource(s)
-    Blocked,
-    /// Yielding
-    Yielding,
-    /// Currently running
-    Running,
-    /// Ready to be started
-    Ready,
-    /// Finished
-    Finished(ExitStatus),
-}
-
-impl State {
-    /// Is the `State` `Ready`?
-    fn is_ready(&self) -> bool {
-        match *self {
-            State::Ready => true,
-            _ => false,
-        }
-    }
-
-    /// Is the `State` `Running`?
-    fn is_running(&self) -> bool {
-        match *self {
-            State::Running => true,
-            _ => false,
-        }
-    }
-
-    /// Is the `State` `Blocked`?
-    fn is_blocked(&self) -> bool {
-        match *self {
-            State::Blocked => true,
-            _ => false,
-        }
-    }
-
-    /// Is the `State` `Yielding`?
-    fn is_yielding(&self) -> bool {
-        match *self {
-            State::Yielding => true,
-            _ => false,
-        }
-    }
-}
-
 /// Cand send `Message` to the mioco thread.
 type MioSender =
     mio_orig::Sender<<Handler as mio_orig::Handler>::Message>;
@@ -302,65 +234,20 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
     }
 }
 
-/// Mioco coroutine (a.k.a. *mioco handler*)
-pub struct Coroutine {
-    /// Context with a state of coroutine
-    context: Context,
-
-    /// Current state
-    state: State,
-
-    /// Last event that resumed the coroutine
-    last_event: Event,
-
-    /// `Handler` shared data that this `Coroutine` is running in
-    handler_shared: Option<RcHandlerShared>,
-
-    /// `Coroutine` will send exit status on it's finish
-    /// through this list of Mailboxes
-    exit_notificators: Vec<mail::MailboxOuterEnd<ExitStatus>>,
-
-    /// Current coroutine Id
-    id: CoroutineId,
-
-    /// Coroutine stack
-    stack: Stack,
-
-    /// All event sources the coroutine is blocked on
-    blocked_on: Slab<Box<RcEventSourceTrait + 'static>, EventSourceId>,
-
-    /// Newly spawned `Coroutine`-es
-    children_to_start: Vec<RcCoroutine>,
-
-    /// Function to be run inside Coroutine
-    coroutine_func: Option<Box<FnBox() -> io::Result<()> + Send + 'static>>,
-
-    /// In case Rc to self is needed
-    self_rc: Option<RcCoroutine>,
-
-    sync_mailbox: Option<(mail::MailboxOuterEnd<()>, mail::MailboxInnerEnd<()>)>,
-
-    /// Userdata of the coroutine
-    user_data: Option<Arc<Box<Any + Send + Sync>>>,
-
-    /// Userdata meant for inheritance
-    inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-}
-
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
 /// Token bits encode both Coroutine and EventSource within it
 const EVENT_SOURCE_TOKEN_SHIFT: usize = 10;
 const EVENT_SOURCE_TOKEN_MASK: usize = (1 << EVENT_SOURCE_TOKEN_SHIFT) - 1;
 
 /// Convert token to ids
-fn token_to_ids(token: Token) -> (CoroutineId, EventSourceId) {
+fn token_to_ids(token: Token) -> (coroutine::Id, EventSourceId) {
     let val = token.as_usize();
-    (CoroutineId(val >> EVENT_SOURCE_TOKEN_SHIFT),
+    (coroutine::Id::new(val >> EVENT_SOURCE_TOKEN_SHIFT),
      EventSourceId(val & EVENT_SOURCE_TOKEN_MASK))
 }
 
 /// Convert ids to Token
-fn token_from_ids(co_id: CoroutineId, io_id: EventSourceId) -> Token {
+fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
     // TODO: Add checks on wrap()
     debug_assert!(io_id.as_usize() <= EVENT_SOURCE_TOKEN_MASK);
     Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_SHIFT) | io_id.as_usize())
@@ -388,7 +275,7 @@ impl CoroutineSlabHandle {
 
         trace!("Coroutine({}): event", self.id().as_usize());
 
-        if !self.rc.borrow().state.is_blocked() {
+        if !self.rc.borrow().state().is_blocked() {
             // subsequent event to coroutine that is either already
             // Finished, or Ready
             return false;
@@ -459,18 +346,17 @@ impl CoroutineSlabHandle {
             };
 
             let mut co = self.rc.borrow_mut();
-            co.state = State::Ready;
-            co.last_event = Event {
-                rw: event,
-                id: io_id,
-            };
-            co.deregister_all(event_loop);
+            co.unblock(event_loop,
+                       Event {
+                           rw: event,
+                           id: io_id,
+                       });
         }
 
         ready
     }
 
-    fn id(&self) -> CoroutineId {
+    fn id(&self) -> coroutine::Id {
         let coroutine = self.rc.borrow();
         coroutine.id
     }
@@ -481,34 +367,14 @@ impl CoroutineSlabHandle {
         debug_assert!(!self.rc.borrow().state().is_running());
 
         self.rc.borrow_mut().register_all(event_loop);
+        self.rc.borrow_mut().start_children();
 
-        {
-
-            let Coroutine {
-                ref mut children_to_start,
-                ref handler_shared,
-                ref id,
-                ..
-            } = *self.rc.borrow_mut();
-
-            trace!("Coroutine({}): {} children spawned",
-                   id.as_usize(),
-                   children_to_start.len());
-
-            let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
-
-            for coroutine in children_to_start.drain(..) {
-                let coroutine_ctrl = CoroutineControl::new(coroutine);
-                handler_shared.spawned.push(coroutine_ctrl);
-            }
-        }
-
-        let state = self.rc.borrow().state();
+        let state = self.rc.borrow().state().clone();
         if state.is_yielding() {
             debug_assert!(self.rc.borrow().blocked_on.is_empty());
             let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
             coroutine_ctrl.set_is_yielding();
-            self.rc.borrow_mut().state = State::Ready;
+            self.rc.borrow_mut().unblock_after_yield();
             let handler_shared = &self.rc.borrow().handler_shared;
             let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
 
@@ -534,8 +400,8 @@ impl Drop for CoroutineControl {
     fn drop(&mut self) {
         if !self.was_handled {
             trace!("Coroutine({}): kill", self.id().as_usize());
-            self.rc.borrow_mut().state = State::Finished(ExitStatus::Killed);
-            coroutine_jump_in(&self.rc);
+            self.rc.borrow_mut().finish();
+            coroutine::jump_in(&self.rc);
         }
     }
 }
@@ -561,16 +427,16 @@ impl CoroutineControl {
         self.was_handled = true;
         trace!("Coroutine({}): resume", self.id().as_usize());
         let co_rc = self.rc.clone();
-        let is_ready = co_rc.borrow().state.is_ready();
+        let is_ready = co_rc.borrow().state().is_ready();
         if is_ready {
-            coroutine_jump_in(&co_rc);
+            coroutine::jump_in(&co_rc);
             self.to_slab_handle().after_resume(event_loop);
         } else {
             panic!("Tried to resume Coroutine that is not ready");
         }
     }
 
-    fn id(&self) -> CoroutineId {
+    fn id(&self) -> coroutine::Id {
         self.rc.borrow().id
     }
 
@@ -659,235 +525,6 @@ impl CoroutineControl {
     }
 }
 
-impl Coroutine {
-    /// Spawn a new Coroutine
-    fn spawn<F>(handler_shared: RcHandlerShared,
-                inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-                f: F)
-                -> RcCoroutine
-        where F: FnOnce() -> io::Result<()> + Send + 'static
-    {
-        trace!("Coroutine: spawning");
-        let stack_size = handler_shared.borrow().stack_size;
-
-        let id = {
-            let coroutines = &mut handler_shared.borrow_mut().coroutines;
-
-            if !coroutines.has_remaining() {
-                let count = coroutines.count();
-                coroutines.grow(count);
-            }
-
-            coroutines.insert_with(|id| {
-                          let coroutine = Coroutine {
-                              state: State::Ready,
-                              id: id,
-                              last_event: Event {
-                                  rw: RW::read(),
-                                  id: EventSourceId(0),
-                              },
-                              context: Context::empty(),
-                              handler_shared: Some(handler_shared.clone()),
-                              exit_notificators: Vec::new(),
-                              blocked_on: Slab::new(4),
-                              children_to_start: Vec::new(),
-                              stack: Stack::new(stack_size).unwrap(),
-                              coroutine_func: Some(Box::new(f)),
-                              self_rc: None,
-                              sync_mailbox: None,
-                              user_data: inherited_user_data.clone(),
-                              inherited_user_data: inherited_user_data,
-                          };
-
-                          CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
-                      })
-                      .expect("Run out of slab for coroutines")
-        };
-        handler_shared.borrow_mut().coroutines_inc();
-
-        let coroutine_rc = handler_shared.borrow().coroutines[id].rc.clone();
-
-        coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
-
-        let coroutine_ptr = {
-            // The things we do for borrowck...
-            let coroutine_ptr = {
-                &*coroutine_rc.borrow() as *const Coroutine
-            };
-            coroutine_ptr
-        };
-
-        extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
-            let ctx: &Context = {
-
-                let res = std::panic::recover(move || {
-                    let coroutine: &mut Coroutine = unsafe { transmute(arg) };
-                    trace!("Coroutine({}): started", {
-                        coroutine.id.as_usize()
-                    });
-
-                    entry_point(coroutine.self_rc.as_ref().unwrap());
-                    let f = coroutine.coroutine_func.take().unwrap();
-
-                    f.call_box(())
-                });
-
-                let coroutine: &mut Coroutine = unsafe { transmute(arg) };
-                coroutine.blocked_on.clear();
-                coroutine.self_rc = None;
-
-                let id = coroutine.id;
-                {
-                    let mut handler_shared = coroutine.handler_shared
-                                                      .as_ref()
-                                                      .unwrap()
-                                                      .borrow_mut();
-                    handler_shared.coroutines.remove(id).unwrap();
-                    handler_shared.coroutines_dec();
-                }
-
-                match res {
-                    Ok(res) => {
-                        trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
-                        let arc_res = Arc::new(res);
-                        coroutine.exit_notificators
-                                 .iter()
-                                 .map(|end| end.send(ExitStatus::Exit(arc_res.clone())))
-                                 .count();
-                        coroutine.state = State::Finished(ExitStatus::Exit(arc_res));
-
-                    }
-                    Err(cause) => {
-                        trace!("Coroutine({}): panicked: {:?}",
-                               id.as_usize(),
-                               cause.downcast::<&str>());
-                        if let State::Finished(ExitStatus::Killed) = coroutine.state {
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Killed))
-                                     .count();
-                        } else {
-                            coroutine.state = State::Finished(ExitStatus::Panic);
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Panic))
-                                     .count();
-                        }
-                    }
-                }
-
-                unsafe {
-                    let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
-                    transmute(&handler.context as *const Context)
-                }
-            };
-
-            Context::load(ctx);
-        }
-
-        {
-            let Coroutine {
-                ref mut stack,
-                ref mut context,
-                ..
-            } = *coroutine_rc.borrow_mut();
-
-            context.init_with(init_fn, coroutine_ptr as usize, std::ptr::null_mut(), stack);
-        }
-
-        coroutine_rc
-    }
-
-    fn state(&self) -> State {
-        self.state.clone()
-    }
-
-    fn deregister_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.blocked_on.iter_mut() {
-            io.deregister(event_loop, self.id);
-        }
-        self.blocked_on.clear();
-    }
-
-    fn register_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.blocked_on.iter_mut() {
-            io.register(event_loop, self.id);
-        }
-    }
-}
-
-/// Resume coroutine execution, jumping into it
-fn coroutine_jump_in(coroutine: &RefCell<Coroutine>) {
-    let prev = TL_CURRENT_COROUTINE.with(|co| {
-        let mut co = co.borrow_mut();
-        let prev = *co;
-        *co = &mut *coroutine.borrow_mut() as *mut Coroutine;
-        prev
-    });
-
-    {
-        let ref mut state = coroutine.borrow_mut().state;
-        match *state {
-            State::Ready => {
-                *state = State::Running;
-            }
-            State::Finished(ExitStatus::Killed) => {}
-            ref state => panic!("coroutine_jump_in: wrong state {:?}", state),
-        }
-    }
-
-    // We know that we're holding at least one Rc to the Coroutine,
-    // and noone else is holding a reference as we can do `.borrow_mut()`
-    // so we cheat with unsafe just to context-switch from coroutine
-    // without having RefCells still borrowed.
-    let (context_in, context_out) = {
-        let Coroutine {
-            ref context,
-            ref handler_shared,
-            ..
-        } = *coroutine.borrow_mut();
-        {
-            let mut shared_context = &mut handler_shared.as_ref().unwrap().borrow_mut().context;
-            (context as *const Context, shared_context as *mut Context)
-        }
-    };
-
-    Context::swap(unsafe { &mut *context_out }, unsafe { &*context_in });
-    TL_CURRENT_COROUTINE.with(|co| {
-        *co.borrow_mut() = prev;
-    });
-}
-
-/// Coroutine entry point checks
-fn entry_point(coroutine: &RefCell<Coroutine>) {
-    if let State::Finished(ExitStatus::Killed) = coroutine.borrow().state {
-        panic!("Killed externally")
-    }
-}
-
-/// Block coroutine execution, jumping out of it
-fn coroutine_jump_out(coroutine: &RefCell<Coroutine>) {
-    {
-        let state = &coroutine.borrow().state;
-        debug_assert!(state.is_blocked() || state.is_yielding());
-    }
-
-    // See `resume()` for unsafe comment
-    let (context_in, context_out) = {
-        let Coroutine {
-            ref mut context,
-            ref handler_shared,
-            ..
-        } = *coroutine.borrow_mut();
-        {
-            let shared_context = &mut handler_shared.as_ref().unwrap().borrow_mut().context;
-            (context as *mut Context, shared_context as *const Context)
-        }
-    };
-
-    Context::swap(unsafe { &mut *context_in }, unsafe { &*context_out });
-}
-
 /// Id of an event source used to enumerate them
 ///
 /// It's unique within coroutine of an event source, but not globally.
@@ -909,28 +546,6 @@ impl slab::Index for EventSourceId {
     }
 }
 
-/// Id of a Coroutine used to enumerate them
-///
-/// It's unique within a thread
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct CoroutineId(usize);
-
-impl CoroutineId {
-    fn as_usize(&self) -> usize {
-        self.0
-    }
-}
-
-impl slab::Index for CoroutineId {
-    fn as_usize(&self) -> usize {
-        self.0
-    }
-    fn from_usize(i: usize) -> Self {
-        CoroutineId(i)
-    }
-}
-
-
 /// Handle to spawned coroutine
 pub struct CoroutineHandle {
     coroutine: RcCoroutine,
@@ -938,7 +553,7 @@ pub struct CoroutineHandle {
 
 impl CoroutineHandle {
     /// Create an exit notificator
-    pub fn exit_notificator(&self) -> mail::MailboxInnerEnd<ExitStatus> {
+    pub fn exit_notificator(&self) -> mail::MailboxInnerEnd<coroutine::ExitStatus> {
         let (outer, inner) = mail::mailbox();
         let mut co = self.coroutine.borrow_mut();
         let Coroutine {
@@ -947,7 +562,7 @@ impl CoroutineHandle {
             ..
         } = *co;
 
-        if let &State::Finished(ref exit) = state {
+        if let &coroutine::State::Finished(ref exit) = state {
             outer.send(exit.clone())
         } else {
             exit_notificators.push(outer);
@@ -977,7 +592,7 @@ impl HandlerThreadShared {
 /// belonging to it.
 struct HandlerShared {
     /// Slab allocator
-    coroutines: slab::Slab<CoroutineSlabHandle, CoroutineId>,
+    coroutines: slab::Slab<CoroutineSlabHandle, coroutine::Id>,
 
     /// Context saved when jumping into coroutine
     context: Context,
@@ -1691,10 +1306,10 @@ pub fn sleep(time_ms: i64) {
 /// Note: named `yield_now` as `yield` is reserved word.
 pub fn yield_now() {
     let coroutine = tl_coroutine_current();
-    coroutine.state = State::Yielding;
+    coroutine.state = coroutine::State::Yielding;
     trace!("Coroutine({}): yield", coroutine.id.as_usize());
-    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
-    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
+    coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
     trace!("Coroutine({}): resumed after yield ",
            coroutine.id.as_usize());
     debug_assert!(coroutine.state.is_running());
@@ -1712,12 +1327,12 @@ pub fn yield_now() {
 /// See `EventSource::id()`.
 pub fn select_wait() -> Event {
     let coroutine = tl_coroutine_current();
-    coroutine.state = State::Blocked;
+    coroutine.state = coroutine::State::Blocked;
 
     trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
-    coroutine_jump_out(&coroutine.self_rc.as_ref().unwrap());
+    coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 
-    entry_point(&coroutine.self_rc.as_ref().unwrap());
+    coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
     trace!("Coroutine({}): resumed due to event {:?}",
            coroutine.id.as_usize(),
            coroutine.last_event);
