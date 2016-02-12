@@ -106,7 +106,7 @@ pub mod udp;
 pub mod mail;
 
 pub use evented::{Evented, MioAdapter};
-use evented::{EventedInner, RcEventedTrait};
+use evented::{EventSourceTrait, RcEventSourceTrait};
 mod evented;
 
 use Message::*;
@@ -327,7 +327,7 @@ pub struct Coroutine {
     stack: Stack,
 
     /// All event sources
-    io: Slab<Box<RcEventedTrait + 'static>, EventSourceId>,
+    io: Slab<Box<RcEventSourceTrait + 'static>, EventSourceId>,
 
     /// Newly spawned `Coroutine`-es
     children_to_start: Vec<RcCoroutine>,

@@ -1,5 +1,5 @@
 use super::{RW, Handler};
-use super::evented::{EventedInner, RcEvented, Evented, EventedImpl};
+use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
 
@@ -12,7 +12,7 @@ use time::{SteadyTime, Duration};
 /// Use `MiocoHandle::select()` to wait for an event, or `read()` to block until
 /// done.
 pub struct Timer {
-    rc: RcEvented<TimerCore>,
+    rc: RcEventSource<TimerCore>,
 }
 
 struct TimerCore {
@@ -23,7 +23,7 @@ impl Timer {
     /// Create a new timer
     pub fn new() -> Timer {
         let timer_core = TimerCore { timeout: SteadyTime::now() };
-        Timer { rc: RcEvented::new(timer_core) }
+        Timer { rc: RcEventSource::new(timer_core) }
     }
 
     fn is_done(&self) -> bool {
@@ -34,7 +34,7 @@ impl Timer {
 impl EventedImpl for Timer {
     type Raw = TimerCore;
 
-    fn shared(&self) -> &RcEvented<TimerCore> {
+    fn shared(&self) -> &RcEventSource<TimerCore> {
         &self.rc
     }
 }
@@ -87,7 +87,7 @@ impl Timer {
     }
 }
 
-impl EventedInner for TimerCore {
+impl EventSourceTrait for TimerCore {
     fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, _interest: EventSet) {
         let timeout = self.timeout;
         let now = SteadyTime::now();

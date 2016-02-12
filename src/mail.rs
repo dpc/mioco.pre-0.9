@@ -1,5 +1,5 @@
 use super::{RW, Handler};
-use super::evented::{EventedInner, RcEvented, Evented, EventedImpl};
+use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
@@ -23,7 +23,7 @@ struct MailboxShared<T> {
 /// Use this only inside mioco coroutines, as an asynchronous event source.
 ///
 /// Create with `mailbox()`
-pub struct MailboxInnerEnd<T>(RcEvented<MailboxInnerCore<T>>);
+pub struct MailboxInnerEnd<T>(RcEventSource<MailboxInnerCore<T>>);
 
 struct MailboxInnerCore<T>(ArcMailboxShared<T>);
 
@@ -31,12 +31,12 @@ impl<T> EventedImpl for MailboxInnerEnd<T> where T: 'static
 {
     type Raw = MailboxInnerCore<T>;
 
-    fn shared(&self) -> &RcEvented<MailboxInnerCore<T>> {
+    fn shared(&self) -> &RcEventSource<MailboxInnerCore<T>> {
         &self.0
     }
 }
 
-impl<T> EventedInner for MailboxInnerCore<T> {
+impl<T> EventSourceTrait for MailboxInnerCore<T> {
     fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         trace!("MailboxInnerEnd({}): register", token.as_usize());
         let mut lock = self.0.lock();
@@ -105,7 +105,7 @@ impl<T> MailboxOuterEnd<T> {
 
 impl<T> MailboxInnerEnd<T> {
     fn new(shared: ArcMailboxShared<T>) -> Self {
-        MailboxInnerEnd(RcEvented::new(MailboxInnerCore(shared)))
+        MailboxInnerEnd(RcEventSource::new(MailboxInnerCore(shared)))
     }
 }
 
