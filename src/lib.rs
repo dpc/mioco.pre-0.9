@@ -75,6 +75,7 @@ use std::io;
 use std::thread;
 use std::marker::Reflect;
 use std::mem::{self, transmute};
+use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 use std::boxed::FnBox;
 
@@ -420,6 +421,20 @@ where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
     // TODO: ?
     fn flush(&mut self) -> io::Result<()> {
         Ok(())
+    }
+}
+
+impl<MT> FromRawFd for MioAdapter<MT>
+where MT : mio_orig::Evented+'static + FromRawFd {
+    unsafe fn from_raw_fd(fd: RawFd) -> Self {
+        MioAdapter(RcEvented::new(MT::from_raw_fd(fd)))
+    }
+}
+
+impl<MT> AsRawFd for MioAdapter<MT>
+where MT : mio_orig::Evented+'static + AsRawFd {
+    fn as_raw_fd(&self) -> RawFd {
+        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 

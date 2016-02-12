@@ -2,7 +2,6 @@ use super::{RW, RcEvented, EventedPrv, MioAdapter};
 use super::mio_orig;
 use std::io;
 use std::net::SocketAddr;
-use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 pub use mio_orig::IpAddr;
 
@@ -108,18 +107,6 @@ impl UdpSocket {
     /// Set multicast TTL.
     pub fn set_multicast_time_to_live(&self, ttl: i32) -> io::Result<()> {
         self.shared().0.borrow().io.set_multicast_time_to_live(ttl)
-    }
-}
-
-impl FromRawFd for UdpSocket {
-    unsafe fn from_raw_fd(fd: RawFd) -> UdpSocket {
-        MioAdapter(RcEvented::new(mio_orig::udp::UdpSocket::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for UdpSocket {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 

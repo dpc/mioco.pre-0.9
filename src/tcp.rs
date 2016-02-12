@@ -3,7 +3,6 @@ use std::io;
 use std::net::SocketAddr;
 use super::mio_orig;
 use std;
-use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 pub use mio_orig::tcp::Shutdown;
 
@@ -24,18 +23,6 @@ impl TcpListener {
     /// Try cloning the listener descriptor.
     pub fn try_clone(&self) -> io::Result<TcpListener> {
         self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
-    }
-}
-
-impl FromRawFd for TcpListener {
-    unsafe fn from_raw_fd(fd: RawFd) -> TcpListener {
-        MioAdapter(RcEvented::new(mio_orig::tcp::TcpListener::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for TcpListener {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 
@@ -82,19 +69,6 @@ unsafe impl Send for TcpListener {}
 
 /// TCP Stream
 pub type TcpStream = MioAdapter<mio_orig::tcp::TcpStream>;
-
-
-impl FromRawFd for TcpStream {
-    unsafe fn from_raw_fd(fd: RawFd) -> TcpStream {
-        MioAdapter(RcEvented::new(mio_orig::tcp::TcpStream::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for TcpStream {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
-    }
-}
 
 impl TcpStream {
     /// Create a new TCP stream an issue a non-blocking connect to the specified address.

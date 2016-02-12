@@ -2,42 +2,17 @@ use super::{RW, RcEvented, Evented, EventedPrv, MioAdapter};
 use std::io;
 use super::mio_orig;
 use std::path::Path;
-use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
+use std::os::unix::io::{RawFd};
 
 /// Unix pipe reader
 pub type PipeReader = MioAdapter<mio_orig::unix::PipeReader>;
 
 unsafe impl Send for PipeReader {}
 
-impl FromRawFd for PipeReader {
-    unsafe fn from_raw_fd(fd: RawFd) -> PipeReader {
-        MioAdapter(RcEvented::new(mio_orig::unix::PipeReader::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for PipeReader {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
-    }
-}
-
-
 /// Unix pipe writer
 pub type PipeWriter = MioAdapter<mio_orig::unix::PipeWriter>;
 
 unsafe impl Send for PipeWriter {}
-
-impl FromRawFd for PipeWriter {
-    unsafe fn from_raw_fd(fd: RawFd) -> PipeWriter {
-        MioAdapter(RcEvented::new(mio_orig::unix::PipeWriter::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for PipeWriter {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
-    }
-}
 
 /// Unix listener
 pub struct UnixListener(RcEvented<mio_orig::unix::UnixListener>);
@@ -90,19 +65,6 @@ impl UnixListener {
     }
 }
 
-impl FromRawFd for UnixListener {
-    unsafe fn from_raw_fd(fd: RawFd) -> UnixListener {
-        UnixListener(RcEvented::new(mio_orig::unix::UnixListener::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for UnixListener {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
-    }
-}
-
-
 /// Unix socket
 pub type UnixSocket = MioAdapter<mio_orig::unix::UnixSocket>;
 
@@ -133,18 +95,6 @@ impl UnixSocket {
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
         self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
-    }
-}
-
-impl FromRawFd for UnixSocket {
-    unsafe fn from_raw_fd(fd: RawFd) -> UnixSocket {
-        MioAdapter(RcEvented::new(mio_orig::unix::UnixSocket::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for UnixSocket {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 
@@ -209,18 +159,6 @@ impl UnixStream {
                 Err(e) => return Err(e),
             }
         }
-    }
-}
-
-impl FromRawFd for UnixStream {
-    unsafe fn from_raw_fd(fd: RawFd) -> UnixStream {
-        MioAdapter(RcEvented::new(mio_orig::unix::UnixStream::from_raw_fd(fd)))
-    }
-}
-
-impl AsRawFd for UnixStream {
-    fn as_raw_fd(&self) -> RawFd {
-        self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 
