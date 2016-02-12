@@ -1,5 +1,4 @@
-use super::{RW, RcEvented, Evented};
-use super::prv::EventedPrv;
+use super::{RW, RcEvented, Evented, EventedPrv};
 use super::mio_orig;
 use std::io;
 use std::net::SocketAddr;
@@ -17,8 +16,6 @@ impl EventedPrv for UdpSocket {
         &self.0
     }
 }
-
-impl Evented for UdpSocket {}
 
 impl UdpSocket {
     /// Return a new unbound IPv4 UDP Socket.

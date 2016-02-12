@@ -267,18 +267,40 @@ impl State {
 type MioSender =
     mio_orig::Sender<<Handler as mio_orig::Handler>::Message>;
 
-mod prv {
-    use super::{EventedInner, RcEvented, RW, tl_coroutine_current, State};
-    use super::{coroutine_jump_out, entry_point, EventSourceId};
 
-    pub trait EventedPrv {
-        type Raw : EventedInner+'static;
+/// Mioco event source.
+///
+/// All types used as asynchronous event sources implement this trait.
+pub trait Evented {
+    #[doc(hidden)]
+    /// Add event source to next select operation.
+    ///
+    /// Use `select!` macro instead.
+    ///
+    /// This is unsafe as the `Select::wait()` has to be called afterwards,
+    /// and registered EventSource must not be send to different
+    /// thread/coroutine before `Select::wait()`.
+    ///
+    /// Use `select!` macro instead.
+    unsafe fn select_add(&self, rw: RW);
 
-        fn shared(&self) -> &RcEvented<Self::Raw>;
+    /// Mark the `EventSourceRef` blocked and block until `Handler` does
+    /// not wake us up again.
+    #[doc(hidden)]
+    fn block_on(&self, rw: RW);
 
-        /// Mark the `EventSourceRef` blocked and block until `Handler` does
-        /// not wake us up again.
-        fn block_on(&self, rw: RW) {
+    /// Temporary ID used in select operation.
+    #[doc(hidden)]
+    fn id(&self) -> EventSourceId;
+}
+
+/// Private trait for all mioco provided IO
+trait EventedPrv {
+    type Raw : EventedInner+'static;
+
+    fn shared(&self) -> &RcEvented<Self::Raw>;
+
+    fn block_on_prv(&self, rw: RW) {
             let coroutine = tl_coroutine_current();
             {
                 trace!("Coroutine({}): blocked on {:?}",
@@ -305,46 +327,54 @@ mod prv {
         }
 
         /// Index id of a `EventSource`
-        fn id(&self) -> EventSourceId {
+        fn id_prv(&self) -> EventSourceId {
             self.shared().0.borrow().common.id.unwrap()
         }
+
+        unsafe fn select_add_prv(&self, rw: RW) {
+            let coroutine = tl_coroutine_current();
+
+            if !coroutine.io.has_remaining() {
+                let count = coroutine.io.count();
+                coroutine.io.grow(count);
+            }
+
+            coroutine.io
+                .insert_with(|id| {
+                    self.shared().0.borrow_mut().common.id = Some(id);
+                    self.shared().0.borrow_mut().common.blocked_on = rw;
+                    self.shared().to_trait()
+                })
+            .unwrap();
+        }
+}
+
+struct MioAdapter<MT>(RcEvented<MT>);
+
+impl<MT> EventedPrv for MioAdapter<MT>
+where MT : mio_orig::Evented+'static {
+    type Raw = MT;
+
+    fn shared(&self) -> &RcEvented<Self::Raw> {
+        &self.0
     }
 }
 
+impl<R, EP> Evented for EP
+where
+EP : EventedPrv<Raw=R>,
+R : EventedInner+'static {
 
-/// Mioco event source.
-///
-/// All types used as asynchronous event sources implement this trait.
-pub trait Evented : prv::EventedPrv {
-    /// Temporary ID used in select operation.
-    fn id(&self) -> EventSourceId {
-        prv::EventedPrv::id(self)
+    unsafe fn select_add(&self, rw: RW) {
+        EventedPrv::select_add_prv(self, rw)
     }
 
-    /// Add event source to next select operation.
-    ///
-    /// Use `select!` macro instead.
-    ///
-    /// This is unsafe as the `Select::wait()` has to be called afterwards,
-    /// and registered EventSource must not be send to different
-    /// thread/coroutine before `Select::wait()`.
-    ///
-    /// Use `select!` macro instead.
-    unsafe fn select_add(&self, rw: RW) {
-        let coroutine = tl_coroutine_current();
+    fn block_on(&self, rw: RW) {
+        EventedPrv::block_on_prv(self, rw)
+    }
 
-        if !coroutine.io.has_remaining() {
-            let count = coroutine.io.count();
-            coroutine.io.grow(count);
-        }
-
-        coroutine.io
-                 .insert_with(|id| {
-                     self.shared().0.borrow_mut().common.id = Some(id);
-                     self.shared().0.borrow_mut().common.blocked_on = rw;
-                     self.shared().to_trait()
-                 })
-                 .unwrap();
+    fn id(&self) -> EventSourceId {
+        EventedPrv::id_prv(self)
     }
 }
 

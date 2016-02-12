@@ -1,5 +1,4 @@
-use super::{RW, RcEvented, Evented};
-use super::prv::EventedPrv;
+use super::{RW, RcEvented, Evented, EventedPrv, MioAdapter};
 use std::io;
 use std::net::SocketAddr;
 use super::mio_orig;
@@ -9,15 +8,7 @@ use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 pub use mio_orig::tcp::Shutdown;
 
 /// TCP Listener
-pub struct TcpListener(RcEvented<mio_orig::tcp::TcpListener>);
-
-impl EventedPrv for TcpListener {
-    type Raw = mio_orig::tcp::TcpListener;
-
-    fn shared(&self) -> &RcEvented<Self::Raw> {
-        &self.0
-    }
-}
+pub type TcpListener = MioAdapter<mio_orig::tcp::TcpListener>;
 
 impl TcpListener {
     /// Local address
@@ -32,13 +23,13 @@ impl TcpListener {
 
     /// Try cloning the listener descriptor.
     pub fn try_clone(&self) -> io::Result<TcpListener> {
-        self.shared().0.borrow().io.try_clone().map(|t| TcpListener(RcEvented::new(t)))
+        self.shared().0.borrow().io.try_clone().map(|t| MioAdapter(RcEvented::new(t)))
     }
 }
 
 impl FromRawFd for TcpListener {
     unsafe fn from_raw_fd(fd: RawFd) -> TcpListener {
-        TcpListener(RcEvented::new(mio_orig::tcp::TcpListener::from_raw_fd(fd)))
+        MioAdapter(RcEvented::new(mio_orig::tcp::TcpListener::from_raw_fd(fd)))
     }
 }
 
@@ -51,13 +42,13 @@ impl AsRawFd for TcpListener {
 impl TcpListener {
     /// Bind to a port
     pub fn bind(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::bind(addr).map(|t| TcpListener(RcEvented::new(t)))
+        mio_orig::tcp::TcpListener::bind(addr).map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
     pub fn from_listener(listener: std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
         mio_orig::tcp::TcpListener::from_listener(listener, addr)
-            .map(|t| TcpListener(RcEvented::new(t)))
+            .map(|t| MioAdapter(RcEvented::new(t)))
     }
 
     /// Block on accepting a connection.
@@ -99,9 +90,6 @@ impl EventedPrv for TcpStream {
         &self.0
     }
 }
-
-impl Evented for TcpStream {}
-
 
 impl FromRawFd for TcpStream {
     unsafe fn from_raw_fd(fd: RawFd) -> TcpStream {

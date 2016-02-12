@@ -1,5 +1,4 @@
-use super::{RW, RcEvented, Evented};
-use super::prv::EventedPrv;
+use super::{RW, RcEvented, Evented, EventedPrv};
 use std::io;
 use super::mio_orig;
 use std::path::Path;
@@ -7,8 +6,6 @@ use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 /// Unix pipe reader
 pub struct PipeReader(RcEvented<mio_orig::unix::PipeReader>);
-
-impl Evented for PipeReader {}
 
 unsafe impl Send for PipeReader {}
 
@@ -61,8 +58,6 @@ impl AsRawFd for PipeReader {
 
 /// Unix pipe writer
 pub struct PipeWriter(RcEvented<mio_orig::unix::PipeWriter>);
-
-impl Evented for PipeWriter {}
 
 unsafe impl Send for PipeWriter {}
 
@@ -128,7 +123,6 @@ impl EventedPrv for UnixListener {
     }
 }
 
-impl Evented for UnixListener {}
 unsafe impl Send for UnixListener {}
 
 impl UnixListener {
@@ -185,7 +179,6 @@ impl AsRawFd for UnixListener {
 /// Unix socket
 pub struct UnixSocket(RcEvented<mio_orig::unix::UnixSocket>);
 
-impl Evented for UnixSocket {}
 unsafe impl Send for UnixSocket {}
 
 impl EventedPrv for UnixSocket {
@@ -239,7 +232,6 @@ impl AsRawFd for UnixSocket {
 /// Unix stream
 pub struct UnixStream(RcEvented<mio_orig::unix::UnixStream>);
 
-impl Evented for UnixStream {}
 unsafe impl Send for UnixStream {}
 
 impl EventedPrv for UnixStream {

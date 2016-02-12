@@ -1,5 +1,4 @@
-use super::{EventedInner, RcEvented, RW, Handler, Evented};
-use super::prv::EventedPrv;
+use super::{EventedInner, RcEvented, RW, Handler, Evented, EventedPrv};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
@@ -35,9 +34,6 @@ impl<T> EventedPrv for MailboxInnerEnd<T> where T: 'static
         &self.0
     }
 }
-
-impl<T> Evented for MailboxInnerEnd<T> where T: 'static
-{}
 
 impl<T> EventedInner for MailboxInnerCore<T> {
     fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
