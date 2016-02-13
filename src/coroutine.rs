@@ -1,8 +1,10 @@
-use super::{Event, EventSourceId, RW, CoroutineSlabHandle, Handler, coroutine, TL_CURRENT_COROUTINE, CoroutineControl};
+use super::{Event, EventSourceId, RW, Handler, coroutine, TL_CURRENT_COROUTINE, token_to_ids, Message, sender_retry};
+use super::{HandlerShared};
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
 use super::{RcHandlerShared};
 use super::mail;
 use super::mio::EventLoop;
+use super::mio_orig::{Token, EventSet};
 
 use context::{Context, Stack};
 use slab;
@@ -10,6 +12,7 @@ use libc;
 
 use std::any::Any;
 use std::io;
+use std::cell;
 use std::sync::Arc;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -130,7 +133,7 @@ pub struct Coroutine {
     pub last_event: Event,
 
     /// `Handler` shared data that this `Coroutine` is running in
-    pub handler_shared: Option<RcHandlerShared>,
+    handler_shared: Option<RcHandlerShared>,
 
     /// `Coroutine` will send exit status on it's finish
     /// through this list of Mailboxes
@@ -302,6 +305,20 @@ impl Coroutine {
         coroutine_rc
     }
 
+    pub fn spawn_child<F>(&mut self, f: F) -> RcCoroutine
+        where F: FnOnce() -> io::Result<()> + Send + 'static {
+            let child = Coroutine::spawn(
+                self.handler_shared.as_ref().unwrap().clone(),
+                self.inherited_user_data.clone(),
+                f);
+            self.children_to_start.push(child.clone());
+            child
+        }
+
+    pub fn handler_shared(&self) -> cell::Ref<HandlerShared> {
+        self.handler_shared.as_ref().unwrap().borrow()
+    }
+
     pub fn block_on<T>(&mut self, event_source : &RcEventSource<T>, rw: RW)
         where T: EventSourceTrait + 'static
     {
@@ -367,6 +384,276 @@ impl Coroutine {
         }
     }
 
+}
+
+/// Event delivery point, kept in Handler slab.
+#[derive(Clone)]
+pub struct CoroutineSlabHandle {
+    rc: RcCoroutine,
+}
+
+impl CoroutineSlabHandle {
+    pub fn new(rc: RcCoroutine) -> Self {
+        CoroutineSlabHandle { rc: rc }
+    }
+
+    pub fn to_coroutine_control(self) -> CoroutineControl {
+        CoroutineControl::new(self.rc)
+    }
+
+    /// Deliver an event to a Coroutine
+    pub fn event(&self, event_loop: &mut EventLoop<Handler>, token: Token, events: EventSet) -> bool {
+
+        let (co_id, io_id) = token_to_ids(token);
+
+        trace!("Coroutine({}): event", self.id().as_usize());
+
+        if !self.rc.borrow().state().is_blocked() {
+            // subsequent event to coroutine that is either already
+            // Finished, or Ready
+            return false;
+        }
+
+        let ready = {
+            let Coroutine {
+                ref mut blocked_on,
+                ..
+            } = *self.rc.borrow_mut();
+
+
+            if let Some(mut event_source) = blocked_on.get_mut(io_id) {
+
+                if events.is_hup() {
+                    event_source.hup(event_loop, token);
+                }
+
+                let io_rw = event_source.blocked_on().as_tuple();
+                match io_rw {
+                    (false, false) => {
+                        debug!("spurious event for event source blocked on nothing");
+                        false
+                    }
+                    (true, false) if !events.is_readable() && !events.is_hup() => {
+                        debug!("spurious not read event for event source blocked on read");
+                        false
+                    }
+                    (false, true) if !events.is_writable() => {
+                        debug!("spurious not write event for event source blocked on write");
+                        false
+                    }
+                    (true, true) if !events.is_readable() && !events.is_hup() &&
+                                    !events.is_writable() => {
+                        debug!("spurious unknown type event for event source blocked on \
+                                read/write");
+                        false
+                    }
+                    _ => {
+                        if event_source.should_resume() {
+                            true
+                        } else {
+                            // TODO: Actually, we can just reregister the Timer,
+                            // not all sources, and in just this one case
+                            event_source.reregister(event_loop, co_id);
+                            false
+                        }
+                    }
+                }
+            } else {
+                // spurious event, probably after select in which
+                // more than one event sources were reported ready
+                // in one group of events, and first event source
+                // deregistered the later ones
+                debug!("spurious event for event source coroutine is not blocked on");
+                false
+            }
+        };
+
+        if ready {
+            trace!("Coroutine({}): set to ready", co_id.as_usize());
+            // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
+            let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
+                (true, true) => RW::both(),
+                (true, false) => RW::read(),
+                (false, true) => RW::write(),
+                (false, false) => panic!(),
+            };
+
+            let mut co = self.rc.borrow_mut();
+            co.unblock(event_loop,
+                       Event {
+                           rw: event,
+                           id: io_id,
+                       });
+        }
+
+        ready
+    }
+
+    pub fn id(&self) -> coroutine::Id {
+        let coroutine = self.rc.borrow();
+        coroutine.id
+    }
+
+    /// After `resume()` (or ignored event()) we need to perform the following maintenance
+    pub fn after_resume(&self, event_loop: &mut EventLoop<Handler>) {
+        // Take care of newly spawned child-coroutines: start them now
+        debug_assert!(!self.rc.borrow().state().is_running());
+
+        self.rc.borrow_mut().register_all(event_loop);
+        self.rc.borrow_mut().start_children();
+
+        let state = self.rc.borrow().state().clone();
+        if state.is_yielding() {
+            debug_assert!(self.rc.borrow().blocked_on.is_empty());
+            let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
+            coroutine_ctrl.set_is_yielding();
+            self.rc.borrow_mut().unblock_after_yield();
+            let handler_shared = &self.rc.borrow().handler_shared;
+            let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
+
+            handler_shared.ready.push(coroutine_ctrl);
+        }
+    }
+}
+
+/// Coroutine control block
+///
+/// Through this interface Coroutine can be resumed and migrated.
+pub struct CoroutineControl {
+    /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
+    /// trait will kill the Coroutine
+    was_handled: bool,
+    is_yielding: bool,
+    rc: RcCoroutine,
+}
+
+impl Drop for CoroutineControl {
+    fn drop(&mut self) {
+        if !self.was_handled {
+            trace!("Coroutine({}): kill", self.id().as_usize());
+            self.rc.borrow_mut().finish();
+            coroutine::jump_in(&self.rc);
+        }
+    }
+}
+
+impl CoroutineControl {
+    pub fn new(rc: RcCoroutine) -> Self {
+        CoroutineControl {
+            is_yielding: false,
+            was_handled: false,
+            rc: rc,
+        }
+    }
+
+    // TODO: Eliminate this needles clone()
+    pub fn to_slab_handle(&self) -> CoroutineSlabHandle {
+        CoroutineSlabHandle::new(self.rc.clone())
+    }
+
+    /// Resume Coroutine
+    ///
+    /// Panics if Coroutine is not in Ready state.
+    pub fn resume(mut self, event_loop: &mut EventLoop<Handler>) {
+        self.was_handled = true;
+        trace!("Coroutine({}): resume", self.id().as_usize());
+        let co_rc = self.rc.clone();
+        let is_ready = co_rc.borrow().state().is_ready();
+        if is_ready {
+            coroutine::jump_in(&co_rc);
+            self.to_slab_handle().after_resume(event_loop);
+        } else {
+            panic!("Tried to resume Coroutine that is not ready");
+        }
+    }
+
+    pub fn id(&self) -> coroutine::Id {
+        self.rc.borrow().id
+    }
+
+    /// Migrate to a different thread
+    ///
+    /// Move this Coroutine to be executed on a `SchedulerThread` for a
+    /// given `thread_id`.
+    ///
+    /// Will panic if `thread_id` is not valid.
+    pub fn migrate(mut self, event_loop: &mut EventLoop<Handler>, thread_id: usize) {
+        self.was_handled = true;
+        let sender = {
+            trace!("Coroutine({}): migrate to thread {}",
+                   self.id().as_usize(),
+                   thread_id);
+            let mut co = self.rc.borrow_mut();
+            co.deregister_all(event_loop);
+
+            let id = co.id;
+            let handler_shared = co.handler_shared.take();
+            debug_assert!(co.handler_shared.is_none());
+            let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
+            handler_shared.coroutines.remove(id).unwrap();
+            handler_shared.senders[thread_id].clone()
+        };
+
+        let rc = self.rc.clone();
+
+        drop(self);
+
+        // TODO: Spin on failure
+        sender_retry(&sender, Message::Migration(rc));
+    }
+
+
+    /// Finish migrating Coroutine by attaching it to a new thread
+    pub fn reattach_to(&mut self, event_loop: &mut EventLoop<Handler>, handler: &mut Handler) {
+        let handler_shared = handler.shared.clone();
+
+        {
+            let mut co = self.rc.borrow_mut();
+            co.register_all(event_loop);
+        }
+        trace!("Coroutine({}): reattach in a new thread",
+               self.id().as_usize());
+        let coroutines = &mut handler.shared.borrow_mut().coroutines;
+
+        if !coroutines.has_remaining() {
+            let count = coroutines.count();
+            coroutines.grow(count);
+        }
+
+        let _id = coroutines.insert_with(|id| {
+                                let mut co = self.rc.borrow_mut();
+
+                                co.id = id;
+                                co.handler_shared = Some(handler_shared);
+
+                                CoroutineSlabHandle::new(self.rc.clone())
+                            })
+                            .expect("Run out of slab for coroutines");
+    }
+
+    fn set_is_yielding(&mut self) {
+        self.is_yielding = true
+    }
+
+
+    /// Is this Coroutine ready after `yield_now()`?
+    pub fn is_yielding(&self) -> bool {
+        self.is_yielding
+    }
+
+    /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+    pub fn get_userdata<'a, T: Any>(&'a self) -> Option<&'a T> {
+        let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
+
+        match coroutine_ref.user_data {
+            Some(ref arc) => {
+                let boxed_any: &Box<Any + Send + Sync> = arc.as_ref();
+                let any: &Any = boxed_any.as_ref();
+                any.downcast_ref::<T>()
+            }
+            None => None,
+        }
+    }
 }
 
 /// Coroutine entry point checks
