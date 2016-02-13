@@ -45,13 +45,12 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-563' class='srclink' href='../../mio_orig/io/trait.Evented.html?gotosrc=563' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-607' class='srclink' href='../../mio/io/trait.Evented.html?gotosrc=607' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Evented { }</pre><div class='docblock'><p>A value that may be registered with an <code>EventLoop</code></p>
 </div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/tcp/struct.TcpSocket.html' title='mioco::mio::tcp::TcpSocket'>TcpSocket</a></code></li>
-<li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/tcp/struct.TcpStream.html' title='mioco::mio::tcp::TcpStream'>TcpStream</a></code></li>
+    <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/tcp/struct.TcpStream.html' title='mioco::mio::tcp::TcpStream'>TcpStream</a></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/tcp/struct.TcpListener.html' title='mioco::mio::tcp::TcpListener'>TcpListener</a></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/udp/struct.UdpSocket.html' title='mioco::mio::udp::UdpSocket'>UdpSocket</a></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/unix/struct.UnixSocket.html' title='mioco::mio::unix::UnixSocket'>UnixSocket</a></code></li>
@@ -61,12 +60,14 @@
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/unix/struct.PipeWriter.html' title='mioco::mio::unix::PipeWriter'>PipeWriter</a></code></li>
 <li><code>impl&lt;M&gt; <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/notify/struct.Notify.html' title='mio_orig::notify::Notify'>Notify</a>&lt;M&gt; <span class='where'>where M: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/awakener/pipe/struct.Awakener.html' title='mio_orig::sys::unix::awakener::pipe::Awakener'>Awakener</a></code></li>
+<li><code>impl&lt;'a&gt; <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/unix/struct.EventedFd.html' title='mioco::mio::unix::EventedFd'>EventedFd</a>&lt;'a&gt;</code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mioco/mio/struct.Io.html' title='mioco::mio::Io'>Io</a></code></li>
-<li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/tcp/struct.TcpSocket.html' title='mio_orig::sys::unix::tcp::TcpSocket'>TcpSocket</a></code></li>
+<li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/tcp/struct.TcpStream.html' title='mio_orig::sys::unix::tcp::TcpStream'>TcpStream</a></code></li>
+<li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/tcp/struct.TcpListener.html' title='mio_orig::sys::unix::tcp::TcpListener'>TcpListener</a></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/udp/struct.UdpSocket.html' title='mio_orig::sys::unix::udp::UdpSocket'>UdpSocket</a></code></li>
 <li><code>impl <a class='trait' href='../../mioco/mio/trait.Evented.html' title='mioco::mio::Evented'>Evented</a> for <a class='struct' href='../../mio_orig/sys/unix/uds/struct.UnixSocket.html' title='mio_orig::sys::unix::uds::UnixSocket'>UnixSocket</a></code></li>
 </ul><script type="text/javascript" async
-                              src="../../implementors/mio_orig/io/trait.Evented.js">
+                              src="../../implementors/mio/io/trait.Evented.js">
                       </script></section>
     <section id='search' class="content hidden"></section>
 
@@ -126,6 +127,6 @@
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

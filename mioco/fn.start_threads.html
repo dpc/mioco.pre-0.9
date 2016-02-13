@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1675' class='srclink' href='../src/mioco/lib.rs.html#1802-1809' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1666' class='srclink' href='../src/mioco/lib.rs.html#792-799' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn start_threads&lt;F&gt;(thread_num: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></pre><div class='docblock'><p>Start mioco instance using a given number of threads.</p>
 
 <p>Returns after mioco instance exits.</p>

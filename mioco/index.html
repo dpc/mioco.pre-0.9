@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-2058' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1040' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -88,7 +88,7 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                         <td><a class='mod' href='mio/index.html'
                                title='mioco::mio'>mio</a></td>
                         <td class='docblock short'>
-                             <p>Re-export of some <code>mio</code> symbols.</p>
+                             <p>Re-export of some <code>mio</code> symbols, that are part of the mioco API.</p>
 
                         </td>
                     </tr>
@@ -161,15 +161,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Coroutine.html'
-                               title='mioco::Coroutine'>Coroutine</a></td>
-                        <td class='docblock short'>
-                             <p>Mioco coroutine (a.k.a. <em>mioco handler</em>)</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.CoroutineControl.html'
                                title='mioco::CoroutineControl'>CoroutineControl</a></td>
                         <td class='docblock short'>
@@ -183,15 +174,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::CoroutineHandle'>CoroutineHandle</a></td>
                         <td class='docblock short'>
                              <p>Handle to spawned coroutine</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.CoroutineId.html'
-                               title='mioco::CoroutineId'>CoroutineId</a></td>
-                        <td class='docblock short'>
-                             <p>Id of a Coroutine used to enumerate them</p>
 
                         </td>
                     </tr>
@@ -224,6 +206,15 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='struct' href='struct.MioAdapter.html'
+                               title='mioco::MioAdapter'>MioAdapter</a></td>
+                        <td class='docblock short'>
+                             <p>Adapt raw <code>mio</code> type to mioco <code>Evented</code> requirements.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='struct' href='struct.Mioco.html'
                                title='mioco::Mioco'>Mioco</a></td>
                         <td class='docblock short'>
@@ -236,7 +227,7 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td><a class='struct' href='struct.RW.html'
                                title='mioco::RW'>RW</a></td>
                         <td class='docblock short'>
-                             <p>Read/Write/Both</p>
+                             <p>Read/Write/Both/None</p>
 
                         </td>
                     </tr>
@@ -247,15 +238,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::ExitStatus'>ExitStatus</a></td>
                         <td class='docblock short'>
                              <p>Coroutine exit status (value returned or panic)</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='enum' href='enum.Message.html'
-                               title='mioco::Message'>Message</a></td>
-                        <td class='docblock short'>
-                             <p>EventLoop message type</p>
 
                         </td>
                     </tr>

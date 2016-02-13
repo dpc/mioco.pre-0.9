@@ -46,39 +46,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-893' class='srclink' href='../src/mioco/lib.rs.html#316-347' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait Evented: EventedPrv {
-    fn <a href='#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a> { ... }
-    unsafe fn <a href='#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../mioco/struct.RW.html' title='mioco::RW'>RW</a>) { ... }
-}</pre><div class='docblock'><p>Mioco event source.</p>
+        </span><a id='src-518' class='srclink' href='../src/mioco/evented.rs.html#20-41' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Evented { }</pre><div class='docblock'><p>Mioco event source.</p>
 
 <p>All types used as asynchronous event sources implement this trait.</p>
+
+<p>A generic implementation: <code>MioAdapter</code> implements this trait, wrapping
+native mio types (implementing <code>mio::Evented</code> trait).</p>
 </div>
-            <h2 id='provided-methods'>Provided Methods</h2>
-            <div class='methods'>
-        <h3 id='method.id' class='method stab '><code>fn <a href='#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h3><div class='docblock'><p>Temporary ID used in select operation.</p>
-</div><h3 id='method.select_add' class='method stab '><code>unsafe fn <a href='#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../mioco/struct.RW.html' title='mioco::RW'>RW</a>)</code></h3><div class='docblock'><p>Add event source to next select operation.</p>
-
-<p>Use <code>select!</code> macro instead.</p>
-
-<p>This is unsafe as the <code>Select::wait()</code> has to be called afterwards,
-and registered EventSource must not be send to different
-thread/coroutine before <code>Select::wait()</code>.</p>
-
-<p>Use <code>select!</code> macro instead.</p>
-</div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/unix/struct.PipeReader.html' title='mioco::unix::PipeReader'>PipeReader</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/unix/struct.PipeWriter.html' title='mioco::unix::PipeWriter'>PipeWriter</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/unix/struct.UnixListener.html' title='mioco::unix::UnixListener'>UnixListener</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/unix/struct.UnixSocket.html' title='mioco::unix::UnixSocket'>UnixSocket</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/unix/struct.UnixStream.html' title='mioco::unix::UnixStream'>UnixStream</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/tcp/struct.TcpStream.html' title='mioco::tcp::TcpStream'>TcpStream</a></code></li>
-<li><code>impl <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/udp/struct.UdpSocket.html' title='mioco::udp::UdpSocket'>UdpSocket</a></code></li>
-<li><code>impl&lt;T&gt; <a class='trait' href='../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../mioco/mail/struct.MailboxInnerEnd.html' title='mioco::mail::MailboxInnerEnd'>MailboxInnerEnd</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></li>
-</ul><script type="text/javascript" async
+    </ul><script type="text/javascript" async
                               src="../implementors/mioco/trait.Evented.js">
                       </script></section>
     <section id='search' class="content hidden"></section>

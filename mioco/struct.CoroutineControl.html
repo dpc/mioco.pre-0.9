@@ -46,12 +46,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1156' class='srclink' href='../src/mioco/lib.rs.html#800-806' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1499' class='srclink' href='../src/mioco/lib.rs.html#416-422' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CoroutineControl {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine control block</p>
 
-<p>Through this interface Coroutine can be resumed and migrated.</p>
+<p>Through this interface Coroutine can be resumed and migrated in the
+scheduler.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></h4>
 <div class='docblock'><p>Resume Coroutine</p>
 
@@ -63,6 +64,8 @@
 given <code>thread_id</code>.</p>
 
 <p>Will panic if <code>thread_id</code> is not valid.</p>
+</div><h4 id='method.reattach_to' class='method'><code>fn <a href='#method.reattach_to' class='fnname'>reattach_to</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, handler: &amp;mut <a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>)</code></h4>
+<div class='docblock'><p>Finish migrating Coroutine by attaching it to a new thread</p>
 </div><h4 id='method.is_yielding' class='method'><code>fn <a href='#method.is_yielding' class='fnname'>is_yielding</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is this Coroutine ready after <code>yield_now()</code>?</p>
 </div><h4 id='method.get_userdata' class='method'><code>fn <a href='#method.get_userdata' class='fnname'>get_userdata</a>&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt;(&amp;'a self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;'a T&gt;</code></h4>
