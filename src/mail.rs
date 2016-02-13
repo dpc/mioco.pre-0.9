@@ -1,10 +1,10 @@
-use super::{RW, Handler};
+use super::RW;
+use super::thread::{Handler, Message};
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
-use super::MioSender;
-use super::Message;
+use super::thread::MioSender;
 use std::collections::VecDeque;
 use super::sender_retry;
 

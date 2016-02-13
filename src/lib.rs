@@ -72,20 +72,14 @@ use std::any::Any;
 use std::cell::{RefCell};
 use std::rc::Rc;
 use std::io;
-use std::thread;
 use std::marker::Reflect;
 use std::mem::{self};
 
-use mio_orig::{Token, EventLoop, EventSet, EventLoopConfig};
+use mio_orig::{Token, EventLoop, EventLoopConfig};
 
 use std::collections::VecDeque;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-
-use slab::Slab;
-
-use context::{Context};
-
 
 use std::ptr;
 
@@ -107,14 +101,12 @@ pub mod mail;
 pub use evented::{Evented, MioAdapter};
 mod evented;
 
-use coroutine::{Coroutine, RcCoroutine, CoroutineSlabHandle, CoroutineControl};
+use coroutine::{Coroutine, RcCoroutine};
 mod coroutine;
 
-use Message::*;
-
-/// TODO: Make priv
-pub type RcHandlerShared = Rc<RefCell<HandlerShared>>;
-type ArcHandlerThreadShared = Arc<HandlerThreadShared>;
+pub use thread::Handler;
+use thread::Message;
+mod thread;
 
 /// Read/Write/Both/None
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -197,11 +189,6 @@ impl Event {
     }
 }
 
-/// Cand send `Message` to the mioco thread.
-type MioSender =
-    mio_orig::Sender<<Handler as mio_orig::Handler>::Message>;
-
-
 /// Retry `mio_orig::Sender::send()`.
 ///
 /// As channels can fail randomly (eg. when Full), take care
@@ -229,7 +216,7 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
             warning_printed = true;
             warn!("send_retry: retry; consider increasing `EventLoopConfig::notify_capacity`");
         }
-        thread::yield_now();
+        std::thread::yield_now();
     }
 }
 
@@ -299,97 +286,6 @@ impl CoroutineHandle {
     }
 }
 
-struct HandlerThreadShared {
-    mioco_started: AtomicUsize,
-    coroutines_num: AtomicUsize,
-    #[allow(dead_code)]
-    thread_num: AtomicUsize,
-}
-
-impl HandlerThreadShared {
-    fn new(thread_num: usize) -> Self {
-        HandlerThreadShared {
-            mioco_started: AtomicUsize::new(0),
-            coroutines_num: AtomicUsize::new(0),
-            thread_num: AtomicUsize::new(thread_num),
-        }
-    }
-}
-
-/// Data belonging to `Handler`, but referenced and manipulated by coroutinees
-/// belonging to it.
-struct HandlerShared {
-    /// Slab allocator
-    coroutines: slab::Slab<CoroutineSlabHandle, coroutine::Id>,
-
-    /// Context saved when jumping into coroutine
-    context: Context,
-
-    /// Senders to other EventLoops
-    senders: Vec<MioSender>,
-
-    /// Shared between threads
-    thread_shared: ArcHandlerThreadShared,
-
-    /// Default stack size
-    stack_size: usize,
-
-    /// Newly spawned Coroutines
-    spawned: Vec<CoroutineControl>,
-
-    /// Coroutines that were made ready
-    ready: Vec<CoroutineControl>,
-}
-
-impl HandlerShared {
-    fn new(senders: Vec<MioSender>,
-           thread_shared: ArcHandlerThreadShared,
-           stack_size: usize)
-           -> Self {
-        HandlerShared {
-            coroutines: Slab::new(512),
-            thread_shared: thread_shared,
-            context: Context::empty(),
-            senders: senders,
-            stack_size: stack_size,
-            spawned: Vec::new(),
-            ready: Vec::new(),
-        }
-    }
-
-    fn wait_for_start_all(&self) {
-        while self.thread_shared.mioco_started.load(Ordering::SeqCst) == 0 {
-            thread::yield_now()
-        }
-    }
-
-    fn signal_start_all(&self) {
-        self.thread_shared.mioco_started.store(1, Ordering::SeqCst)
-    }
-
-    fn coroutines_num(&self) -> usize {
-        // Relaxed is OK, since Threads will eventually notice if it goes to
-        // zero and at the start `SeqCst` in `mioco_start` and
-        // `mioco_started` will enforce that `coroutines_num > 0` is visible
-        // on all threads at the start.
-        self.thread_shared.coroutines_num.load(Ordering::Relaxed)
-    }
-
-    fn coroutines_inc(&self) {
-        self.thread_shared.coroutines_num.fetch_add(1, Ordering::SeqCst);
-    }
-
-    fn coroutines_dec(&self) {
-        let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::SeqCst);
-        debug_assert!(prev > 0);
-    }
-
-    /// Get number of threads
-    fn thread_num(&self) -> usize {
-        self.thread_shared.thread_num.load(Ordering::Relaxed)
-    }
-}
-
 /// Coroutine Scheduler
 ///
 /// Custom implementations of this trait allow users to change the order in
@@ -412,7 +308,7 @@ pub trait SchedulerThread {
     /// Dropping `coroutine_ctrl` means the corresponding coroutine will be
     /// killed.
     fn spawned(&mut self,
-               event_loop: &mut mio_orig::EventLoop<Handler>,
+               event_loop: &mut mio_orig::EventLoop<thread::Handler>,
                coroutine_ctrl: CoroutineControl);
 
     /// A Coroutine became ready.
@@ -424,7 +320,7 @@ pub trait SchedulerThread {
     /// Dropping `coroutine_ctrl` means the corresponding coroutine will be
     /// killed.
     fn ready(&mut self,
-             event_loop: &mut mio_orig::EventLoop<Handler>,
+             event_loop: &mut mio_orig::EventLoop<thread::Handler>,
              coroutine_ctrl: CoroutineControl);
 
     /// Mio's tick have completed.
@@ -436,7 +332,7 @@ pub trait SchedulerThread {
     ///
     /// After returning from this function, `mioco` will let mio process a
     /// new batch of events.
-    fn tick(&mut self, _event_loop: &mut mio_orig::EventLoop<Handler>) {}
+    fn tick(&mut self, _event_loop: &mut mio_orig::EventLoop<thread::Handler>) {}
 }
 
 /// Default, simple first-in-first-out Scheduler.
@@ -486,7 +382,7 @@ impl FifoSchedulerThread {
 
 impl SchedulerThread for FifoSchedulerThread {
     fn spawned(&mut self,
-               event_loop: &mut mio_orig::EventLoop<Handler>,
+               event_loop: &mut mio_orig::EventLoop<thread::Handler>,
                coroutine_ctrl: CoroutineControl) {
         let thread_i = self.thread_next_i();
         trace!("Migrating newly spawn Coroutine to thread {}", thread_i);
@@ -494,7 +390,7 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 
     fn ready(&mut self,
-             event_loop: &mut mio_orig::EventLoop<Handler>,
+             event_loop: &mut mio_orig::EventLoop<thread::Handler>,
              coroutine_ctrl: CoroutineControl) {
         if coroutine_ctrl.is_yielding() {
             self.delayed.push_back(coroutine_ctrl);
@@ -503,7 +399,7 @@ impl SchedulerThread for FifoSchedulerThread {
         }
     }
 
-    fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<Handler>) {
+    fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<thread::Handler>) {
         let len = self.delayed.len();
         for _ in 0..len {
             let coroutine_ctrl = self.delayed.pop_front().unwrap();
@@ -512,118 +408,136 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 }
 
-/// Mioco event loop `Handler`
+/// Coroutine control block
 ///
-/// Registered in `mio_orig::EventLoop` and implementing `mio_orig::Handler`.  This `struct` is quite
-/// internal so you should not have to worry about it.
-pub struct Handler {
-    shared: RcHandlerShared,
-    scheduler: Box<SchedulerThread + 'static>,
+/// Through this interface Coroutine can be resumed and migrated in the
+/// scheduler.
+pub struct CoroutineControl {
+    /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
+    /// trait will kill the Coroutine
+    was_handled: bool,
+    is_yielding: bool,
+    rc: RcCoroutine,
 }
 
-impl Handler {
-    fn new(shared: RcHandlerShared, scheduler: Box<SchedulerThread>) -> Self {
-        Handler {
-            shared: shared,
-            scheduler: scheduler,
-        }
-    }
-
-    /// To prevent recursion, all the newly spawned or newly made
-    /// ready Coroutines are delivered to scheduler here.
-    fn deliver_to_scheduler(&mut self, event_loop: &mut EventLoop<Self>) {
-        let Handler {
-            ref shared,
-            ref mut scheduler,
-        } = *self;
-
-        loop {
-            let mut spawned = Vec::new();
-            let mut ready = Vec::new();
-            {
-                let mut shared = shared.borrow_mut();
-
-                if shared.spawned.len() == 0 && shared.ready.len() == 0 {
-                    break;
-                }
-                std::mem::swap(&mut spawned, &mut shared.spawned);
-                std::mem::swap(&mut ready, &mut shared.ready);
-            }
-
-            for spawned in spawned.drain(..) {
-                scheduler.spawned(event_loop, spawned);
-            }
-
-            for ready in ready.drain(..) {
-                scheduler.ready(event_loop, ready);
-            }
+impl Drop for CoroutineControl {
+    fn drop(&mut self) {
+        if !self.was_handled {
+            trace!("Coroutine({}): kill", self.id().as_usize());
+            self.rc.borrow_mut().finish();
+            coroutine::jump_in(&self.rc);
         }
     }
 }
 
-/// EventLoop message type
-pub enum Message {
-    /// Mailbox notification
-    MailboxMsg(Token),
-    /// Coroutine migration
-    Migration(Rc<RefCell<Coroutine>>),
-}
-
-unsafe impl Send for Message {}
-
-impl mio_orig::Handler for Handler {
-    type Timeout = Token;
-    type Message = Message;
-
-    fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<Self>) {
-        let coroutines_num = self.shared.borrow().coroutines_num();
-        trace!("Handler::tick(): coroutines_num = {}", coroutines_num);
-        if coroutines_num == 0 {
-            trace!("Shutting down EventLoop");
-            event_loop.shutdown();
+impl CoroutineControl {
+    fn new(rc: RcCoroutine) -> Self {
+        CoroutineControl {
+            is_yielding: false,
+            was_handled: false,
+            rc: rc,
         }
-        self.scheduler.tick(event_loop);
     }
 
-    fn ready(&mut self,
-             event_loop: &mut mio_orig::EventLoop<Handler>,
-             token: mio_orig::Token,
-             events: mio_orig::EventSet) {
-        trace!("Handler::ready({:?}): started", token);
-        let (co_id, _) = token_to_ids(token);
-        let co = {
-            let shared = self.shared.borrow();
-            match shared.coroutines.get(co_id).as_ref() {
-                Some(&co) => co.clone(),
-                None => {
-                    trace!("Handler::ready() ignored");
-                    return;
-                }
-            }
+    /// Resume Coroutine
+    ///
+    /// Panics if Coroutine is not in Ready state.
+    pub fn resume(mut self, event_loop: &mut EventLoop<thread::Handler>) {
+        self.was_handled = true;
+        trace!("Coroutine({}): resume", self.id().as_usize());
+        let co_rc = self.rc.clone();
+        let is_ready = co_rc.borrow().state().is_ready();
+        if is_ready {
+            coroutine::jump_in(&co_rc);
+            self.after_resume(event_loop);
+        } else {
+            panic!("Tried to resume Coroutine that is not ready");
+        }
+    }
+
+    /// After `resume()` (or ignored event()) we need to perform the following maintenance
+    fn after_resume(&self, event_loop: &mut EventLoop<thread::Handler>) {
+        // Take care of newly spawned child-coroutines: start them now
+        debug_assert!(!self.rc.borrow().state().is_running());
+
+        self.rc.borrow_mut().register_all(event_loop);
+        self.rc.borrow_mut().start_children();
+
+        let state = self.rc.borrow().state().clone();
+        if state.is_yielding() {
+            debug_assert!(self.rc.borrow().blocked_on.is_empty());
+            let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
+            coroutine_ctrl.set_is_yielding();
+            self.rc.borrow_mut().unblock_after_yield();
+            let rc_coroutine = self.rc.borrow();
+            let mut handler_shared = rc_coroutine.handler_shared_mut();
+
+            handler_shared.add_ready(coroutine_ctrl);
+        }
+    }
+
+    fn id(&self) -> coroutine::Id {
+        self.rc.borrow().id
+    }
+
+    /// Migrate to a different thread
+    ///
+    /// Move this Coroutine to be executed on a `SchedulerThread` for a
+    /// given `thread_id`.
+    ///
+    /// Will panic if `thread_id` is not valid.
+    pub fn migrate(mut self, event_loop: &mut EventLoop<thread::Handler>, thread_id: usize) {
+        self.was_handled = true;
+        let sender = {
+            trace!("Coroutine({}): migrate to thread {}",
+                   self.id().as_usize(),
+                   thread_id);
+            let mut co = self.rc.borrow_mut();
+
+            let handler_shared = co.detach_from(event_loop);
+            let mut handler_shared = handler_shared.borrow_mut();
+            handler_shared.coroutines.remove(co.id).unwrap();
+            handler_shared.get_sender_to_thread(thread_id)
         };
-        if co.event(event_loop, token, events) {
-            self.scheduler.ready(event_loop, co.to_coroutine_control());
-        }
 
-        self.deliver_to_scheduler(event_loop);
+        let rc = self.rc.clone();
 
-        trace!("Handler::ready({:?}): finished", token);
+        drop(self);
+
+        // TODO: Spin on failure
+        sender_retry(&sender, Message::Migration(CoroutineControl::new(rc)));
     }
 
-    fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
-        match msg {
-            MailboxMsg(token) => self.ready(event_loop, token, EventSet::readable()),
-            Migration(rc_coroutine) => {
-                let mut co = CoroutineControl::new(rc_coroutine);
-                co.reattach_to(event_loop, self);
-                self.scheduler.ready(event_loop, co);
-                self.deliver_to_scheduler(event_loop);
+    /// Finish migrating Coroutine by attaching it to a new thread
+    pub fn reattach_to(&mut self, event_loop: &mut EventLoop<thread::Handler>, handler: &mut thread::Handler) {
+        let handler_shared = handler.shared().clone();
+
+        let id = handler_shared.borrow_mut().attach(self.rc.clone());
+        self.rc.borrow_mut().attach_to(event_loop, handler_shared, id);
+    }
+
+    fn set_is_yielding(&mut self) {
+        self.is_yielding = true
+    }
+
+
+    /// Is this Coroutine ready after `yield_now()`?
+    pub fn is_yielding(&self) -> bool {
+        self.is_yielding
+    }
+
+    /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+    pub fn get_userdata<'a, T: Any>(&'a self) -> Option<&'a T> {
+        let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
+
+        match coroutine_ref.user_data {
+            Some(ref arc) => {
+                let boxed_any: &Box<Any + Send + Sync> = arc.as_ref();
+                let any: &Any = boxed_any.as_ref();
+                any.downcast_ref::<T>()
             }
+            None => None,
         }
-    }
-
-    fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
-        self.ready(event_loop, msg, EventSet::readable());
     }
 }
 
@@ -631,7 +545,7 @@ impl mio_orig::Handler for Handler {
 ///
 /// Main mioco structure.
 pub struct Mioco {
-    join_handles: Vec<thread::JoinHandle<()>>,
+    join_handles: Vec<std::thread::JoinHandle<()>>,
     config: Config,
 }
 
@@ -662,7 +576,7 @@ impl Mioco {
     {
         info!("Starting mioco instance with {} handler threads",
               self.config.thread_num);
-        let thread_shared = Arc::new(HandlerThreadShared::new(self.config.thread_num));
+        let thread_shared = Arc::new(thread::HandlerThreadShared::new(self.config.thread_num));
 
         let mut event_loops = VecDeque::new();
         let mut senders = Vec::new();
@@ -719,15 +633,15 @@ impl Mioco {
 
     fn thread_loop<F>(f: Option<F>,
                       mut scheduler: Box<SchedulerThread + 'static>,
-                      mut event_loop: EventLoop<Handler>,
-                      senders: Vec<MioSender>,
-                      thread_shared: ArcHandlerThreadShared,
+                      mut event_loop: EventLoop<thread::Handler>,
+                      senders: Vec<thread::MioSender>,
+                      thread_shared: thread::ArcHandlerThreadShared,
                       stack_size: usize,
                       userdata: Option<Arc<Box<Any + Send + Sync>>>)
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        let handler_shared = HandlerShared::new(senders, thread_shared, stack_size);
+        let handler_shared = thread::HandlerShared::new(senders, thread_shared, stack_size);
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
             let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
@@ -737,9 +651,9 @@ impl Mioco {
             // threads don't start, detect no coroutines, and exit prematurely
             shared.borrow().signal_start_all();
         }
-        let mut handler = Handler::new(shared, scheduler);
+        let mut handler = thread::Handler::new(shared, scheduler);
 
-        handler.shared.borrow().wait_for_start_all();
+        handler.shared().borrow().wait_for_start_all();
         handler.deliver_to_scheduler(&mut event_loop);
         // Don't don't rely on steady tick to shutdown
         while event_loop.is_running() {
@@ -826,14 +740,6 @@ impl Config {
     }
 }
 
-/// Current coroutine thread-local reference
-///
-/// This reference is used to store a reference to a currently executing
-/// mioco coroutine.
-///
-/// Should not be used directly, use `tl_coroutine_current()` instead.
-thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
-
 // TODO: Technically this leaks unsafe, but only within
 // internals of the module. Any function calling `tl_coroutine_current()`
 // must not pass the reference anywhere outside!
@@ -841,7 +747,7 @@ thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::ne
 // It might be possible to use a type system to enforce this. Eg. maybe this
 // should return `Ref` or `RefCell`.
 fn tl_coroutine_current() -> &'static mut Coroutine {
-    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
     if coroutine == ptr::null_mut() {
         panic!("mioco API function called outside of coroutine, use `RUST_BACKTRACE=1` to \
                 pinpoint");
@@ -890,9 +796,9 @@ pub fn start_threads<F>(thread_num: usize, f: F)
 pub fn spawn<F>(f: F)
     where F: FnOnce() -> io::Result<()> + Send + 'static
 {
-    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
     if coroutine == ptr::null_mut() {
-        thread::spawn(|| {
+        std::thread::spawn(|| {
             start(f);
         });
     } else {
@@ -918,7 +824,7 @@ pub fn spawn_ext<F>(f: F) -> CoroutineHandle
 
 /// Returns true when executing inside a mioco coroutine, false otherwise.
 pub fn in_coroutine() -> bool {
-    let coroutine = TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
     coroutine != ptr::null_mut()
 }
 
@@ -1000,9 +906,7 @@ pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>
 pub fn thread_num() -> usize {
     let coroutine = tl_coroutine_current();
 
-    let handler_shared = coroutine.handler_shared();
-    //let handler_shared = coroutine.handler_shared.as_ref().unwrap().borrow();
-    handler_shared.thread_num()
+    coroutine.handler_shared().thread_num()
 }
 
 /// Block coroutine for a given time

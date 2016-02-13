@@ -1,4 +1,5 @@
-use super::{RW, EventSourceId, Handler, coroutine};
+use super::{RW, EventSourceId, coroutine};
+use super::thread::Handler;
 use super::{tl_coroutine_current};
 use super::{token_from_ids};
 use super::mio_orig;
