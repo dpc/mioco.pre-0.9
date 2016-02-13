@@ -95,6 +95,22 @@ fn contain_panics_in_subcoroutines() {
 }
 
 #[test]
+#[should_panic]
+#[cfg(debug_assertions)] //optimizations seem to let this test fail. lets disable that for now.
+fn propagate_uncatched_panic() {
+    use ::{Mioco, Config};
+
+    Mioco::new_configured({
+        let mut config = Config::new();
+        config.set_catch_panics(false);
+        config.set_thread_num(1);
+        config
+    }).start(|| {
+        panic!()
+    });
+}
+
+#[test]
 fn long_chain() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));

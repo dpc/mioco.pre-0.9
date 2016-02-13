@@ -1,7 +1,9 @@
 use std;
+use std::any::Any;
 use std::cell::{RefCell};
 use std::rc::Rc;
 use std::sync::Arc;
+use std::panic;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -68,12 +70,15 @@ pub struct HandlerShared {
 
     /// Coroutines that were made ready
     ready: Vec<CoroutineControl>,
+
+    thread_id: usize,
 }
 
 impl HandlerShared {
     pub fn new(senders: Vec<MioSender>,
            thread_shared: ArcHandlerThreadShared,
-           stack_size: usize)
+           stack_size: usize,
+           thread_id: usize)
            -> Self {
         HandlerShared {
             coroutines: slab::Slab::new(512),
@@ -83,6 +88,7 @@ impl HandlerShared {
             stack_size: stack_size,
             spawned: Vec::new(),
             ready: Vec::new(),
+            thread_id: thread_id,
         }
     }
 
@@ -92,6 +98,10 @@ impl HandlerShared {
 
     pub fn add_ready(&mut self, coroutine_ctrl : CoroutineControl) {
         self.ready.push(coroutine_ctrl);
+    }
+
+    pub fn get_sender_to_own_thread(&self) -> MioSender {
+        self.senders[self.thread_id].clone()
     }
 
     pub fn get_sender_to_thread(&self, thread_id : usize) -> MioSender {
@@ -205,6 +215,8 @@ pub enum Message {
     MailboxMsg(Token),
     /// Coroutine migration
     Migration(CoroutineControl),
+    /// Coroutine Panicked
+    PropagatePanic(Box<Any + Send + 'static>),
 }
 
 unsafe impl Send for Message {}
@@ -256,6 +268,7 @@ impl mio_orig::Handler for Handler {
                 self.scheduler.ready(event_loop, coroutine);
                 self.deliver_to_scheduler(event_loop);
             }
+            Message::PropagatePanic(cause) => panic::propagate(cause),
         }
     }
 
@@ -263,4 +276,3 @@ impl mio_orig::Handler for Handler {
         self.ready(event_loop, msg, EventSet::readable());
     }
 }
-

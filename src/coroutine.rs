@@ -1,7 +1,7 @@
-use super::{Event, EventSourceId, RW, coroutine, token_to_ids};
+use super::{Event, EventSourceId, RW, coroutine, token_to_ids, sender_retry};
 use super::{CoroutineControl};
 use super::thread::{TL_CURRENT_COROUTINE};
-use super::thread::{HandlerShared};
+use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
 use super::thread::RcHandlerShared;
@@ -168,13 +168,17 @@ pub struct Coroutine {
 
     /// Userdata meant for inheritance
     pub inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
+
+    /// if this coroutine should catch panics
+    catch_panics: bool,
 }
 
 impl Coroutine {
     /// Spawn a new Coroutine
     pub fn spawn<F>(handler_shared: RcHandlerShared,
                 inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-                f: F)
+                f: F,
+                catch_panics: bool)
                 -> RcCoroutine
         where F: FnOnce() -> io::Result<()> + Send + 'static
     {
@@ -208,6 +212,7 @@ impl Coroutine {
                               sync_mailbox: None,
                               user_data: inherited_user_data.clone(),
                               inherited_user_data: inherited_user_data,
+                              catch_panics: catch_panics,
                           };
 
                           CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
@@ -231,13 +236,14 @@ impl Coroutine {
         extern "C" fn init_fn(arg: usize, _: *mut libc::types::common::c95::c_void) -> ! {
             let ctx: &Context = {
 
+                //never panic inside init_fn, that causes a SIGILL
                 let res = panic::recover(move || {
                     let coroutine: &mut Coroutine = unsafe { mem::transmute(arg) };
                     trace!("Coroutine({}): started", {
                         coroutine.id.as_usize()
                     });
 
-                    coroutine::entry_point(coroutine.self_rc.as_ref().unwrap());
+                    entry_point(coroutine.self_rc.as_ref().unwrap());
                     let f = coroutine.coroutine_func.take().unwrap();
 
                     f.call_box(())
@@ -269,20 +275,26 @@ impl Coroutine {
 
                     }
                     Err(cause) => {
-                        trace!("Coroutine({}): panicked: {:?}",
-                               id.as_usize(),
-                               cause.downcast::<&str>());
-                        if let State::Finished(ExitStatus::Killed) = coroutine.state {
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Killed))
-                                     .count();
+                        if coroutine.catch_panics {
+                            trace!("Coroutine({}): panicked: {:?}",
+                                   id.as_usize(),
+                                   cause.downcast::<&str>());
+                            if let State::Finished(ExitStatus::Killed) = coroutine.state {
+                                coroutine.exit_notificators
+                                         .iter()
+                                         .map(|end| end.send(ExitStatus::Killed))
+                                         .count();
+                            } else {
+                                coroutine.state = State::Finished(ExitStatus::Panic);
+                                coroutine.exit_notificators
+                                         .iter()
+                                         .map(|end| end.send(ExitStatus::Panic))
+                                         .count();
+                            }
                         } else {
-                            coroutine.state = State::Finished(ExitStatus::Panic);
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Panic))
-                                     .count();
+                            //send fail here instead with the internal reason, so the user may get a nice backtrace
+                            let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
+                            sender_retry(&handler.get_sender_to_own_thread(), Message::PropagatePanic(cause));
                         }
                     }
                 }
@@ -314,7 +326,8 @@ impl Coroutine {
             let child = Coroutine::spawn(
                 self.handler_shared.as_ref().unwrap().clone(),
                 self.inherited_user_data.clone(),
-                f);
+                f,
+                self.catch_panics);
             self.children_to_start.push(child.clone());
             child
         }
@@ -348,7 +361,7 @@ impl Coroutine {
     pub fn finish(&mut self) {
         self.state = coroutine::State::Finished(coroutine::ExitStatus::Killed)
     }
-    
+
     pub fn unblock_after_yield(&mut self) {
         self.state = coroutine::State::Ready;
     }
