@@ -102,6 +102,7 @@ pub mod mail;
 pub use evented::{Evented, MioAdapter};
 mod evented;
 
+pub use coroutine::ExitStatus;
 use coroutine::{Coroutine, RcCoroutine};
 mod coroutine;
 
