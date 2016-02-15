@@ -95,6 +95,7 @@ pub mod unix;
 /// TCP IO
 pub mod tcp;
 /// UDP IO
+#[cfg(not(windows))]
 pub mod udp;
 /// Mailboxes
 pub mod mail;

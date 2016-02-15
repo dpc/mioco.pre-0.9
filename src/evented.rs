@@ -9,6 +9,7 @@ use super::mio_orig::{EventLoop, Token, EventSet};
 use std::io;
 use std::rc::Rc;
 use std::cell::{RefCell, Ref, RefMut};
+#[cfg(not(windows))]
 use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 /// Mioco event source.
@@ -211,6 +212,7 @@ where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
 }
 
 //    type Output = MioAdapter<MT::Output>;
+#[cfg(not(windows))]
 impl<MT> FromRawFd for MioAdapter<MT>
 where MT : mio_orig::Evented+'static + FromRawFd {
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
@@ -218,6 +220,7 @@ where MT : mio_orig::Evented+'static + FromRawFd {
     }
 }
 
+#[cfg(not(windows))]
 impl<MT> AsRawFd for MioAdapter<MT>
 where MT : mio_orig::Evented+'static + AsRawFd {
     fn as_raw_fd(&self) -> RawFd {
@@ -463,4 +466,3 @@ impl<T> EventSourceTrait for RcEventSource<T> where T: EventSourceTrait
         self.0.borrow().io.should_resume()
     }
 }
-
