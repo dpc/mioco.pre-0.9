@@ -112,7 +112,7 @@ impl<T: ?Sized> Mutex<T> {
     /// Acquire a mutex, blocking the current coroutine until it is able to do so.
     pub fn lock(&self) -> ssync::LockResult<ssync::MutexGuard<T>> {
         loop {
-            match self.lock.try_lock() {
+            match self.try_lock() {
                 Ok(guard) => return Ok(guard),
                 Err(try_error) => {
                     match try_error {
