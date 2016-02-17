@@ -233,6 +233,7 @@ impl mio_orig::Handler for Handler {
             event_loop.shutdown();
         }
         self.scheduler.tick(event_loop);
+        self.deliver_to_scheduler(event_loop);
     }
 
     fn ready(&mut self,
