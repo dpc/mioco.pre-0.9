@@ -664,10 +664,7 @@ impl Mioco {
 
         handler.shared().borrow().wait_for_start_all();
         handler.deliver_to_scheduler(&mut event_loop);
-        // Don't don't rely on steady tick to shutdown
-        while event_loop.is_running() {
-            event_loop.run_once(&mut handler, Some(1000)).unwrap();
-        }
+        event_loop.run(&mut handler);
     }
 }
 

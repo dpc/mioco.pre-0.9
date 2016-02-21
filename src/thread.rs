@@ -8,7 +8,7 @@ use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine};
-use super::{SchedulerThread, token_to_ids, CoroutineControl};
+use super::{SchedulerThread, token_to_ids, CoroutineControl, sender_retry};
 use super::mio_orig::{self, EventLoop, Token, EventSet};
 
 use slab;
@@ -118,20 +118,21 @@ impl HandlerShared {
         self.thread_shared.mioco_started.store(1, Ordering::SeqCst)
     }
 
-    fn coroutines_num(&self) -> usize {
-        // Relaxed is OK, since Threads will eventually notice if it goes to
-        // zero and at the start `SeqCst` in `mioco_start` and
-        // `mioco_started` will enforce that `coroutines_num > 0` is visible
-        // on all threads at the start.
-        self.thread_shared.coroutines_num.load(Ordering::Relaxed)
-    }
-
     pub fn coroutines_inc(&self) {
         self.thread_shared.coroutines_num.fetch_add(1, Ordering::SeqCst);
     }
 
+    /// Decrease number of coroutines.
+    ///
+    /// If coroutine number goes down to zero - send termination message to all
+    /// threads.
     pub fn coroutines_dec(&self) {
         let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::SeqCst);
+        if prev == 1 {
+            let _ : Vec<()> = self.senders.iter().map(|sender| {
+                sender_retry(sender, Message::Terminate)
+            }).collect();
+        }
         debug_assert!(prev > 0);
     }
 
@@ -217,6 +218,8 @@ pub enum Message {
     Migration(CoroutineControl),
     /// Coroutine Panicked
     PropagatePanic(Box<Any + Send + 'static>),
+    /// Terminate event loop
+    Terminate,
 }
 
 unsafe impl Send for Message {}
@@ -226,12 +229,6 @@ impl mio_orig::Handler for Handler {
     type Message = Message;
 
     fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<Self>) {
-        let coroutines_num = self.shared.borrow().coroutines_num();
-        trace!("Handler::tick(): coroutines_num = {}", coroutines_num);
-        if coroutines_num == 0 {
-            trace!("Shutting down EventLoop");
-            event_loop.shutdown();
-        }
         self.scheduler.tick(event_loop);
         self.deliver_to_scheduler(event_loop);
     }
@@ -270,6 +267,7 @@ impl mio_orig::Handler for Handler {
                 self.deliver_to_scheduler(event_loop);
             }
             Message::PropagatePanic(cause) => panic::propagate(cause),
+            Message::Terminate => event_loop.shutdown(),
         }
     }
 
