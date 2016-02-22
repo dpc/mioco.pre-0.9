@@ -310,7 +310,7 @@ pub trait RcEventSourceTrait {
 }
 
 /// Common control data for all event sources.
-struct EventSourceCommon {
+pub struct EventSourceCommon {
     pub id: Option<EventSourceId>,
     pub blocked_on: RW,
     pub peer_hup: bool,
