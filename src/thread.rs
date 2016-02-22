@@ -6,9 +6,10 @@ use std::sync::Arc;
 use std::panic;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::collections::VecDeque;
 
-use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine};
-use super::{SchedulerThread, token_to_ids, CoroutineControl, sender_retry};
+use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine, STARTING_ID, SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT};
+use super::{SchedulerThread, token_to_ids, token_from_ids, CoroutineControl, sender_retry};
 use super::mio_orig::{self, EventLoop, Token, EventSet};
 
 use slab;
@@ -66,10 +67,10 @@ pub struct HandlerShared {
     pub stack_size: usize,
 
     /// Newly spawned Coroutines
-    spawned: Vec<CoroutineControl>,
+    spawned: VecDeque<CoroutineControl>,
 
     /// Coroutines that were made ready
-    ready: Vec<CoroutineControl>,
+    ready: VecDeque<CoroutineControl>,
 
     thread_id: usize,
 }
@@ -81,23 +82,23 @@ impl HandlerShared {
            thread_id: usize)
            -> Self {
         HandlerShared {
-            coroutines: slab::Slab::new(512),
+            coroutines: slab::Slab::new_starting_at(STARTING_ID, 512),
             thread_shared: thread_shared,
             context: Context::empty(),
             senders: senders,
             stack_size: stack_size,
-            spawned: Vec::new(),
-            ready: Vec::new(),
+            spawned: Default::default(),
+            ready: Default::default(),
             thread_id: thread_id,
         }
     }
 
     pub fn add_spawned(&mut self, coroutine_ctrl : CoroutineControl) {
-        self.spawned.push(coroutine_ctrl);
+        self.spawned.push_back(coroutine_ctrl);
     }
 
     pub fn add_ready(&mut self, coroutine_ctrl : CoroutineControl) {
-        self.ready.push(coroutine_ctrl);
+        self.ready.push_back(coroutine_ctrl);
     }
 
     pub fn get_sender_to_own_thread(&self) -> MioSender {
@@ -187,24 +188,24 @@ impl Handler {
         } = *self;
 
         loop {
-            let mut spawned = Vec::new();
-            let mut ready = Vec::new();
-            {
-                let mut shared = shared.borrow_mut();
-
-                if shared.spawned.len() == 0 && shared.ready.len() == 0 {
-                    break;
-                }
-                std::mem::swap(&mut spawned, &mut shared.spawned);
-                std::mem::swap(&mut ready, &mut shared.ready);
-            }
-
-            for spawned in spawned.drain(..) {
+            let spawned = shared.borrow_mut().spawned.pop_front();
+            let no_spawned = if let Some(spawned) = spawned {
                 scheduler.spawned(event_loop, spawned);
-            }
+                false
+            } else {
+                true
+            };
 
-            for ready in ready.drain(..) {
+            let ready = shared.borrow_mut().ready.pop_front();
+            let no_ready = if let Some(ready) = ready {
                 scheduler.ready(event_loop, ready);
+                false
+            } else {
+                true
+            };
+
+            if no_ready && no_spawned {
+                break;
             }
         }
     }
@@ -224,6 +225,7 @@ pub enum Message {
 
 unsafe impl Send for Message {}
 
+
 impl mio_orig::Handler for Handler {
     type Timeout = Token;
     type Message = Message;
@@ -231,6 +233,11 @@ impl mio_orig::Handler for Handler {
     fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<Self>) {
         self.scheduler.tick(event_loop);
         self.deliver_to_scheduler(event_loop);
+        if let Some(timeout) = self.scheduler.timeout() {
+            event_loop.timeout_ms(
+                token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
+                timeout).unwrap();
+        }
     }
 
     fn ready(&mut self,
@@ -272,6 +279,8 @@ impl mio_orig::Handler for Handler {
     }
 
     fn timeout(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Timeout) {
-        self.ready(event_loop, msg, EventSet::readable());
+        if msg != token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT) {
+            self.ready(event_loop, msg, EventSet::readable());
+        }
     }
 }

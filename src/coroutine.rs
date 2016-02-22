@@ -24,6 +24,15 @@ use std::mem;
 use std::panic;
 use std::ptr;
 
+/// Special Token used to signal scheduler timeout
+/// See `SchedulerThread::timeout`
+pub static SPECIAL_ID : coroutine::Id = coroutine::Id(0);
+pub static SPECIAL_ID_SCHED_TIMEOUT : EventSourceId = EventSourceId(0);
+
+/// Coroutines are number from this upwards
+pub static STARTING_ID : coroutine::Id = coroutine::Id(1);
+
+
 /// Id of a Coroutine used to enumerate them
 ///
 /// It's unique within a thread

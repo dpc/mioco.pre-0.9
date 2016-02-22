@@ -335,6 +335,18 @@ pub trait SchedulerThread {
     /// After returning from this function, `mioco` will let mio process a
     /// new batch of events.
     fn tick(&mut self, _event_loop: &mut mio_orig::EventLoop<thread::Handler>) {}
+
+    /// Set the maximum time till the next tick.
+    ///
+    /// `timeout` will be called after each `tick` when all `ready` and
+    /// `spawned` coroutines have been delivered to the scheduler. It can
+    /// be used to force maximum time before next `tick` in case of no earlier
+    /// events.
+    ///
+    /// Returning `None` means no timeout. `Some(time)` is a time in ms.
+    fn timeout(&mut self) -> Option<u64> {
+        None
+    }
 }
 
 /// Default, simple first-in-first-out Scheduler.
@@ -406,6 +418,14 @@ impl SchedulerThread for FifoSchedulerThread {
         for _ in 0..len {
             let coroutine_ctrl = self.delayed.pop_front().unwrap();
             coroutine_ctrl.resume(event_loop);
+        }
+    }
+
+    fn timeout(&mut self) -> Option<u64> {
+        if self.delayed.len() != 0 {
+            Some(1000)
+        } else {
+            None
         }
     }
 }
@@ -664,7 +684,7 @@ impl Mioco {
 
         handler.shared().borrow().wait_for_start_all();
         handler.deliver_to_scheduler(&mut event_loop);
-        event_loop.run(&mut handler);
+        event_loop.run(&mut handler).unwrap();
     }
 }
 
