@@ -52,7 +52,7 @@
 }</pre><div class='docblock'><p>A guard to which the protected data can be accessed</p>
 
 <p>When the guard falls out of scope it will release the lock.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Target' class='type'><code>type Target = T</code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='associatedtype.Target' class='type'><code>type Target = T</code></h4>
 <h4 id='method.deref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#method.deref' class='fnname'>deref</a>&lt;'b&gt;(&amp;'b self) -&gt; &amp;'b T</code></h4>
 </div><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#method.deref_mut' class='fnname'>deref_mut</a>&lt;'b&gt;(&amp;'b mut self) -&gt; &amp;'b mut T</code></h4>
 </div><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#method.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
@@ -99,7 +99,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

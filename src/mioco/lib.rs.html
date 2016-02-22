@@ -1081,6 +1081,24 @@
 <span id="1038">1038</span>
 <span id="1039">1039</span>
 <span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015-2016 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -1179,6 +1197,7 @@
 <span class='doccomment'>/// TCP IO</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>tcp</span>;
 <span class='doccomment'>/// UDP IO</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>udp</span>;
 <span class='doccomment'>/// Mailboxes</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>mail</span>;
@@ -1418,6 +1437,18 @@
     <span class='doccomment'>/// After returning from this function, `mioco` will let mio process a</span>
     <span class='doccomment'>/// new batch of events.</span>
     <span class='kw'>fn</span> <span class='ident'>tick</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>_event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>mio_orig</span>::<span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>thread</span>::<span class='ident'>Handler</span><span class='op'>&gt;</span>) {}
+
+    <span class='doccomment'>/// Set the maximum time till the next tick.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// `timeout` will be called after each `tick` when all `ready` and</span>
+    <span class='doccomment'>/// `spawned` coroutines have been delivered to the scheduler. It can</span>
+    <span class='doccomment'>/// be used to force maximum time before next `tick` in case of no earlier</span>
+    <span class='doccomment'>/// events.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Returning `None` means no timeout. `Some(time)` is a time in ms.</span>
+    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u64</span><span class='op'>&gt;</span> {
+        <span class='prelude-val'>None</span>
+    }
 }
 
 <span class='doccomment'>/// Default, simple first-in-first-out Scheduler.</span>
@@ -1489,6 +1520,14 @@
         <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='ident'>len</span> {
             <span class='kw'>let</span> <span class='ident'>coroutine_ctrl</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>delayed</span>.<span class='ident'>pop_front</span>().<span class='ident'>unwrap</span>();
             <span class='ident'>coroutine_ctrl</span>.<span class='ident'>resume</span>(<span class='ident'>event_loop</span>);
+        }
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u64</span><span class='op'>&gt;</span> {
+        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>delayed</span>.<span class='ident'>len</span>() <span class='op'>!=</span> <span class='number'>0</span> {
+            <span class='prelude-val'>Some</span>(<span class='number'>1000</span>)
+        } <span class='kw'>else</span> {
+            <span class='prelude-val'>None</span>
         }
     }
 }
@@ -1747,10 +1786,7 @@
 
         <span class='ident'>handler</span>.<span class='ident'>shared</span>().<span class='ident'>borrow</span>().<span class='ident'>wait_for_start_all</span>();
         <span class='ident'>handler</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>event_loop</span>);
-        <span class='comment'>// Don&#39;t don&#39;t rely on steady tick to shutdown</span>
-        <span class='kw'>while</span> <span class='ident'>event_loop</span>.<span class='ident'>is_running</span>() {
-            <span class='ident'>event_loop</span>.<span class='ident'>run_once</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>handler</span>, <span class='prelude-val'>Some</span>(<span class='number'>1000</span>)).<span class='ident'>unwrap</span>();
-        }
+        <span class='ident'>event_loop</span>.<span class='ident'>run</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>handler</span>).<span class='ident'>unwrap</span>();
     }
 }
 
@@ -2166,7 +2202,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

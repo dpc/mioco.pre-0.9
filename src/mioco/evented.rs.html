@@ -507,6 +507,8 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>RW</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>coroutine</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
@@ -519,6 +521,7 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>rc</span>::<span class='ident'>Rc</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::{<span class='ident'>RefCell</span>, <span class='ident'>Ref</span>, <span class='ident'>RefMut</span>};
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>unix</span>::<span class='ident'>io</span>::{<span class='ident'>RawFd</span>, <span class='ident'>FromRawFd</span>, <span class='ident'>AsRawFd</span>};
 
 <span class='doccomment'>/// Mioco event source.</span>
@@ -721,6 +724,7 @@
 }
 
 <span class='comment'>//    type Output = MioAdapter&lt;MT::Output&gt;;</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>FromRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>MT</span> : <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>FromRawFd</span> {
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_fd</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
@@ -728,6 +732,7 @@
     }
 }
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
 <span class='kw'>where</span> <span class='ident'>MT</span> : <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span><span class='op'>+</span><span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>AsRawFd</span> {
     <span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
@@ -817,7 +822,7 @@
 }
 
 <span class='doccomment'>/// Common control data for all event sources.</span>
-<span class='kw'>struct</span> <span class='ident'>EventSourceCommon</span> {
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>EventSourceCommon</span> {
     <span class='kw'>pub</span> <span class='ident'>id</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>EventSourceId</span><span class='op'>&gt;</span>,
     <span class='kw'>pub</span> <span class='ident'>blocked_on</span>: <span class='ident'>RW</span>,
     <span class='kw'>pub</span> <span class='ident'>peer_hup</span>: <span class='ident'>bool</span>,
@@ -973,7 +978,6 @@
         <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>should_resume</span>()
     }
 }
-
 </pre>
 </section>
     <section id='search' class="content hidden"></section>
@@ -1018,7 +1022,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

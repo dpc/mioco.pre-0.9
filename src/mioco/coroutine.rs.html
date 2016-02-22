@@ -650,6 +650,15 @@
 <span id="607">607</span>
 <span id="608">608</span>
 <span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>CoroutineControl</span>};
@@ -676,6 +685,15 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>panic</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ptr</span>;
+
+<span class='doccomment'>/// Special Token used to signal scheduler timeout</span>
+<span class='doccomment'>/// See `SchedulerThread::timeout`</span>
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID</span> : <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>0</span>);
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span> : <span class='ident'>EventSourceId</span> <span class='op'>=</span> <span class='ident'>EventSourceId</span>(<span class='number'>0</span>);
+
+<span class='doccomment'>/// Coroutines are number from this upwards</span>
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>STARTING_ID</span> : <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>1</span>);
+
 
 <span class='doccomment'>/// Id of a Coroutine used to enumerate them</span>
 <span class='doccomment'>///</span>
@@ -1304,7 +1322,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

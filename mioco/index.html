@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1040' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1058' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -80,7 +80,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::mail'>mail</a></td>
                         <td class='docblock short'>
                              <p>Mailboxes</p>
-
                         </td>
                     </tr>
                 
@@ -89,7 +88,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::mio'>mio</a></td>
                         <td class='docblock short'>
                              <p>Re-export of some <code>mio</code> symbols, that are part of the mioco API.</p>
-
                         </td>
                     </tr>
                 
@@ -98,7 +96,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::sync'>sync</a></td>
                         <td class='docblock short'>
                              <p>Useful synchronization primitives</p>
-
                         </td>
                     </tr>
                 
@@ -107,7 +104,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::tcp'>tcp</a></td>
                         <td class='docblock short'>
                              <p>TCP IO</p>
-
                         </td>
                     </tr>
                 
@@ -116,7 +112,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::timer'>timer</a></td>
                         <td class='docblock short'>
                              <p>Timers</p>
-
                         </td>
                     </tr>
                 
@@ -125,7 +120,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::udp'>udp</a></td>
                         <td class='docblock short'>
                              <p>UDP IO</p>
-
                         </td>
                     </tr>
                 
@@ -134,7 +128,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                                title='mioco::unix'>unix</a></td>
                         <td class='docblock short'>
                              <p>Unix sockets IO</p>
-
                         </td>
                     </tr>
                 </table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
@@ -146,7 +139,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
                              <p><strong>Warning</strong>: Mioco can&#39;t guarantee that the returned <code>EventSource</code> will
 not block when actually attempting to <code>read</code> or <code>write</code>. You must
 use <code>try_read</code> and <code>try_write</code> instead.</p>
-
                         </td>
                     </tr>
                 </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
@@ -156,7 +148,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Config'>Config</a></td>
                         <td class='docblock short'>
                              <p>Mioco instance builder.</p>
-
                         </td>
                     </tr>
                 
@@ -165,7 +156,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::CoroutineControl'>CoroutineControl</a></td>
                         <td class='docblock short'>
                              <p>Coroutine control block</p>
-
                         </td>
                     </tr>
                 
@@ -174,7 +164,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::CoroutineHandle'>CoroutineHandle</a></td>
                         <td class='docblock short'>
                              <p>Handle to spawned coroutine</p>
-
                         </td>
                     </tr>
                 
@@ -183,7 +172,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Event'>Event</a></td>
                         <td class='docblock short'>
                              <p>Event delivered to the coroutine</p>
-
                         </td>
                     </tr>
                 
@@ -192,7 +180,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::EventSourceId'>EventSourceId</a></td>
                         <td class='docblock short'>
                              <p>Id of an event source used to enumerate them</p>
-
                         </td>
                     </tr>
                 
@@ -201,7 +188,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Handler'>Handler</a></td>
                         <td class='docblock short'>
                              <p>Mioco event loop <code>Handler</code></p>
-
                         </td>
                     </tr>
                 
@@ -210,7 +196,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::MioAdapter'>MioAdapter</a></td>
                         <td class='docblock short'>
                              <p>Adapt raw <code>mio</code> type to mioco <code>Evented</code> requirements.</p>
-
                         </td>
                     </tr>
                 
@@ -219,7 +204,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Mioco'>Mioco</a></td>
                         <td class='docblock short'>
                              <p>Mioco instance</p>
-
                         </td>
                     </tr>
                 
@@ -228,7 +212,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::RW'>RW</a></td>
                         <td class='docblock short'>
                              <p>Read/Write/Both/None</p>
-
                         </td>
                     </tr>
                 </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
@@ -238,7 +221,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::ExitStatus'>ExitStatus</a></td>
                         <td class='docblock short'>
                              <p>Coroutine exit status (value returned or panic)</p>
-
                         </td>
                     </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
@@ -248,7 +230,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Evented'>Evented</a></td>
                         <td class='docblock short'>
                              <p>Mioco event source.</p>
-
                         </td>
                     </tr>
                 
@@ -257,7 +238,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::Scheduler'>Scheduler</a></td>
                         <td class='docblock short'>
                              <p>Coroutine Scheduler</p>
-
                         </td>
                     </tr>
                 
@@ -266,7 +246,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::SchedulerThread'>SchedulerThread</a></td>
                         <td class='docblock short'>
                              <p>Per-thread Scheduler</p>
-
                         </td>
                     </tr>
                 </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
@@ -276,7 +255,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::get_userdata'>get_userdata</a></td>
                         <td class='docblock short'>
                              <p>Gets a reference to the user data set through <code>set_userdata</code>. Returns <code>None</code> if <code>T</code> does not match or if no data was set</p>
-
                         </td>
                     </tr>
                 
@@ -285,7 +263,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::in_coroutine'>in_coroutine</a></td>
                         <td class='docblock short'>
                              <p>Returns true when executing inside a mioco coroutine, false otherwise.</p>
-
                         </td>
                     </tr>
                 
@@ -294,7 +271,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::select_wait'>select_wait</a></td>
                         <td class='docblock short'>
                              <p>Wait till an event is ready</p>
-
                         </td>
                     </tr>
                 
@@ -303,7 +279,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::set_children_userdata'>set_children_userdata</a></td>
                         <td class='docblock short'>
                              <p>Sets new user data that will inherit to newly spawned coroutines. Use <code>None</code> to clear.</p>
-
                         </td>
                     </tr>
                 
@@ -312,7 +287,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::set_userdata'>set_userdata</a></td>
                         <td class='docblock short'>
                              <p>Sets new user data for the current coroutine</p>
-
                         </td>
                     </tr>
                 
@@ -321,7 +295,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::sleep'>sleep</a></td>
                         <td class='docblock short'>
                              <p>Block coroutine for a given time</p>
-
                         </td>
                     </tr>
                 
@@ -330,7 +303,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::spawn'>spawn</a></td>
                         <td class='docblock short'>
                              <p>Spawn a mioco coroutine.</p>
-
                         </td>
                     </tr>
                 
@@ -339,7 +311,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::spawn_ext'>spawn_ext</a></td>
                         <td class='docblock short'>
                              <p>Spawn a <code>mioco</code> coroutine</p>
-
                         </td>
                     </tr>
                 
@@ -348,7 +319,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::start'>start</a></td>
                         <td class='docblock short'>
                              <p>Start mioco instance.</p>
-
                         </td>
                     </tr>
                 
@@ -357,7 +327,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::start_threads'>start_threads</a></td>
                         <td class='docblock short'>
                              <p>Start mioco instance using a given number of threads.</p>
-
                         </td>
                     </tr>
                 
@@ -366,7 +335,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                                title='mioco::sync'>sync</a></td>
                         <td class='docblock short'>
                              <p>Execute a block of synchronous operations</p>
-
                         </td>
                     </tr>
                 
@@ -376,7 +344,6 @@ use <code>try_read</code> and <code>try_write</code> instead.</p>
                         <td class='docblock short'>
                              <p>Get number of threads of the Mioco instance that coroutine is
 running in.</p>
-
                         </td>
                     </tr>
                 
@@ -385,7 +352,6 @@ running in.</p>
                                title='mioco::yield_now'>yield_now</a></td>
                         <td class='docblock short'>
                              <p>Yield coroutine execution</p>
-
                         </td>
                     </tr>
                 </table></section>
@@ -431,7 +397,7 @@ running in.</p>
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

@@ -184,7 +184,6 @@ shut down the global logger before exiting:</p>
                                title='log::debug!'>debug!</a></td>
                         <td class='docblock short'>
                              <p>Logs a message at the debug level.</p>
-
                         </td>
                     </tr>
                 
@@ -193,7 +192,6 @@ shut down the global logger before exiting:</p>
                                title='log::error!'>error!</a></td>
                         <td class='docblock short'>
                              <p>Logs a message at the error level.</p>
-
                         </td>
                     </tr>
                 
@@ -202,7 +200,6 @@ shut down the global logger before exiting:</p>
                                title='log::info!'>info!</a></td>
                         <td class='docblock short'>
                              <p>Logs a message at the info level.</p>
-
                         </td>
                     </tr>
                 
@@ -211,7 +208,6 @@ shut down the global logger before exiting:</p>
                                title='log::log!'>log!</a></td>
                         <td class='docblock short'>
                              <p>The standard logging macro.</p>
-
                         </td>
                     </tr>
                 
@@ -221,7 +217,6 @@ shut down the global logger before exiting:</p>
                         <td class='docblock short'>
                              <p>Determines if a message logged at the specified level in that module will
 be logged.</p>
-
                         </td>
                     </tr>
                 
@@ -230,7 +225,6 @@ be logged.</p>
                                title='log::trace!'>trace!</a></td>
                         <td class='docblock short'>
                              <p>Logs a message at the trace level.</p>
-
                         </td>
                     </tr>
                 
@@ -239,7 +233,6 @@ be logged.</p>
                                title='log::warn!'>warn!</a></td>
                         <td class='docblock short'>
                              <p>Logs a message at the warn level.</p>
-
                         </td>
                     </tr>
                 </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
@@ -249,7 +242,6 @@ be logged.</p>
                                title='log::LogLocation'>LogLocation</a></td>
                         <td class='docblock short'>
                              <p>The location of a log message.</p>
-
                         </td>
                     </tr>
                 
@@ -258,7 +250,6 @@ be logged.</p>
                                title='log::LogMetadata'>LogMetadata</a></td>
                         <td class='docblock short'>
                              <p>Metadata about a log message.</p>
-
                         </td>
                     </tr>
                 
@@ -267,7 +258,6 @@ be logged.</p>
                                title='log::LogRecord'>LogRecord</a></td>
                         <td class='docblock short'>
                              <p>The &quot;payload&quot; of a log message.</p>
-
                         </td>
                     </tr>
                 
@@ -277,7 +267,6 @@ be logged.</p>
                         <td class='docblock short'>
                              <p>A token providing read and write access to the global maximum log level
 filter.</p>
-
                         </td>
                     </tr>
                 
@@ -286,7 +275,6 @@ filter.</p>
                                title='log::SetLoggerError'>SetLoggerError</a></td>
                         <td class='docblock short'>
                              <p>The type returned by <code>set_logger</code> if <code>set_logger</code> has already been called.</p>
-
                         </td>
                     </tr>
                 
@@ -296,7 +284,6 @@ filter.</p>
                         <td class='docblock short'>
                              <p>The type returned by <code>shutdown_logger_raw</code> if <code>shutdown_logger_raw</code> has
 already been called or if <code>set_logger_raw</code> has not been called yet.</p>
-
                         </td>
                     </tr>
                 </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
@@ -306,7 +293,6 @@ already been called or if <code>set_logger_raw</code> has not been called yet.</
                                title='log::LogLevel'>LogLevel</a></td>
                         <td class='docblock short'>
                              <p>An enum representing the available verbosity levels of the logging framework</p>
-
                         </td>
                     </tr>
                 
@@ -316,7 +302,6 @@ already been called or if <code>set_logger_raw</code> has not been called yet.</
                         <td class='docblock short'>
                              <p>An enum representing the available verbosity level filters of the logging
 framework.</p>
-
                         </td>
                     </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
@@ -326,7 +311,6 @@ framework.</p>
                                title='log::Log'>Log</a></td>
                         <td class='docblock short'>
                              <p>A trait encapsulating the operations required of a logger</p>
-
                         </td>
                     </tr>
                 </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
@@ -336,7 +320,6 @@ framework.</p>
                                title='log::max_log_level'>max_log_level</a></td>
                         <td class='docblock short'>
                              <p>Returns the current maximum log level.</p>
-
                         </td>
                     </tr>
                 
@@ -345,7 +328,6 @@ framework.</p>
                                title='log::set_logger'>set_logger</a></td>
                         <td class='docblock short'>
                              <p>Sets the global logger.</p>
-
                         </td>
                     </tr>
                 
@@ -354,7 +336,6 @@ framework.</p>
                                title='log::set_logger_raw'>set_logger_raw</a></td>
                         <td class='docblock short'>
                              <p>Sets the global logger from a raw pointer.</p>
-
                         </td>
                     </tr>
                 
@@ -363,7 +344,6 @@ framework.</p>
                                title='log::shutdown_logger_raw'>shutdown_logger_raw</a></td>
                         <td class='docblock short'>
                              <p>Shuts down the global logger.</p>
-
                         </td>
                     </tr>
                 </table></section>
@@ -409,7 +389,7 @@ framework.</p>
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

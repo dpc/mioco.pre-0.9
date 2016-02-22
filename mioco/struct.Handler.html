@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1203' class='srclink' href='../src/mioco/thread.rs.html#161-164' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1207' class='srclink' href='../src/mioco/thread.rs.html#163-166' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Handler {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco event loop <code>Handler</code></p>
@@ -60,8 +60,8 @@ internal so you should not have to worry about it.</p>
 </div><h4 id='method.deliver_to_scheduler' class='method'><code>fn <a href='#method.deliver_to_scheduler' class='fnname'>deliver_to_scheduler</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h4>
 <div class='docblock'><p>To prevent recursion, all the newly spawned or newly made
 ready Coroutines are delivered to scheduler here.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Handler</a> for <a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a></code></h3><div class='impl-items'><h4 id='assoc_type.Timeout' class='type'><code>type Timeout = <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a></code></h4>
-<h4 id='assoc_type.Message' class='type'><code>type Message = Message</code></h4>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Handler</a> for <a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a></code></h3><div class='impl-items'><h4 id='associatedtype.Timeout' class='type'><code>type Timeout = <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a></code></h4>
+<h4 id='associatedtype.Message' class='type'><code>type Message = Message</code></h4>
 <h4 id='method.tick' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.tick' class='fnname'>tick</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;Self&gt;)</code></h4>
 <h4 id='method.ready' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, token: <a class='struct' href='../mio/token/struct.Token.html' title='mio::token::Token'>Token</a>, events: <a class='struct' href='../mio/event/struct.EventSet.html' title='mio::event::EventSet'>EventSet</a>)</code></h4>
 <h4 id='method.notify' class='method'><code>fn <a href='../mioco/mio/trait.Handler.html#method.notify' class='fnname'>notify</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, msg: Self::<a class='trait' href='../mioco/mio/trait.Handler.html' title='mioco::mio::Handler'>Message</a>)</code></h4>
@@ -110,7 +110,7 @@ ready Coroutines are delivered to scheduler here.</p>
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

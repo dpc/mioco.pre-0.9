@@ -46,12 +46,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1450' class='srclink' href='../src/mioco/lib.rs.html#301-337' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1445' class='srclink' href='../src/mioco/lib.rs.html#302-350' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait SchedulerThread {
     fn <a href='#tymethod.spawned' class='fnname'>spawned</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
     fn <a href='#tymethod.ready' class='fnname'>ready</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, coroutine_ctrl: <a class='struct' href='../mioco/struct.CoroutineControl.html' title='mioco::CoroutineControl'>CoroutineControl</a>);
 
     fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self, _event_loop: &amp;mut <a class='struct' href='../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;) { ... }
+    fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>&gt; { ... }
 }</pre><div class='docblock'><p>Per-thread Scheduler</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
@@ -85,6 +86,14 @@ signaled with <code>SchedulerThread::ready()</code>.</p>
 
 <p>After returning from this function, <code>mioco</code> will let mio process a
 new batch of events.</p>
+</div><h3 id='method.timeout' class='method stab '><code>fn <a href='#method.timeout' class='fnname'>timeout</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>&gt;</code></h3><div class='docblock'><p>Set the maximum time till the next tick.</p>
+
+<p><code>timeout</code> will be called after each <code>tick</code> when all <code>ready</code> and
+<code>spawned</code> coroutines have been delivered to the scheduler. It can
+be used to force maximum time before next <code>tick</code> in case of no earlier
+events.</p>
+
+<p>Returning <code>None</code> means no timeout. <code>Some(time)</code> is a time in ms.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
@@ -133,7 +142,7 @@ new batch of events.</p>
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

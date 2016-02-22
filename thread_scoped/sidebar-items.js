@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["scoped","Spawns a new scoped thread"]],"struct":[["JoinGuard","A RAII guard for that joins a scoped thread upon drop"]],"trait":[["ScopedDetach","Detaches a child thread from its guard"]]});
+initSidebarItems({"fn":[["scoped","Spawns a new scoped thread"]],"struct":[["JoinGuard","A RAII guard for that joins a scoped thread upon dropPanics`JoinGuard` will panic on join or drop if its owned thread panics"]],"trait":[["ScopedDetach","Detaches a child thread from its guard"]]});

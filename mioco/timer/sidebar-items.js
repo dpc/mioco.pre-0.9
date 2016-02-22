@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Timer","A Timer generating event after a given time"]]});
+initSidebarItems({"struct":[["Timer","A Timer generating event after a given timeCan be used to block coroutine or to implement timeout for other `EventSource`.Create using `MiocoHandle::timeout()`.Use `MiocoHandle::select()` to wait for an event, or `read()` to block until done."]]});

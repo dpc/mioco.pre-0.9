@@ -289,7 +289,7 @@
     <span class='doccomment'>/// Acquire a mutex, blocking the current coroutine until it is able to do so.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>lock</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>loop</span> {
-            <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>try_lock</span>() {
+            <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>try_lock</span>() {
                 <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>),
                 <span class='prelude-val'>Err</span>(<span class='ident'>try_error</span>) <span class='op'>=&gt;</span> {
                     <span class='kw'>match</span> <span class='ident'>try_error</span> {
@@ -352,7 +352,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

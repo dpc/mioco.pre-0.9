@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ByteBuf","A `Buf` backed by a contiguous region of memory."],["MutByteBuf",""],["ROByteBuf","Same as `ByteBuf` but cannot be flipped to a `MutByteBuf`."]]});
+initSidebarItems({"struct":[["ByteBuf","A `Buf` backed by a contiguous region of memory.This `Buf` is better suited for cases where there is a clear delineation between reading and writing."],["MutByteBuf",""],["ROByteBuf","Same as `ByteBuf` but cannot be flipped to a `MutByteBuf`."]]});
