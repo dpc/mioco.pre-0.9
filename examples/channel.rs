@@ -17,7 +17,7 @@ fn listend_addr() -> SocketAddr {
 fn main() {
     env_logger::init().unwrap();
 
-    let (mail_send, mail_recv) = mioco::mail::mailbox::<i32>();
+    let (mail_send, mail_recv) = mioco::sync::mpsc::channel::<i32>();
 
     thread::spawn(move|| {
         loop {
@@ -35,7 +35,7 @@ fn main() {
 
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
         loop {
-            let _ = mail_recv.read();
+            let _ = mail_recv.recv().unwrap();
             let mut conn = try!(listener.accept());
 
             mioco::spawn(move || {

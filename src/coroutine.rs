@@ -5,7 +5,7 @@ use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
 use super::thread::RcHandlerShared;
-use super::mail;
+use super::sync::mpsc;
 use super::mio::EventLoop;
 use super::mio_orig::{Token, EventSet};
 
@@ -150,7 +150,7 @@ pub struct Coroutine {
 
     /// `Coroutine` will send exit status on it's finish
     /// through this list of Mailboxes
-    pub exit_notificators: Vec<mail::MailboxOuterEnd<ExitStatus>>,
+    pub exit_notificators: Vec<mpsc::Sender<ExitStatus>>,
 
     /// Current coroutine Id
     pub id: Id,
@@ -170,7 +170,7 @@ pub struct Coroutine {
     /// In case Rc to self is needed
     pub self_rc: Option<RcCoroutine>,
 
-    pub sync_mailbox: Option<(mail::MailboxOuterEnd<()>, mail::MailboxInnerEnd<()>)>,
+    pub sync_channel: Option<(mpsc::Sender<()>, mpsc::Receiver<()>)>,
 
     /// Userdata of the coroutine
     pub user_data: Option<Arc<Box<Any + Send + Sync>>>,
@@ -218,7 +218,7 @@ impl Coroutine {
                               stack: Stack::new(stack_size).unwrap(),
                               coroutine_func: Some(Box::new(f)),
                               self_rc: None,
-                              sync_mailbox: None,
+                              sync_channel: None,
                               user_data: inherited_user_data.clone(),
                               inherited_user_data: inherited_user_data,
                               catch_panics: catch_panics,

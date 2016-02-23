@@ -5,6 +5,9 @@ mod mioco {
     pub use super::super::*;
 }
 
+/// MPSC channel modeled after `std::sync::mpsc`.
+pub mod mpsc;
+
 /// A reader-writer lock
 ///
 /// Based on `std::sync::RwLock`. Calls `mioco::yield_now()` on contention.
