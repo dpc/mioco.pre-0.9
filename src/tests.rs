@@ -399,7 +399,7 @@ fn exit_notifier_simple() {
 
             let notify = notify;
 
-            assert!(!notify.read().is_panic());
+            assert!(!notify.recv().unwrap().is_panic());
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
@@ -422,7 +422,7 @@ fn exit_notifier_simple_panic() {
 
             let notify = notify;
 
-            assert!(notify.read().is_panic());
+            assert!(notify.recv().unwrap().is_panic());
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
@@ -448,18 +448,18 @@ fn exit_notifier_wrap_after_finish() {
 
             let handle2 = mioco::spawn_ext(move || {
                 let notify1 = notify1;
-                assert!(notify1.read().is_panic());
+                assert!(notify1.recv().unwrap().is_panic());
                 Ok(())
             });
 
             let notify2 = handle2.exit_notificator();
             let notify2 = notify2;
-            assert!(!notify2.read().is_panic());
+            assert!(!notify2.recv().unwrap().is_panic());
 
 
             let notify1 = handle1.exit_notificator();
             let notify1 = notify1;
-            assert!(notify1.read().is_panic());
+            assert!(notify1.recv().unwrap().is_panic());
 
 
             let mut lock = finished_copy.lock().unwrap();
@@ -839,13 +839,13 @@ fn tcp_basic_client_server() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (out, inn) = mioco::mail::mailbox();
+            let (out, inn) = mioco::sync::mpsc::channel();
 
             mioco::spawn(move || {
                 let addr = FromStr::from_str("127.0.0.1:0").unwrap();
                 let listener = mioco::tcp::TcpListener::bind(&addr).unwrap();
 
-                out.send(listener.local_addr().unwrap());
+                out.send(listener.local_addr().unwrap()).unwrap();
 
                 for i in 0..2 {
                     let mut conn = listener.accept().unwrap();
@@ -861,7 +861,7 @@ fn tcp_basic_client_server() {
             });
 
             mioco::spawn(move || {
-                let addr = inn.read();
+                let addr = inn.recv().unwrap();
 
                 let stream = mioco::tcp::TcpStream::connect(&addr).unwrap();
                 stream.try_write(b"Hello world").unwrap().unwrap();
@@ -1034,4 +1034,78 @@ fn in_coroutine_true() {
 #[test]
 fn in_coroutine_false() {
     assert!(!mioco::in_coroutine());
+}
+
+#[test]
+fn mpsc_outside_outside() {
+    let (tx1, rx1) = mioco::sync::mpsc::channel();
+    let (tx2, rx2) = mioco::sync::mpsc::channel();
+    thread::spawn(move|| {
+        for i in 0..10 {
+            tx1.send(i).unwrap();
+            assert_eq!(rx2.recv().unwrap(), i);
+        }
+    });
+    for i in 0..10 {
+        assert_eq!(rx1.recv().unwrap(), i);
+        tx2.send(i).unwrap();
+    }
+}
+
+
+#[test]
+fn mpsc_inside_outside() {
+    let (tx1, rx1) = mioco::sync::mpsc::channel();
+    let (tx2, rx2) = mioco::sync::mpsc::channel();
+    mioco::spawn(move|| {
+        for i in 0..10 {
+            tx1.send(i).unwrap();
+            assert_eq!(rx2.recv().unwrap(), i);
+        }
+        Ok(())
+    });
+    for i in 0..10 {
+        assert_eq!(rx1.recv().unwrap(), i);
+        tx2.send(i).unwrap();
+    }
+}
+
+
+#[test]
+fn mpsc_inside_inside() {
+    for &threads in THREADS_N.iter() {
+        let (tx1, rx1) = mioco::sync::mpsc::channel();
+        let (tx2, rx2) = mioco::sync::mpsc::channel();
+
+        let finished_ok1 = Arc::new(Mutex::new(false));
+        let finished_copy1 = finished_ok1.clone();
+
+        let finished_ok2 = Arc::new(Mutex::new(false));
+        let finished_copy2 = finished_ok2.clone();
+
+        mioco::start_threads(threads, move || {
+            mioco::spawn(move|| {
+                for i in 0..10 {
+                    tx1.send(i).unwrap();
+                    assert_eq!(rx2.recv().unwrap(), i);
+                }
+                let mut lock = finished_copy1.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+            mioco::spawn(move|| {
+                for i in 0..10 {
+                    assert_eq!(rx1.recv().unwrap(), i);
+                    tx2.send(i).unwrap();
+                }
+                let mut lock = finished_copy2.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+            Ok(())
+        });
+
+        assert!(*finished_ok1.lock().unwrap());
+        assert!(*finished_ok2.lock().unwrap());
+    }
 }

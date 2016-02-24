@@ -21,7 +21,7 @@
 //! * multithreading support; (see `Config::set_thread_num()`)
 //! * user-provided scheduling; (see `Config::set_scheduler()`);
 //! * timers (see `MiocoHandle::timer()`);
-//! * mailboxes (see `mailbox()`);
+//! * channels (see `sync::mpsc::channel()`);
 //! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
 //! * synchronous operations support (see `MiocoHandle::sync()`).
 //! * synchronization primitives (see `RwLock`).
@@ -82,6 +82,8 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use sync::mpsc;
+
 use std::ptr;
 
 use timer::Timer;
@@ -97,8 +99,6 @@ pub mod tcp;
 /// UDP IO
 #[cfg(not(windows))]
 pub mod udp;
-/// Mailboxes
-pub mod mail;
 
 pub use evented::{Evented, MioAdapter};
 mod evented;
@@ -270,8 +270,8 @@ pub struct CoroutineHandle {
 
 impl CoroutineHandle {
     /// Create an exit notificator
-    pub fn exit_notificator(&self) -> mail::MailboxInnerEnd<coroutine::ExitStatus> {
-        let (outer, inner) = mail::mailbox();
+    pub fn exit_notificator(&self) -> mpsc::Receiver<coroutine::ExitStatus> {
+        let (outer, inner) = mpsc::channel();
         let mut co = self.coroutine.borrow_mut();
         let Coroutine {
             ref state,
@@ -280,7 +280,7 @@ impl CoroutineHandle {
         } = *co;
 
         if let &coroutine::State::Finished(ref exit) = state {
-            outer.send(exit.clone())
+            let _ = outer.send(exit.clone());
         } else {
             exit_notificators.push(outer);
         }
@@ -688,7 +688,6 @@ impl Mioco {
     }
 }
 
-
 /// Mioco instance builder.
 pub struct Config {
     thread_num: usize,
@@ -882,22 +881,25 @@ pub fn sync<'b, F, R>(f: F) -> R
 
     let coroutine = tl_coroutine_current();
 
-    if coroutine.sync_mailbox.is_none() {
-        let (send, recv) = mail::mailbox();
-        coroutine.sync_mailbox = Some((send, recv));
+    if coroutine.sync_channel.is_none() {
+        let (send, recv) = mpsc::channel();
+        coroutine.sync_channel= Some((send, recv));
     }
 
-    let &(ref mail_send, ref mail_recv) = coroutine.sync_mailbox.as_ref().unwrap();
+    let &(ref tx, ref rx) = coroutine.sync_channel.as_ref().unwrap();
     let join = unsafe {
-        thread_scoped::scoped(move || {
-            let FakeSend(f) = f;
-            let res = f();
-            mail_send.send(());
-            FakeSend(res)
+        thread_scoped::scoped({
+            let sender = tx.clone();
+            move || {
+                let FakeSend(f) = f;
+                let res = f();
+                sender.send(()).unwrap();
+                FakeSend(res)
+            }
         })
     };
 
-    mail_recv.read();
+    rx.recv().unwrap();
 
     let FakeSend(res) = join.join();
     res

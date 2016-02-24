@@ -213,8 +213,8 @@ impl Handler {
 
 /// EventLoop message type
 pub enum Message {
-    /// Mailbox notification
-    MailboxMsg(Token),
+    /// Channel notification
+    ChannelMsg(Token),
     /// Coroutine migration
     Migration(CoroutineControl),
     /// Coroutine Panicked
@@ -267,7 +267,7 @@ impl mio_orig::Handler for Handler {
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
         match msg {
-            Message::MailboxMsg(token) => self.ready(event_loop, token, EventSet::readable()),
+            Message::ChannelMsg(token) => self.ready(event_loop, token, EventSet::readable()),
             Message::Migration(mut coroutine) => {
                 coroutine.reattach_to(event_loop, self);
                 self.scheduler.ready(event_loop, coroutine);
