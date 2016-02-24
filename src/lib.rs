@@ -152,10 +152,6 @@ impl RW {
         }
     }
 
-    fn as_tuple(&self) -> (bool, bool) {
-        (self.read, self.write)
-    }
-
     fn has_read(&self) -> bool {
         self.read
     }

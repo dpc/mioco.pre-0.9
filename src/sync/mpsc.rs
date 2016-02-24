@@ -81,10 +81,6 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         lock.token = None;
         lock.sender = None;
     }
-
-    fn should_resume(&self) -> bool {
-        self.counter.load(Ordering::SeqCst) != 0
-    }
 }
 
 impl<T> Receiver<T> {

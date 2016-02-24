@@ -13,12 +13,12 @@ This test use mioco instance with 8 threads (on 8 CPU cores).
 Running 10s test @ http://localhost:5555
   8 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     5.65s     2.17s    7.46s    89.05%
-    Req/Sec   689.27k   701.56k    3.29M    85.68%
-  95833782 requests in 10.36s, 4.73GB read
-  Socket errors: connect 0, read 0, write 0, timeout 185
-Requests/sec: 9247627.37
-Transfer/sec:    467.42MB
+    Latency     3.55s     1.13s    4.29s    91.22%
+    Req/Sec   477.29k   695.20k    3.25M    83.20%
+  100928033 requests in 10.39s, 4.98GB read
+  Socket errors: connect 0, read 0, write 0, timeout 100
+Requests/sec: 9710448.56
+Transfer/sec:    490.81MB
 ```
 
 Around **10 million requests per second** using trivial code. This test

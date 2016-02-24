@@ -263,9 +263,6 @@ pub trait EventSourceTrait {
 
     /// Deregister
     fn deregister(&self, event_loop: &mut EventLoop<Handler>, token: Token);
-
-    /// Should the coroutine be resumed on event for this `EventSource<Self>`
-    fn should_resume(&self) -> bool;
 }
 
 impl<T> EventSourceTrait for T where T: mio_orig::Evented
@@ -286,10 +283,6 @@ impl<T> EventSourceTrait for T where T: mio_orig::Evented
         event_loop.deregister(self)
                   .expect("deregister failed");
     }
-
-    fn should_resume(&self) -> bool {
-        true
-    }
 }
 
 pub trait RcEventSourceTrait {
@@ -305,8 +298,6 @@ pub trait RcEventSourceTrait {
     fn hup(&mut self, _event_loop: &mut EventLoop<Handler>, token: Token);
 
     fn blocked_on(&self) -> RW;
-
-    fn should_resume(&self) -> bool;
 }
 
 /// Common control data for all event sources.
@@ -385,10 +376,6 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
         self.0.borrow_mut().common.peer_hup = true;
     }
 
-    fn should_resume(&self) -> bool {
-        self.0.borrow().io.should_resume()
-    }
-
     /// Reregister oneshot handler for the next event
     fn register(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id) {
         let mut interest = mio_orig::EventSet::none();
@@ -460,9 +447,5 @@ impl<T> EventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     /// Deregister
     fn deregister(&self, event_loop: &mut EventLoop<Handler>, token: Token) {
         self.0.borrow().io.deregister(event_loop, token);
-    }
-
-    fn should_resume(&self) -> bool {
-        self.0.borrow().io.should_resume()
     }
 }

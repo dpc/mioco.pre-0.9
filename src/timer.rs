@@ -28,7 +28,7 @@ impl Timer {
     }
 
     fn is_done(&self) -> bool {
-        self.rc.should_resume()
+        self.rc.io_ref().should_resume()
     }
 }
 
@@ -87,6 +87,13 @@ impl Timer {
         self.rc.io_ref().timeout
     }
 }
+impl TimerCore {
+    fn should_resume(&self) -> bool {
+        trace!("Timer: should_resume? {}",
+               self.timeout <= SteadyTime::now());
+        self.timeout <= SteadyTime::now()
+    }
+}
 
 impl EventSourceTrait for TimerCore {
     fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, _interest: EventSet) {
@@ -113,11 +120,6 @@ impl EventSourceTrait for TimerCore {
 
     fn deregister(&self, _event_loop: &mut EventLoop<Handler>, _token: Token) {}
 
-    fn should_resume(&self) -> bool {
-        trace!("Timer: should_resume? {}",
-               self.timeout <= SteadyTime::now());
-        self.timeout <= SteadyTime::now()
     }
-}
 
 unsafe impl Send for Timer {}

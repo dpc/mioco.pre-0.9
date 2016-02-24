@@ -460,86 +460,28 @@ impl CoroutineSlabHandle {
             return false;
         }
 
-        let ready = {
-            let Coroutine {
-                ref mut blocked_on,
-                ..
-            } = *self.rc.borrow_mut();
-
-
-            if let Some(mut event_source) = blocked_on.get_mut(io_id) {
-
-                if events.is_hup() {
-                    event_source.hup(event_loop, token);
-                }
-
-                let io_rw = event_source.blocked_on().as_tuple();
-                match io_rw {
-                    (false, false) => {
-                        debug!("spurious event for event source blocked on nothing");
-                        false
-                    }
-                    (true, false) if !events.is_readable() && !events.is_hup() => {
-                        debug!("spurious not read event for event source blocked on read");
-                        false
-                    }
-                    (false, true) if !events.is_writable() => {
-                        debug!("spurious not write event for event source blocked on write");
-                        false
-                    }
-                    (true, true) if !events.is_readable() && !events.is_hup() &&
-                                    !events.is_writable() => {
-                        debug!("spurious unknown type event for event source blocked on \
-                                read/write");
-                        false
-                    }
-                    _ => {
-                        if event_source.should_resume() {
-                            true
-                        } else {
-                            // TODO: Actually, we can just reregister the Timer,
-                            // not all sources, and in just this one case
-                            event_source.reregister(event_loop, co_id);
-                            false
-                        }
-                    }
-                }
-            } else {
-                // spurious event, probably after select in which
-                // more than one event sources were reported ready
-                // in one group of events, and first event source
-                // deregistered the later ones
-                debug!("spurious event for event source coroutine is not blocked on");
-                false
-            }
+        trace!("Coroutine({}): set to ready", co_id.as_usize());
+        // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
+        let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
+            (true, true) => RW::both(),
+            (true, false) => RW::read(),
+            (false, true) => RW::write(),
+            (false, false) => panic!(),
         };
 
-        if ready {
-            trace!("Coroutine({}): set to ready", co_id.as_usize());
-            // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
-            let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
-                (true, true) => RW::both(),
-                (true, false) => RW::read(),
-                (false, true) => RW::write(),
-                (false, false) => panic!(),
-            };
-
-            let mut co = self.rc.borrow_mut();
-            co.unblock(event_loop,
-                       Event {
-                           rw: event,
-                           id: io_id,
-                       });
-        }
-
-        ready
+        let mut co = self.rc.borrow_mut();
+        co.unblock(event_loop,
+                   Event {
+                       rw: event,
+                       id: io_id,
+                   });
+        return true
     }
 
     pub fn id(&self) -> coroutine::Id {
         let coroutine = self.rc.borrow();
         coroutine.id
     }
-
 }
 
 /// Coroutine entry point checks
