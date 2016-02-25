@@ -730,13 +730,14 @@ fn spawn_as_start() {
     panic!("Coroutine never started?");
 }
 
-#[ignore]
 #[test]
+#[cfg(target_arch = "x86_64")]
 fn million_coroutines() {
     let mut config = mioco::Config::new();
 
     unsafe {
-        config.set_stack_size(1024 * 128);
+        config.set_stack_size(1024 * 16)
+            .set_stack_protection(false);
     }
 
     let mut mioco_server = mioco::Mioco::new_configured(config);
@@ -745,11 +746,15 @@ fn million_coroutines() {
     let finished_copy = finished_ok.clone();
 
     mioco_server.start(move || {
-        for _ in 0..50000 {
-            mioco::spawn(|| {
-                mioco::sleep(5000);
-                Ok(())
-            });
+        for _ in 0..1000 {
+            for _ in 0..1000 {
+                mioco::spawn(|| {
+                    mioco::sleep(5000);
+                    Ok(())
+                });
+            }
+            // This is a workaround MIO queues becoming full
+            mioco::yield_now();
         }
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;

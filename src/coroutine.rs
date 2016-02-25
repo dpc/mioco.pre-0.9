@@ -15,6 +15,7 @@ use slab;
 use std::any::Any;
 use std::io;
 use std::cell;
+use std::ops::Deref;
 use std::sync::Arc;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
@@ -128,8 +129,41 @@ impl State {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct Config {
+    pub stack_size: usize,
+    pub catch_panics: bool,
+    pub stack_protection: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            stack_size: 2 * 1024 * 1024,
+            catch_panics: true,
+            stack_protection: true,
+        }
+    }
+}
+
 pub type RcCoroutine = Rc<RefCell<Coroutine>>;
 
+enum AnyStack {
+    #[allow(dead_code)]
+    Unprotected(stack::FixedSizeStack),
+    Protected(stack::ProtectedFixedSizeStack),
+}
+
+impl Deref for AnyStack {
+    type Target = stack::Stack;
+
+    fn deref(&self) -> &stack::Stack {
+        match *self {
+            AnyStack::Unprotected(ref s) => &s,
+            AnyStack::Protected(ref s) => &s,
+        }
+    }
+}
 
 /// Mioco coroutine (a.k.a. *mioco handler*)
 // TODO: Make everything private
@@ -137,8 +171,9 @@ pub struct Coroutine {
     /// Context with a state of coroutine
     context: Option<context::Context>,
 
+    #[allow(dead_code)]
     /// Coroutine stack
-    _stack: stack::ProtectedFixedSizeStack,
+    stack: AnyStack,
 
     /// Current state
     pub state: State,
@@ -175,9 +210,6 @@ pub struct Coroutine {
 
     /// Userdata meant for inheritance
     pub inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-
-    /// if this coroutine should catch panics
-    catch_panics: bool,
 }
 
 impl Coroutine {
@@ -185,12 +217,11 @@ impl Coroutine {
     pub fn spawn<F>(handler_shared: RcHandlerShared,
                 inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
                 f: F,
-                catch_panics: bool)
-                -> RcCoroutine
+                ) -> RcCoroutine
         where F: FnOnce() -> io::Result<()> + Send + 'static
     {
         trace!("Coroutine: spawning");
-        let stack_size = handler_shared.borrow().stack_size;
+        let config = handler_shared.borrow().coroutine_config;
 
         let id = {
             let coroutines = &mut handler_shared.borrow_mut().coroutines;
@@ -200,7 +231,11 @@ impl Coroutine {
                 coroutines.grow(count);
             }
 
-            let stack = stack::ProtectedFixedSizeStack::new(stack_size).unwrap();
+            let stack = if config.stack_protection {
+                AnyStack::Protected(stack::ProtectedFixedSizeStack::new(config.stack_size).unwrap())
+            } else {
+                AnyStack::Unprotected(stack::FixedSizeStack::new(config.stack_size).unwrap())
+            };
 
             coroutines.insert_with(|id| {
                           let coroutine = Coroutine {
@@ -211,7 +246,7 @@ impl Coroutine {
                                   id: EventSourceId(0),
                               },
                               context: Some(context::Context::new(&stack, init_fn)),
-                              _stack: stack,
+                              stack: stack,
                               handler_shared: Some(handler_shared.clone()),
                               exit_notificators: Vec::new(),
                               blocked_on: slab::Slab::new(4),
@@ -221,7 +256,6 @@ impl Coroutine {
                               sync_channel: None,
                               user_data: inherited_user_data.clone(),
                               inherited_user_data: inherited_user_data,
-                              catch_panics: catch_panics,
                           };
 
                           CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
@@ -270,6 +304,7 @@ impl Coroutine {
                 handler_shared.coroutines_dec();
             }
 
+            let config = coroutine.handler_shared().coroutine_config;
             match res {
                 Ok(res) => {
                     trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
@@ -282,7 +317,7 @@ impl Coroutine {
 
                 }
                 Err(cause) => {
-                    if coroutine.catch_panics {
+                    if config.catch_panics {
                         trace!("Coroutine({}): panicked: {:?}",
                         id.as_usize(),
                         cause.downcast::<&str>());
@@ -319,8 +354,7 @@ impl Coroutine {
             let child = Coroutine::spawn(
                 self.handler_shared.as_ref().unwrap().clone(),
                 self.inherited_user_data.clone(),
-                f,
-                self.catch_panics);
+                f);
             self.children_to_start.push(child.clone());
             child
         }

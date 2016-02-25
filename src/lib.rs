@@ -611,8 +611,7 @@ impl Mioco {
         for i in 1..self.config.thread_num {
 
             let scheduler = self.config.scheduler.clone();
-            let stack_size = self.config.stack_size;
-            let catch_panics = self.config.catch_panics;
+            let coroutine_config = self.config.coroutine_config;
             let event_loop = event_loops.pop_front().unwrap();
             let senders = senders.clone();
             let thread_shared = thread_shared.clone();
@@ -626,9 +625,9 @@ impl Mioco {
                                                        i,
                                                        senders,
                                                        thread_shared,
-                                                       stack_size,
                                                        None,
-                                                       catch_panics);
+                                                       coroutine_config,
+                                                       );
                            });
 
             match join {
@@ -645,9 +644,8 @@ impl Mioco {
                            0,
                            senders,
                            thread_shared,
-                           self.config.stack_size,
                            user_data,
-                           self.config.catch_panics);
+                           self.config.coroutine_config);
 
         for join in self.join_handles.drain(..) {
             let _ = join.join(); // TODO: Do something with it
@@ -660,16 +658,15 @@ impl Mioco {
                       thread_id: usize,
                       senders: Vec<thread::MioSender>,
                       thread_shared: thread::ArcHandlerThreadShared,
-                      stack_size: usize,
                       userdata: Option<Arc<Box<Any + Send + Sync>>>,
-                      catch_panics: bool)
+                      coroutine_config: coroutine::Config)
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        let handler_shared = thread::HandlerShared::new(senders, thread_shared, stack_size, thread_id);
+        let handler_shared = thread::HandlerShared::new(senders, thread_shared, coroutine_config, thread_id);
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
-            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f, catch_panics);
+            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
             let coroutine_ctrl = CoroutineControl::new(coroutine_rc);
             scheduler.spawned(&mut event_loop, coroutine_ctrl);
             // Mark started only after first coroutine is spawned so that
@@ -689,9 +686,8 @@ pub struct Config {
     thread_num: usize,
     scheduler: Arc<Box<Scheduler>>,
     event_loop_config: EventLoopConfig,
-    stack_size: usize,
     user_data: Option<Arc<Box<Any + Send + Sync>>>,
-    catch_panics: bool,
+    coroutine_config : coroutine::Config,
 }
 
 impl Config {
@@ -705,9 +701,8 @@ impl Config {
             thread_num: num_cpus::get(),
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
-            stack_size: 2 * 1024 * 1024,
             user_data: None,
-            catch_panics: true,
+            coroutine_config: Default::default(),
         };
         config
     }
@@ -745,7 +740,7 @@ impl Config {
     /// for implementation details. The sane minimum seems to be 128KiB,
     /// which is two 64KB pages.
     pub unsafe fn set_stack_size(&mut self, stack_size: usize) -> &mut Self {
-        self.stack_size = stack_size;
+        self.coroutine_config.stack_size = stack_size;
         self
     }
 
@@ -764,7 +759,18 @@ impl Config {
 
     /// Set if this Instance will be catching panics, that occure within the coroutines
     pub fn set_catch_panics(&mut self, catch_panics: bool) -> &mut Self {
-        self.catch_panics = catch_panics;
+        self.coroutine_config.catch_panics = catch_panics;
+        self
+    }
+
+    /// Set if this Instance should use protected stacks (default).
+    ///
+    /// Unprotected stacks can be used to skip creation of stack guard page.
+    /// This is useful when hitting OS limits regarding process mappings.
+    /// It's better idea to fix it at the OS level, but eg. for automated
+    /// testing it might be useful.
+    pub unsafe fn set_stack_protection(&mut self, stack_protection: bool) -> &mut Self {
+        self.coroutine_config.stack_protection = stack_protection;
         self
     }
 }

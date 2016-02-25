@@ -63,8 +63,8 @@ pub struct HandlerShared {
     /// Shared between threads
     thread_shared: ArcHandlerThreadShared,
 
-    /// Default stack size
-    pub stack_size: usize,
+    /// Config for spawned coroutines
+    pub coroutine_config: coroutine::Config,
 
     /// Newly spawned Coroutines
     spawned: VecDeque<CoroutineControl>,
@@ -78,7 +78,7 @@ pub struct HandlerShared {
 impl HandlerShared {
     pub fn new(senders: Vec<MioSender>,
            thread_shared: ArcHandlerThreadShared,
-           stack_size: usize,
+           coroutine_config: coroutine::Config,
            thread_id: usize)
            -> Self {
         HandlerShared {
@@ -86,7 +86,7 @@ impl HandlerShared {
             coroutines: slab::Slab::new_starting_at(STARTING_ID, 512),
             thread_shared: thread_shared,
             senders: senders,
-            stack_size: stack_size,
+            coroutine_config: coroutine_config,
             spawned: Default::default(),
             ready: Default::default(),
             thread_id: thread_id,
