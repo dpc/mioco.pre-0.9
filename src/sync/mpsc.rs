@@ -127,8 +127,9 @@ impl<T> Receiver<T> where T: 'static
         let io_ref = shared.io_ref();
         let res = io_ref.receiver.try_recv();
         if res.is_ok() {
-            let prev_counter = self.shared().io_ref().counter.fetch_sub(1, Ordering::SeqCst);
-            debug_assert!(prev_counter > 0);
+            let _prev_counter = self.shared().io_ref().counter.fetch_sub(1, Ordering::SeqCst);
+            // since send() first sends, then increases the counter, it is
+            // possible for _prev_counter to be zero
         }
         res
     }
