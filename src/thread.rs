@@ -13,7 +13,7 @@ use super::{SchedulerThread, token_to_ids, token_from_ids, CoroutineControl, sen
 use super::mio_orig::{self, EventLoop, Token, EventSet};
 
 use slab;
-use context::Context;
+use context;
 
 /// Current coroutine thread-local reference
 ///
@@ -55,7 +55,7 @@ pub struct HandlerShared {
     pub coroutines: slab::Slab<CoroutineSlabHandle, coroutine::Id>,
 
     /// Context saved when jumping into coroutine
-    pub context: Context,
+    pub context: Option<context::Context>,
 
     /// Senders to other EventLoops
     senders: Vec<MioSender>,
@@ -82,9 +82,9 @@ impl HandlerShared {
            thread_id: usize)
            -> Self {
         HandlerShared {
+            context: None,
             coroutines: slab::Slab::new_starting_at(STARTING_ID, 512),
             thread_shared: thread_shared,
-            context: Context::empty(),
             senders: senders,
             stack_size: stack_size,
             spawned: Default::default(),

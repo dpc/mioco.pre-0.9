@@ -29,7 +29,7 @@ mio = "*"
 num_cpus = "*"
 libc = "^0.1.10"
 thread-scoped = "*"
-context = "*"
+context = { git = "https://github.com/zonyitoo/context-rs.git", branch="1.0" }
 slab = "*"
 
 [dev-dependencies]
