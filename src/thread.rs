@@ -252,7 +252,7 @@ impl mio_orig::Handler for Handler {
              events: mio_orig::EventSet) {
         {
             let t = self.shared.borrow();
-            thread_trace!(t, "token({:?}) ready", token);
+            thread_debug!(t, "token({:?}) ready", token);
         }
 
         let (co_id, _) = token_to_ids(token);
@@ -261,7 +261,7 @@ impl mio_orig::Handler for Handler {
             match shared.coroutines.get(co_id).as_ref() {
                 Some(&co) => co.clone(),
                 None => {
-                    thread_trace!(shared, "token({:?}) ignored - no matching coroutine", token);
+                    thread_debug!(shared, "token({:?}) ignored - no matching coroutine", token);
                     return;
                 }
             }

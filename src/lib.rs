@@ -97,29 +97,29 @@ macro_rules! co_trace_fmt_prefix {
     () => ("T{}: C{}: ")
 }
 
-macro_rules! thread_trace {
+macro_rules! thread_debug {
     (target: $target:expr, $thread:expr, $fmt:tt, $($arg:tt)*) => (
-        trace!(target: $target,
+        debug!(target: $target,
                concat!(thread_trace_fmt_prefix!(), $fmt),
                $thread.thread_id(),
                $($arg)*
               );
         );
     ($thread:expr, $fmt:tt, $($arg:tt)*) => (
-        trace!(
+        debug!(
                concat!(thread_trace_fmt_prefix!(), $fmt),
                $thread.thread_id(),
                $($arg)*
               );
     );
     ($co:expr, $fmt:tt) => (
-        thread_trace!($co, $fmt,)
+        thread_debug!($co, $fmt,)
     );
 }
 
-macro_rules! co_trace {
+macro_rules! co_debug {
     (target: $target:expr, $co:expr, $fmt:tt, $($arg:tt)*) => (
-        trace!(target: $target,
+        debug!(target: $target,
                concat!(co_trace_fmt_prefix!(), $fmt),
                $co.handler_shared().thread_id(),
                $co.id.as_usize(),
@@ -127,7 +127,7 @@ macro_rules! co_trace {
               );
         );
     ($co:expr, $fmt:tt, $($arg:tt)*) => (
-        trace!(
+        debug!(
                concat!(co_trace_fmt_prefix!(), $fmt),
                $co.handler_shared().thread_id(),
                $co.id.as_usize(),
@@ -135,7 +135,7 @@ macro_rules! co_trace {
               );
     );
     ($co:expr, $fmt:tt) => (
-        co_trace!($co, $fmt,)
+        co_debug!($co, $fmt,)
     );
 }
 
@@ -502,7 +502,7 @@ impl Drop for CoroutineControl {
         if !self.was_handled {
             {
                 let co = self.rc.borrow();
-                co_trace!(co, "kill on drop");
+                co_debug!(co, "kill on drop");
             }
             self.rc.borrow_mut().finish();
             coroutine::jump_in(&self.rc);
@@ -731,13 +731,13 @@ impl Mioco {
         handler.shared().borrow().wait_for_start_all();
         {
             let sh = handler.shared().borrow();
-            thread_trace!(sh, "event loop: starting");
+            thread_debug!(sh, "event loop: starting");
         }
         handler.tick(&mut event_loop);
         event_loop.run(&mut handler).unwrap();
         {
             let sh = handler.shared().borrow();
-            thread_trace!(sh, "event loop: done");
+            thread_debug!(sh, "event loop: done");
         }
     }
 }
@@ -1032,7 +1032,7 @@ pub fn sleep(time_ms: i64) {
 pub fn yield_now() {
     let coroutine = tl_coroutine_current();
     coroutine.state = coroutine::State::Yielding;
-    co_trace!(coroutine, "yield");
+    co_debug!(coroutine, "yield");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
     coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
     debug_assert!(coroutine.state.is_running());
@@ -1052,11 +1052,11 @@ pub fn select_wait() -> Event {
     let coroutine = tl_coroutine_current();
     coroutine.state = coroutine::State::Blocked;
 
-    co_trace!(coroutine, "blocked on select");
+    co_debug!(coroutine, "blocked on select");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 
     coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
-    co_trace!(coroutine, "select ret={:?}", coroutine.last_event);
+    co_debug!(coroutine, "select ret={:?}", coroutine.last_event);
     debug_assert!(coroutine.state.is_running());
     let e = coroutine.last_event;
     e
