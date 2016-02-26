@@ -4,7 +4,7 @@ mod mioco {
 }
 
 use std;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::sync::{Arc, Mutex};
 
 use time::{SteadyTime, Duration};
@@ -12,6 +12,67 @@ use time::{SteadyTime, Duration};
 use std::thread;
 use std::net::SocketAddr;
 use net2::TcpBuilder;
+
+#[cfg(windows)]
+struct FakePipeReader(mioco::sync::mpsc::Receiver<u8>);
+#[cfg(windows)]
+struct FakePipeWriter(mioco::sync::mpsc::Sender<u8>);
+
+#[cfg(windows)]
+impl Read for FakePipeReader
+{
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>
+    {
+        let mut i = 0;
+        while let Ok(byte) = self.0.try_recv() {
+            buf[i] = byte;
+            i += 1;
+        }
+        Ok(i)
+    }
+}
+
+#[cfg(windows)]
+impl ::evented::EventedImpl for FakePipeReader
+{
+    type Raw = <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
+
+    fn shared(&self) -> &::evented::RcEventSource<<mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw> {
+        self.0.shared()
+    }
+}
+
+#[cfg(windows)]
+impl Write for FakePipeWriter
+{
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize>
+    {
+        let len = buf.len();
+        for i in 0..len
+        {
+            let _ = self.0.send(buf[i].clone());
+        }
+        Ok(len)
+    }
+
+    fn flush(&mut self) -> io::Result<()>
+    {
+        Ok(())
+    }
+}
+
+#[cfg(not(windows))]
+fn pipe() -> (mioco::unix::PipeReader, mioco::unix::PipeWriter)
+{
+    mioco::unix::pipe().unwrap()
+}
+#[cfg(windows)]
+fn pipe() -> (FakePipeReader, FakePipeWriter)
+{
+    let (tx, rx) = mioco::sync::mpsc::channel();
+    (FakePipeReader(rx), FakePipeWriter(tx))
+}
+
 
 const THREADS_N: [usize; 4] = [1, 2, 5, 21];
 
@@ -111,6 +172,7 @@ fn propagate_uncatched_panic() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn long_chain() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
@@ -118,13 +180,13 @@ fn long_chain() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (first_reader, first_writer) = try!(mioco::unix::pipe());
+            let (first_reader, first_writer) = pipe();
 
             let mut prev_reader = first_reader;
 
             // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
             for _ in 0..128 {
-                let (reader, writer) = try!(mioco::unix::pipe());
+                let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
                     let mut reader = prev_reader;
@@ -164,6 +226,7 @@ fn long_chain() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn lots_of_event_sources() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
@@ -171,13 +234,13 @@ fn lots_of_event_sources() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (first_reader, first_writer) = try!(mioco::unix::pipe());
+            let (first_reader, first_writer) = pipe();
 
             let mut prev_reader = first_reader;
 
             // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
             for _ in 0..4 {
-                let (reader, writer) = try!(mioco::unix::pipe());
+                let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
                     // This fake readers are not really used, they are just registered for the sake of
@@ -185,7 +248,7 @@ fn lots_of_event_sources() {
                     let mut readers = Vec::new();
                     let mut writers = Vec::new();
                     for _ in 0..100 {
-                        let (r, w) = try!(mioco::unix::pipe());
+                        let (r, w) = pipe();
                         readers.push(r);
                         writers.push(w);
                     }
@@ -235,7 +298,7 @@ fn destructs_io_on_panic() {
         let finished_ok_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (reader, writer) = try!(mioco::unix::pipe());
+            let (reader, writer) = pipe();
 
             mioco::spawn(move || {
                 let mut reader = reader;
@@ -271,7 +334,7 @@ fn timer_times_out() {
         let finished_ok_2_copy = finished_ok_2.clone();
         mioco::start_threads(threads, move || {
 
-            let (reader, writer) = try!(mioco::unix::pipe());
+            let (reader, writer) = pipe();
 
             mioco::spawn(move || {
                 let reader = reader;
@@ -839,6 +902,7 @@ fn simple_mutex() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn tcp_basic_client_server() {
     use std::str::FromStr;
     for &threads in THREADS_N.iter() {

@@ -145,11 +145,11 @@ pub mod sync;
 /// Timers
 pub mod timer;
 /// Unix sockets IO
+#[cfg(not(windows))]
 pub mod unix;
 /// TCP IO
 pub mod tcp;
 /// UDP IO
-#[cfg(not(windows))]
 pub mod udp;
 
 pub use evented::{Evented, MioAdapter};
