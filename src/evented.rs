@@ -53,9 +53,7 @@ pub trait EventedImpl {
             coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
             {
                 coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
-                trace!("Coroutine({}): resumed due to event {:?}",
-                       coroutine.id.as_usize(),
-                       coroutine.last_event);
+                co_trace!(coroutine, "resumed due to event {:?}", coroutine.last_event);
                 debug_assert!(rw.has_read() || coroutine.last_event.has_write());
                 debug_assert!(rw.has_write() || coroutine.last_event.has_read());
                 debug_assert!(coroutine.last_event.id().as_usize() ==
