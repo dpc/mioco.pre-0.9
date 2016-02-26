@@ -724,7 +724,7 @@ impl Mioco {
             // Mark started only after first coroutine is spawned so that
             // threads don't start, detect no coroutines, and exit prematurely
             shared.borrow().signal_start_all();
-            shared.borrow_mut().add_ready(CoroutineControl::new(coroutine_rc));
+            shared.borrow_mut().add_spawned(CoroutineControl::new(coroutine_rc));
         }
         let mut handler = thread::Handler::new(shared, scheduler);
 
