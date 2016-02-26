@@ -72,6 +72,7 @@ pub struct HandlerShared {
     /// Coroutines that were made ready
     ready: VecDeque<CoroutineControl>,
 
+    /// Thread Id
     thread_id: usize,
 }
 
@@ -140,6 +141,11 @@ impl HandlerShared {
     /// Get number of threads
     pub fn thread_num(&self) -> usize {
         self.thread_shared.thread_num.load(Ordering::Relaxed)
+    }
+
+    /// Get own thread_id
+    pub fn thread_id(&self) -> usize {
+        self.thread_id
     }
 
     pub fn attach(&mut self, rc_coroutine : RcCoroutine) -> coroutine::Id {
@@ -244,14 +250,18 @@ impl mio_orig::Handler for Handler {
              event_loop: &mut mio_orig::EventLoop<Handler>,
              token: mio_orig::Token,
              events: mio_orig::EventSet) {
-        trace!("Handler::ready({:?}): started", token);
+        {
+            let t = self.shared.borrow();
+            thread_trace!(t, "token({:?}) ready", token);
+        }
+
         let (co_id, _) = token_to_ids(token);
         let co = {
             let shared = self.shared.borrow();
             match shared.coroutines.get(co_id).as_ref() {
                 Some(&co) => co.clone(),
                 None => {
-                    trace!("Handler::ready() ignored");
+                    thread_trace!(shared, "token({:?}) ignored - no matching coroutine", token);
                     return;
                 }
             }
@@ -261,8 +271,6 @@ impl mio_orig::Handler for Handler {
         }
 
         self.deliver_to_scheduler(event_loop);
-
-        trace!("Handler::ready({:?}): finished", token);
     }
 
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {

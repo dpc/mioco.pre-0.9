@@ -220,7 +220,6 @@ impl Coroutine {
                 ) -> RcCoroutine
         where F: FnOnce() -> io::Result<()> + Send + 'static
     {
-        trace!("Coroutine: spawning");
         let config = handler_shared.borrow().coroutine_config;
 
         let id = {
@@ -268,6 +267,7 @@ impl Coroutine {
 
         coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
 
+
         extern "C" fn init_fn(t : context::Transfer) -> ! {
             let data = t.data;
 
@@ -276,12 +276,10 @@ impl Coroutine {
                 *coroutine.out_context() = Some(t.context);
             }
 
-            //never panic inside init_fn, that causes a SIGILL
+            // never panic inside init_fn, that causes a SIGILL
             let res = panic::recover(move || {
                 let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
-                trace!("Coroutine({}): started", {
-                    coroutine.id.as_usize()
-                });
+                co_trace!(coroutine, "started");
 
                 entry_point(coroutine.self_rc.as_ref().unwrap());
                 let f = coroutine.coroutine_func.take().unwrap();
@@ -307,7 +305,7 @@ impl Coroutine {
             let config = coroutine.handler_shared().coroutine_config;
             match res {
                 Ok(res) => {
-                    trace!("Coroutine({}): finished returning {:?}", id.as_usize(), res);
+                    co_trace!(coroutine, "finished with ret={:?}", res);
                     let arc_res = Arc::new(res);
                     coroutine.exit_notificators
                         .iter()
@@ -318,9 +316,7 @@ impl Coroutine {
                 }
                 Err(cause) => {
                     if config.catch_panics {
-                        trace!("Coroutine({}): panicked: {:?}",
-                        id.as_usize(),
-                        cause.downcast::<&str>());
+                        co_trace!(coroutine, "panicked: {:?}", cause.downcast::<&str>());
                         if let State::Finished(ExitStatus::Killed) = coroutine.state {
                             coroutine.exit_notificators
                                 .iter()
@@ -346,11 +342,17 @@ impl Coroutine {
             unreachable!();
         }
 
+        {
+            let co = coroutine_rc.borrow();
+            co_trace!(co, "spawned");
+        }
         coroutine_rc
     }
 
     pub fn spawn_child<F>(&mut self, f: F) -> RcCoroutine
         where F: FnOnce() -> io::Result<()> + Send + 'static {
+
+        co_trace!(self, "spawning child");
             let child = Coroutine::spawn(
                 self.handler_shared.as_ref().unwrap().clone(),
                 self.inherited_user_data.clone(),
@@ -370,7 +372,7 @@ impl Coroutine {
     pub fn block_on<T>(&mut self, event_source : &RcEventSource<T>, rw: RW)
         where T: EventSourceTrait + 'static
     {
-        trace!("Coroutine({}): blocked on {:?}", self.id.as_usize(), rw);
+        co_trace!(self, "blocked on {:?}", rw);
         self.state = coroutine::State::Blocked;
         self.blocked_on.insert_with(|id| {
             event_source.common_mut().id = Some(id);
@@ -412,17 +414,13 @@ impl Coroutine {
         }
     }
 
+    // TODO: Remove and call add_spawned directly?
     pub fn start_children(&mut self) {
         let Coroutine {
             ref mut children_to_start,
             ref handler_shared,
-            ref id,
             ..
         } = *self;
-
-        trace!("Coroutine({}): {} children spawned",
-        id.as_usize(),
-        children_to_start.len());
 
         let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
 
@@ -431,22 +429,30 @@ impl Coroutine {
         }
     }
 
-    pub fn detach_from(&mut self, event_loop : &mut EventLoop<Handler>) -> RcHandlerShared {
-        trace!("Coroutine({}): dettached from thread", self.id.as_usize());
+    pub fn detach_from(&mut self, event_loop : &mut EventLoop<Handler>, to_thread_id : usize) -> RcHandlerShared {
+        // for better formatting print here instead of calling function
+        co_trace!(self, "migrating to thread {}", to_thread_id);
+
         self.deregister_all(event_loop);
 
         let handler_shared = self.handler_shared.take();
         debug_assert!(self.handler_shared.is_none());
 
+        trace!(
+            concat!(co_trace_fmt_prefix!(), "detached"),
+            handler_shared.as_ref().unwrap().borrow().thread_id(),
+            self.id.as_usize(),
+        );
+
         handler_shared.unwrap()
     }
 
     pub fn attach_to(&mut self, event_loop : &mut EventLoop<Handler>, handler_shared : RcHandlerShared, id : Id) {
-        trace!("Coroutine({}): attached to thread", self.id.as_usize());
         self.id = id;
         self.handler_shared = Some(handler_shared);
 
         self.register_all(event_loop);
+        co_trace!(self, "attached");
     }
 
     pub fn out_context(&self) -> RefMut<Option<context::Context>> {
@@ -472,9 +478,12 @@ impl CoroutineSlabHandle {
     /// Deliver an event to a Coroutine
     pub fn event(&self, event_loop: &mut EventLoop<Handler>, token: Token, events: EventSet) -> bool {
 
-        let (co_id, io_id) = token_to_ids(token);
+        let (_, io_id) = token_to_ids(token);
 
-        trace!("Coroutine({}): event", self.id().as_usize());
+        {
+            let co = self.rc.borrow();
+            co_trace!(co, "event for io({})", io_id.as_usize());
+        }
 
         if !self.rc.borrow().state().is_blocked() {
             // subsequent event to coroutine that is either already
@@ -482,7 +491,10 @@ impl CoroutineSlabHandle {
             return false;
         }
 
-        trace!("Coroutine({}): set to ready", co_id.as_usize());
+        {
+            let co = self.rc.borrow();
+            co_trace!(co, "ready");
+        }
         // Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on
         let event = match (events.is_readable() | events.is_hup(), events.is_writable()) {
             (true, true) => RW::both(),
@@ -535,6 +547,10 @@ pub fn jump_in(coroutine: &RefCell<Coroutine>) {
         }
     }
 
+    {
+        let co = coroutine.borrow();
+        co_trace!(co, "resuming");
+    }
     let co_ptr : usize = unsafe {mem::transmute( &*coroutine.borrow() as *const Coroutine)};
     let context = coroutine.borrow_mut().context.take().unwrap();
     let t = context.resume(co_ptr);
@@ -558,6 +574,10 @@ pub fn jump_out(coroutine: &RefCell<Coroutine>) {
         let mut o_c = co.out_context();
         o_c.take().unwrap()
     };
+    {
+        let co = coroutine.borrow();
+        co_trace!(co, "pausing");
+    }
     let t = context.resume(0);
     {
         let co = coroutine.borrow();

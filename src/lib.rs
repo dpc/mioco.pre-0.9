@@ -88,6 +88,57 @@ use std::ptr;
 
 use timer::Timer;
 
+macro_rules! thread_trace_fmt_prefix {
+    () => ("T{}: ")
+}
+
+macro_rules! co_trace_fmt_prefix {
+    () => ("T{}: C{}: ")
+}
+
+macro_rules! thread_trace {
+    (target: $target:expr, $thread:expr, $fmt:tt, $($arg:tt)*) => (
+        trace!(target: $target,
+               concat!(thread_trace_fmt_prefix!(), $fmt),
+               $thread.thread_id(),
+               $($arg)*
+              );
+        );
+    ($thread:expr, $fmt:tt, $($arg:tt)*) => (
+        trace!(
+               concat!(thread_trace_fmt_prefix!(), $fmt),
+               $thread.thread_id(),
+               $($arg)*
+              );
+    );
+    ($co:expr, $fmt:tt) => (
+        thread_trace!($co, $fmt,)
+    );
+}
+
+macro_rules! co_trace {
+    (target: $target:expr, $co:expr, $fmt:tt, $($arg:tt)*) => (
+        trace!(target: $target,
+               concat!(co_trace_fmt_prefix!(), $fmt),
+               $co.handler_shared().thread_id(),
+               $co.id.as_usize(),
+               $($arg)*
+              );
+        );
+    ($co:expr, $fmt:tt, $($arg:tt)*) => (
+        trace!(
+               concat!(co_trace_fmt_prefix!(), $fmt),
+               $co.handler_shared().thread_id(),
+               $co.id.as_usize(),
+               $($arg)*
+              );
+    );
+    ($co:expr, $fmt:tt) => (
+        co_trace!($co, $fmt,)
+    );
+}
+
+
 /// Useful synchronization primitives
 pub mod sync;
 /// Timers
@@ -110,6 +161,7 @@ mod coroutine;
 pub use thread::Handler;
 use thread::Message;
 mod thread;
+
 
 /// Read/Write/Both/None
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -395,7 +447,6 @@ impl SchedulerThread for FifoSchedulerThread {
                event_loop: &mut mio_orig::EventLoop<thread::Handler>,
                coroutine_ctrl: CoroutineControl) {
         let thread_i = self.thread_next_i();
-        trace!("Migrating newly spawn Coroutine to thread {}", thread_i);
         coroutine_ctrl.migrate(event_loop, thread_i);
     }
 
@@ -441,7 +492,10 @@ pub struct CoroutineControl {
 impl Drop for CoroutineControl {
     fn drop(&mut self) {
         if !self.was_handled {
-            trace!("Coroutine({}): kill", self.id().as_usize());
+            {
+                let co = self.rc.borrow();
+                co_trace!(co, "kill on drop");
+            }
             self.rc.borrow_mut().finish();
             coroutine::jump_in(&self.rc);
         }
@@ -462,7 +516,6 @@ impl CoroutineControl {
     /// Panics if Coroutine is not in Ready state.
     pub fn resume(mut self, event_loop: &mut EventLoop<thread::Handler>) {
         self.was_handled = true;
-        trace!("Coroutine({}): resume", self.id().as_usize());
         let co_rc = self.rc.clone();
         let is_ready = co_rc.borrow().state().is_ready();
         if is_ready {
@@ -494,10 +547,6 @@ impl CoroutineControl {
         }
     }
 
-    fn id(&self) -> coroutine::Id {
-        self.rc.borrow().id
-    }
-
     /// Migrate to a different thread
     ///
     /// Move this Coroutine to be executed on a `SchedulerThread` for a
@@ -507,12 +556,9 @@ impl CoroutineControl {
     pub fn migrate(mut self, event_loop: &mut EventLoop<thread::Handler>, thread_id: usize) {
         self.was_handled = true;
         let sender = {
-            trace!("Coroutine({}): migrate to thread {}",
-                   self.id().as_usize(),
-                   thread_id);
             let mut co = self.rc.borrow_mut();
 
-            let handler_shared = co.detach_from(event_loop);
+            let handler_shared = co.detach_from(event_loop, thread_id);
             let mut handler_shared = handler_shared.borrow_mut();
             handler_shared.coroutines.remove(co.id).unwrap();
             handler_shared.get_sender_to_thread(thread_id)
@@ -592,7 +638,7 @@ impl Mioco {
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        info!("Starting mioco instance with {} handler threads",
+        info!("starting instance with {} threads",
               self.config.thread_num);
         let thread_shared = Arc::new(thread::HandlerThreadShared::new(self.config.thread_num));
 
@@ -677,7 +723,15 @@ impl Mioco {
 
         handler.shared().borrow().wait_for_start_all();
         handler.deliver_to_scheduler(&mut event_loop);
+        {
+            let sh = handler.shared().borrow();
+            thread_trace!(sh, "event loop: starting");
+        }
         event_loop.run(&mut handler).unwrap();
+        {
+            let sh = handler.shared().borrow();
+            thread_trace!(sh, "event loop: done");
+        }
     }
 }
 
@@ -971,11 +1025,9 @@ pub fn sleep(time_ms: i64) {
 pub fn yield_now() {
     let coroutine = tl_coroutine_current();
     coroutine.state = coroutine::State::Yielding;
-    trace!("Coroutine({}): yield", coroutine.id.as_usize());
+    co_trace!(coroutine, "yield");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
     coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
-    trace!("Coroutine({}): resumed after yield ",
-           coroutine.id.as_usize());
     debug_assert!(coroutine.state.is_running());
 }
 
@@ -993,13 +1045,11 @@ pub fn select_wait() -> Event {
     let coroutine = tl_coroutine_current();
     coroutine.state = coroutine::State::Blocked;
 
-    trace!("Coroutine({}): blocked on select", coroutine.id.as_usize());
+    co_trace!(coroutine, "blocked on select");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 
     coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
-    trace!("Coroutine({}): resumed due to event {:?}",
-           coroutine.id.as_usize(),
-           coroutine.last_event);
+    co_trace!(coroutine, "select ret={:?}", coroutine.last_event);
     debug_assert!(coroutine.state.is_running());
     let e = coroutine.last_event;
     e
