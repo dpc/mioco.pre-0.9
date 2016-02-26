@@ -733,11 +733,14 @@ fn spawn_as_start() {
 #[test]
 #[cfg(target_arch = "x86_64")]
 fn million_coroutines() {
+    // actually less than million, to keep
+    // the memory usage reasonable
     let mut config = mioco::Config::new();
 
     unsafe {
         config.set_stack_size(1024 * 16)
             .set_stack_protection(false);
+        config.event_loop().timer_wheel_size(1024 * 256);
     }
 
     let mut mioco_server = mioco::Mioco::new_configured(config);
@@ -746,7 +749,7 @@ fn million_coroutines() {
     let finished_copy = finished_ok.clone();
 
     mioco_server.start(move || {
-        for _ in 0..1000 {
+        for _ in 0..250 {
             for _ in 0..1000 {
                 mioco::spawn(|| {
                     mioco::sleep(5000);
