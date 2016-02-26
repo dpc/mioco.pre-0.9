@@ -187,7 +187,7 @@ impl Handler {
 
     /// To prevent recursion, all the newly spawned or newly made
     /// ready Coroutines are delivered to scheduler here.
-    pub fn deliver_to_scheduler(&mut self, event_loop: &mut EventLoop<Self>) {
+    fn deliver_to_scheduler(&mut self, event_loop: &mut EventLoop<Self>) {
         let Handler {
             ref shared,
             ref mut scheduler,

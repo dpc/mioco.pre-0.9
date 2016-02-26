@@ -77,6 +77,7 @@ use std::marker::Reflect;
 use std::mem::{self};
 
 use mio_orig::{Token, EventLoop, EventLoopConfig};
+use mio_orig::Handler as MioHandler;
 
 use std::collections::VecDeque;
 use std::sync::Arc;
@@ -706,7 +707,7 @@ impl Mioco {
     }
 
     fn thread_loop<F>(f: Option<F>,
-                      mut scheduler: Box<SchedulerThread + 'static>,
+                      scheduler: Box<SchedulerThread + 'static>,
                       mut event_loop: EventLoop<thread::Handler>,
                       thread_id: usize,
                       senders: Vec<thread::MioSender>,
@@ -720,20 +721,19 @@ impl Mioco {
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
             let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
-            let coroutine_ctrl = CoroutineControl::new(coroutine_rc);
-            scheduler.spawned(&mut event_loop, coroutine_ctrl);
             // Mark started only after first coroutine is spawned so that
             // threads don't start, detect no coroutines, and exit prematurely
             shared.borrow().signal_start_all();
+            shared.borrow_mut().add_ready(CoroutineControl::new(coroutine_rc));
         }
         let mut handler = thread::Handler::new(shared, scheduler);
 
         handler.shared().borrow().wait_for_start_all();
-        handler.deliver_to_scheduler(&mut event_loop);
         {
             let sh = handler.shared().borrow();
             thread_trace!(sh, "event loop: starting");
         }
+        handler.tick(&mut event_loop);
         event_loop.run(&mut handler).unwrap();
         {
             let sh = handler.shared().borrow();
