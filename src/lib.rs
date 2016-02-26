@@ -412,6 +412,7 @@ impl FifoScheduler {
 }
 
 struct FifoSchedulerThread {
+    thread_id: usize,
     thread_i: usize,
     thread_num: Arc<AtomicUsize>,
     delayed: VecDeque<CoroutineControl>,
@@ -419,9 +420,10 @@ struct FifoSchedulerThread {
 
 impl Scheduler for FifoScheduler {
     fn spawn_thread(&self) -> Box<SchedulerThread> {
-        self.thread_num.fetch_add(1, Ordering::Relaxed);
+        let prev = self.thread_num.fetch_add(1, Ordering::Relaxed);
         Box::new(FifoSchedulerThread {
-            thread_i: 0,
+            thread_id: prev,
+            thread_i: prev,
             thread_num: self.thread_num.clone(),
             delayed: VecDeque::new(),
         })
@@ -430,11 +432,12 @@ impl Scheduler for FifoScheduler {
 
 impl FifoSchedulerThread {
     fn thread_next_i(&mut self) -> usize {
+        let ret = self.thread_i;
         self.thread_i += 1;
         if self.thread_i >= self.thread_num() {
             self.thread_i = 0;
         }
-        self.thread_i
+        ret
     }
 
     fn thread_num(&self) -> usize {
@@ -447,7 +450,11 @@ impl SchedulerThread for FifoSchedulerThread {
                event_loop: &mut mio_orig::EventLoop<thread::Handler>,
                coroutine_ctrl: CoroutineControl) {
         let thread_i = self.thread_next_i();
-        coroutine_ctrl.migrate(event_loop, thread_i);
+        if thread_i == self.thread_id {
+            coroutine_ctrl.resume(event_loop);
+        } else {
+            coroutine_ctrl.migrate(event_loop, thread_i);
+        }
     }
 
     fn ready(&mut self,
