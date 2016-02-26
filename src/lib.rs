@@ -807,7 +807,7 @@ impl Config {
     }
 
     /// Configure `mio::EvenLoop` for all the threads
-    pub fn even_loop(&mut self) -> &mut EventLoopConfig {
+    pub fn event_loop(&mut self) -> &mut EventLoopConfig {
         &mut self.event_loop_config
     }
 
