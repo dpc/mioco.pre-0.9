@@ -46,12 +46,15 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-228' class='srclink' href='../../src/context/stack.rs.html#202-205' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-86' class='srclink' href='../../src/context/stack.rs.html#16-22' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum StackError {
-    MmapError(<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>),
-    MProtectError(<a class='struct' href='../../context/stack/struct.MProtectError.html' title='context::stack::MProtectError'>MProtectError</a>),
-}</pre><h2 class='variants'>Variants</h2>
-<table class='variants_table'><tr><td id='variant.MmapError'><code>MmapError</code></td><td></td><td></td></tr><tr><td id='variant.MProtectError'><code>MProtectError</code></td><td></td><td></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../context/stack/enum.StackError.html' title='context::stack::StackError'>StackError</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+    ExceedsMaximumSize(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>),
+    IoError(<a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>),
+}</pre><div class='docblock'><p>Error type returned by stack allocation methods.</p>
+</div><h2 class='variants'>Variants</h2>
+<table class='variants_table'><tr><td id='variant.ExceedsMaximumSize'><code>ExceedsMaximumSize</code></td><td><div class='docblock'><p>Contains the maximum amount of memory allowed to be allocated as stack space.</p>
+</div></td><td></td></tr><tr><td id='variant.IoError'><code>IoError</code></td><td><div class='docblock'><p>Returned if some kind of I/O error happens during allocation.</p>
+</div></td><td></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../context/stack/enum.StackError.html' title='context::stack::StackError'>StackError</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

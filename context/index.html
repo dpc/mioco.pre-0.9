@@ -46,15 +46,19 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/context/lib.rs.html#1-15' title='goto source code'>[src]</a></span></h1>
-<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use context::<a class='struct' href='../context/context/struct.Context.html' title='context::context::Context'>Context</a>;</code></td></tr><tr><td><code>pub use stack::<a class='struct' href='../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/context/lib.rs.html#8-29' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This project provides an easy interface to the famous <strong>Boost.Context</strong> library
+and provides the building blocks for higher-level abstractions, like coroutines,
+cooperative threads (userland threads) or an equivalent to the C# keyword &quot;yield&quot;.</p>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use context::{<a class='struct' href='../context/context/struct.Context.html' title='context::context::Context'>Context</a>, <a class='type' href='../context/context/type.ContextFn.html' title='context::context::ContextFn'>ContextFn</a>, <a class='type' href='../context/context/type.ResumeOntopFn.html' title='context::context::ResumeOntopFn'>ResumeOntopFn</a>, <a class='struct' href='../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='mod' href='context/index.html'
                                title='context::context'>context</a></td>
                         <td class='docblock short'>
-                             
+                             <p>Provides the <code>Context</code> and <code>Transfer</code> types for
+saving and restoring the current state of execution.</p>
                         </td>
                     </tr>
                 
@@ -62,7 +66,7 @@
                         <td><a class='mod' href='stack/index.html'
                                title='context::stack'>stack</a></td>
                         <td class='docblock short'>
-                             
+                             <p>Provides utilities to allocate memory suitable to be used as stack memory for <code>Context</code>.</p>
                         </td>
                     </tr>
                 </table></section>

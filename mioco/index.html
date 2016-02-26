@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1058' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-1119' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -65,7 +65,7 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
 <pre><code class="language-norust">* multithreading support; (see `Config::set_thread_num()`)
 * user-provided scheduling; (see `Config::set_scheduler()`);
 * timers (see `MiocoHandle::timer()`);
-* mailboxes (see `mailbox()`);
+* channels (see `sync::mpsc::channel()`);
 * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
 * synchronous operations support (see `MiocoHandle::sync()`).
 * synchronization primitives (see `RwLock`).
@@ -75,14 +75,6 @@ blocking IO should be executed in <code>mioco::sync()</code> blocks.</p>
 <p>See <code>examples/echo.rs</code> for an example TCP echo server:</p>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='mail/index.html'
-                               title='mioco::mail'>mail</a></td>
-                        <td class='docblock short'>
-                             <p>Mailboxes</p>
-                        </td>
-                    </tr>
-                
                     <tr class=' module-item'>
                         <td><a class='mod' href='mio/index.html'
                                title='mioco::mio'>mio</a></td>

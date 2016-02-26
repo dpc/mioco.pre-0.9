@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Mutex","A MutexBased on `std::sync::Mutex`. Calls `mioco::yield_now()` on contention."],["RwLock","A reader-writer lockBased on `std::sync::RwLock`. Calls `mioco::yield_now()` on contention."]]});
+initSidebarItems({"mod":[["mpsc","MPSC channel modeled after `std::sync::mpsc`."]],"struct":[["Mutex","A MutexBased on `std::sync::Mutex`. Calls `mioco::yield_now()` on contention."],["RwLock","A reader-writer lockBased on `std::sync::RwLock`. Calls `mioco::yield_now()` on contention."]]});

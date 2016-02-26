@@ -46,14 +46,23 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-131' class='srclink' href='../../src/context/stack.rs.html#11-233' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+        </span><a id='src-80' class='srclink' href='../../src/context/stack.rs.html#8-238' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Provides utilities to allocate memory suitable to be used as stack memory for <code>Context</code>.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.MProtectError.html'
-                               title='context::stack::MProtectError'>MProtectError</a></td>
+                        <td><a class='struct' href='struct.FixedSizeStack.html'
+                               title='context::stack::FixedSizeStack'>FixedSizeStack</a></td>
                         <td class='docblock short'>
-                             
+                             <p>A simple implementation of <code>Stack</code>.</p>
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.ProtectedFixedSizeStack.html'
+                               title='context::stack::ProtectedFixedSizeStack'>ProtectedFixedSizeStack</a></td>
+                        <td class='docblock short'>
+                             <p>A more secure, but a bit slower implementation of <code>Stack</code> compared to <code>FixedSizeStack</code>.</p>
                         </td>
                     </tr>
                 
@@ -61,15 +70,8 @@
                         <td><a class='struct' href='struct.Stack.html'
                                title='context::stack::Stack'>Stack</a></td>
                         <td class='docblock short'>
-                             <p>A task&#39;s stack. The name &quot;Stack&quot; is a vestige of segmented stacks.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.StackPool.html'
-                               title='context::stack::StackPool'>StackPool</a></td>
-                        <td class='docblock short'>
-                             
+                             <p>Represents some kind of stack memory.
+Use either FixedSizeStack or ProtectedFixedSizeStack to allocate actual stack space.</p>
                         </td>
                     </tr>
                 </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
@@ -78,7 +80,7 @@
                         <td><a class='enum' href='enum.StackError.html'
                                title='context::stack::StackError'>StackError</a></td>
                         <td class='docblock short'>
-                             
+                             <p>Error type returned by stack allocation methods.</p>
                         </td>
                     </tr>
                 </table></section>
