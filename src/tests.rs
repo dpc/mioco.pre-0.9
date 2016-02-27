@@ -370,6 +370,51 @@ fn channel_disconnect_on_sender_drop() {
 }
 
 #[test]
+fn channel_disconnect_on_sender_drop_many() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let (sender, receiver) = mioco::sync::mpsc::channel();
+            const HOW_MANY : usize = 10;
+
+            mioco::spawn(move || {
+                for _ in 0..HOW_MANY {
+                    assert!(receiver.recv().is_ok());
+                }
+                assert!(receiver.recv().is_err());
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+
+            for i in 0..HOW_MANY {
+                mioco::spawn({
+                    let sender = sender.clone();
+                    move || {
+                        sender.send(0usize).unwrap();
+                        if i % 3 == 0 {
+                            mioco::sleep(10);
+                        }
+
+                        if i % 2 == 0 {
+                            panic!()
+                        } else {
+                            Ok(())
+                        }
+                    }
+                });
+            }
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+#[test]
 fn timer_times_out() {
     for &threads in THREADS_N.iter() {
         let finished_ok_1 = Arc::new(Mutex::new(false));
