@@ -21,14 +21,27 @@ struct FakePipeWriter(mioco::sync::mpsc::Sender<u8>);
 #[cfg(windows)]
 impl Read for FakePipeReader
 {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>
-    {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut i = 0;
-        while let Ok(byte) = self.0.try_recv() {
-            buf[i] = byte;
-            i += 1;
+        loop {
+            if i >= buf.len() {
+                return Ok(i);
+            }
+            if let Ok(byte) =
+                if i == 0 {
+                    self.0.recv()
+                } else {
+                    // no matter if disconnected or empty: we will just
+                    // return Ok(i)
+                    self.0.try_recv().map_err(|_| std::sync::mpsc::RecvError)
+                }
+            {
+                buf[i] = byte;
+                i += 1;
+            } else {
+                return Ok(i);
+            }
         }
-        Ok(i)
     }
 }
 
@@ -66,6 +79,7 @@ fn pipe() -> (mioco::unix::PipeReader, mioco::unix::PipeWriter)
 {
     mioco::unix::pipe().unwrap()
 }
+
 #[cfg(windows)]
 fn pipe() -> (FakePipeReader, FakePipeWriter)
 {
@@ -172,7 +186,6 @@ fn propagate_uncatched_panic() {
 }
 
 #[test]
-#[cfg(not(windows))]
 fn long_chain() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
@@ -226,7 +239,6 @@ fn long_chain() {
 }
 
 #[test]
-#[cfg(not(windows))]
 fn lots_of_event_sources() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
@@ -317,6 +329,84 @@ fn destructs_io_on_panic() {
             });
 
 
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+#[test]
+fn channel_disconnect_on_sender_drop() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let (sender, receiver) = mioco::sync::mpsc::channel();
+
+            mioco::spawn(move || {
+                assert!(receiver.recv().is_ok());
+                assert!(receiver.recv().is_err());
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+
+            mioco::spawn(move || {
+                sender.send(0usize).unwrap();
+                mioco::sleep(10);
+
+                panic!();
+            });
+
+
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+#[test]
+fn channel_disconnect_on_sender_drop_many() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let (sender, receiver) = mioco::sync::mpsc::channel();
+            const HOW_MANY : usize = 10;
+
+            mioco::spawn(move || {
+                for _ in 0..HOW_MANY {
+                    assert!(receiver.recv().is_ok());
+                }
+                assert!(receiver.recv().is_err());
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+
+            for i in 0..HOW_MANY {
+                mioco::spawn({
+                    let sender = sender.clone();
+                    move || {
+                        sender.send(0usize).unwrap();
+                        if i % 3 == 0 {
+                            mioco::sleep(10);
+                        }
+
+                        if i % 2 == 0 {
+                            panic!()
+                        } else {
+                            Ok(())
+                        }
+                    }
+                });
+            }
             Ok(())
         });
 
