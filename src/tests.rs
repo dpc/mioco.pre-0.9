@@ -992,7 +992,6 @@ fn simple_mutex() {
 }
 
 #[test]
-#[cfg(not(windows))]
 fn tcp_basic_client_server() {
     use std::str::FromStr;
     for &threads in THREADS_N.iter() {
