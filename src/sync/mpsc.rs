@@ -142,6 +142,21 @@ impl<T> Receiver<T> where T: 'static
     }
 }
 
+struct SenderShared {
+    shared : ArcChannelShared,
+    counter : ArcCounter,
+}
+
+impl Drop for SenderShared {
+    fn drop(&mut self) {
+
+        let prev_counter = self.counter.fetch_add(1, Ordering::SeqCst);
+        if prev_counter == 0 {
+            maybe_notify_receiver(&self.shared);
+        }
+    }
+}
+
 /// Channel sending end
 ///
 /// Use this inside mioco coroutines or outside of mioco itself to send data
@@ -149,9 +164,8 @@ impl<T> Receiver<T> where T: 'static
 ///
 /// Create with `channel()`
 pub struct Sender<T> {
-    sender : mpsc::Sender<T>,
-    shared : ArcChannelShared,
-    counter : ArcCounter,
+    shared: Arc<SenderShared>,
+    sender: mpsc::Sender<T>,
 }
 
 impl<T> Clone for Sender<T> {
@@ -159,7 +173,6 @@ impl<T> Clone for Sender<T> {
         Sender {
             shared: self.shared.clone(),
             sender: self.sender.clone(),
-            counter: self.counter.clone(),
         }
     }
 }
@@ -167,13 +180,28 @@ impl<T> Clone for Sender<T> {
 impl<T> Sender<T> {
     fn new(shared: ArcChannelShared, counter : ArcCounter, sender: mpsc::Sender<T>) -> Self {
         Sender{
-            shared: shared,
-            counter: counter,
+            shared: Arc::new(SenderShared {
+                shared: shared,
+                counter: counter,
+            }),
             sender: sender,
         }
     }
 }
 
+fn maybe_notify_receiver(shared : &ArcChannelShared) {
+    let mut lock = shared.lock();
+    let ChannelShared {
+        ref mut sender,
+        ref mut token,
+    } = *lock;
+
+    if let Some(token) = *token {
+        trace!("Sender: notifying {:?}", token);
+        let sender = sender.as_ref().unwrap();
+        sender_retry(&sender, Message::ChannelMsg(token))
+    }
+}
 
 impl<T> Sender<T> {
     /// Deliver `T` to the other end of the channel.
@@ -183,26 +211,12 @@ impl<T> Sender<T> {
     /// This is non-blocking operation.
     pub fn send(&self, t: T) -> Result<(), mpsc::SendError<T>> {
         try!(self.sender.send(t));
-        let prev_counter = self.counter.fetch_add(1, Ordering::SeqCst);
+        let prev_counter = self.shared.counter.fetch_add(1, Ordering::SeqCst);
 
         if prev_counter == 0 {
-            self.maybe_notify_receiver();
+            maybe_notify_receiver(&self.shared.shared);
         }
         Ok(())
-    }
-
-    fn maybe_notify_receiver(&self) {
-        let mut lock = self.shared.lock();
-        let ChannelShared {
-            ref mut sender,
-            ref mut token,
-        } = *lock;
-
-        if let Some(token) = *token {
-            trace!("Sender: notifying {:?}", token);
-            let sender = sender.as_ref().unwrap();
-            sender_retry(&sender, Message::ChannelMsg(token))
-        }
     }
 }
 

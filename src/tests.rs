@@ -337,6 +337,39 @@ fn destructs_io_on_panic() {
 }
 
 #[test]
+fn channel_disconnect_on_sender_drop() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let (sender, receiver) = mioco::sync::mpsc::channel();
+
+            mioco::spawn(move || {
+                assert!(receiver.recv().is_ok());
+                assert!(receiver.recv().is_err());
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+                Ok(())
+            });
+
+            mioco::spawn(move || {
+                sender.send(0usize).unwrap();
+                mioco::sleep(10);
+
+                panic!();
+            });
+
+
+            Ok(())
+        });
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+#[test]
 fn timer_times_out() {
     for &threads in THREADS_N.iter() {
         let finished_ok_1 = Arc::new(Mutex::new(false));
