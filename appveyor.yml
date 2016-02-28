@@ -20,6 +20,7 @@ os: Visual Studio 2015
 #
 # Comment out channel/target combos you do not wish to build in CI.
 environment:
+  RUST_BACKTRACE: 1
   matrix:
 
 ### MSVC Toolchains ###
