@@ -500,12 +500,7 @@ pub struct CoroutineControl {
 impl Drop for CoroutineControl {
     fn drop(&mut self) {
         if !self.was_handled {
-            {
-                let co = self.rc.borrow();
-                co_debug!(co, "kill on drop");
-            }
-            self.rc.borrow_mut().finish();
-            coroutine::jump_in(&self.rc);
+            self.finish();
         }
     }
 }
@@ -915,6 +910,18 @@ pub fn spawn_ext<F>(f: F) -> CoroutineHandle
 {
     let coroutine = tl_coroutine_current();
     CoroutineHandle { coroutine: coroutine.spawn_child(f) }
+}
+
+/// Shutdown current mioco instance
+pub fn shutdown() -> ! {
+    let coroutine = tl_coroutine_current();
+    {
+        let shared = coroutine.handler_shared();
+        shared.broadcast_shutdown();
+    }
+    loop {
+        yield_now();
+    }
 }
 
 /// Returns true when executing inside a mioco coroutine, false otherwise.

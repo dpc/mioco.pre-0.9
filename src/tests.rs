@@ -1281,3 +1281,23 @@ fn mpsc_inside_inside() {
         assert!(*finished_ok2.lock().unwrap());
     }
 }
+
+#[test]
+fn simple_shutdown() {
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, move || {
+            for _ in 0..1024 {
+                mioco::spawn(move || {
+                    loop {
+                        mioco::yield_now();
+                    }
+                });
+            }
+
+            for _ in 0..16 {
+                mioco::yield_now();
+            }
+            mioco::shutdown();
+        });
+    }
+}

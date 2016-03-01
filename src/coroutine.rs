@@ -127,6 +127,13 @@ impl State {
             _ => false,
         }
     }
+    /// Is the `State` `Finished`?
+    pub fn is_finished(&self) -> bool {
+        match *self {
+            State::Finished(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -387,9 +394,7 @@ impl Coroutine {
 
         self.deregister_all(event_loop);
     }
-    pub fn finish(&mut self) {
-        self.state = coroutine::State::Finished(coroutine::ExitStatus::Killed)
-    }
+
 
     pub fn unblock_after_yield(&mut self) {
         self.state = coroutine::State::Ready;
@@ -460,6 +465,20 @@ impl Coroutine {
     }
 }
 
+impl CoroutineControl {
+    /// Finish coroutine
+    pub fn finish(&self) {
+        if !self.rc.borrow().state.is_finished() {
+            {
+                let co = self.rc.borrow();
+                co_debug!(co, "Forcing unwinding");
+            }
+            self.rc.borrow_mut().state = coroutine::State::Finished(coroutine::ExitStatus::Killed);
+            coroutine::jump_in(&self.rc);
+        }
+    }
+}
+
 /// Event delivery point, kept in Handler slab.
 #[derive(Clone)]
 pub struct CoroutineSlabHandle {
@@ -469,6 +488,10 @@ pub struct CoroutineSlabHandle {
 impl CoroutineSlabHandle {
     pub fn new(rc: RcCoroutine) -> Self {
         CoroutineSlabHandle { rc: rc }
+    }
+
+    pub fn as_rc(&self) -> &RcCoroutine {
+        &self.rc
     }
 
     pub fn to_coroutine_control(self) -> CoroutineControl {
@@ -522,7 +545,7 @@ impl CoroutineSlabHandle {
 // TODO: Make part of the Coroutine, using rc_self
 pub fn entry_point(coroutine: &RefCell<Coroutine>) {
     if let State::Finished(ExitStatus::Killed) = coroutine.borrow().state {
-        panic!("Killed externally")
+        panic::propagate(Box::new("Killed externally"))
     }
 }
 

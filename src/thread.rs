@@ -110,6 +110,16 @@ impl HandlerShared {
         self.senders[thread_id].clone()
     }
 
+    pub fn broadcast_shutdown(&self) {
+        thread_debug!(self, "broadcasting shutdown");
+        self.senders.iter().map(|sender| sender_retry(sender, Message::Shutdown)).count();
+    }
+
+    pub fn broadcast_terminate(&self) {
+        thread_debug!(self, "broadcasting termination");
+        self.senders.iter().map(|sender| sender_retry(sender, Message::Terminate)).count();
+    }
+
     pub fn wait_for_start_all(&self) {
         while self.thread_shared.mioco_started.load(Ordering::SeqCst) == 0 {
             std::thread::yield_now()
@@ -131,9 +141,7 @@ impl HandlerShared {
     pub fn coroutines_dec(&self) {
         let prev = self.thread_shared.coroutines_num.fetch_sub(1, Ordering::SeqCst);
         if prev == 1 {
-            let _ : Vec<()> = self.senders.iter().map(|sender| {
-                sender_retry(sender, Message::Terminate)
-            }).collect();
+            self.broadcast_terminate();
         }
         debug_assert!(prev > 0);
     }
@@ -169,6 +177,9 @@ impl HandlerShared {
 pub struct Handler {
     shared: RcHandlerShared,
     scheduler: Box<SchedulerThread + 'static>,
+
+    /// Is this handler in the process of shutting down
+    is_shutting_down : bool,
 }
 
 impl Handler {
@@ -177,6 +188,7 @@ impl Handler {
         Handler {
             shared: shared,
             scheduler: scheduler,
+            is_shutting_down: false,
         }
     }
 
@@ -191,6 +203,7 @@ impl Handler {
         let Handler {
             ref shared,
             ref mut scheduler,
+            ..
         } = *self;
 
         loop {
@@ -215,6 +228,28 @@ impl Handler {
             }
         }
     }
+
+    fn shutdown(&mut self) {
+        self.is_shutting_down = true;
+
+        let len = self.shared.borrow().coroutines.count() +
+            self.shared.borrow().coroutines.remaining();
+
+        for i in coroutine::STARTING_ID.as_usize()..(coroutine::STARTING_ID.as_usize()+len) {
+            self.shutdown_one_coroutine(coroutine::Id::new(i));
+        }
+    }
+
+    fn shutdown_one_coroutine(&mut self, id : coroutine::Id) {
+        let contains = self.shared.borrow().coroutines.contains(id);
+
+        if contains {
+            let co_ctrl = {
+                self.shared.borrow().coroutines.get(id).unwrap().clone().to_coroutine_control()
+            };
+            drop(co_ctrl);
+        }
+    }
 }
 
 /// EventLoop message type
@@ -225,6 +260,8 @@ pub enum Message {
     Migration(CoroutineControl),
     /// Coroutine Panicked
     PropagatePanic(Box<Any + Send + 'static>),
+    /// Stop all coroutines
+    Shutdown,
     /// Terminate event loop
     Terminate,
 }
@@ -237,12 +274,14 @@ impl mio_orig::Handler for Handler {
     type Message = Message;
 
     fn tick(&mut self, event_loop: &mut mio_orig::EventLoop<Self>) {
-        self.scheduler.tick(event_loop);
-        self.deliver_to_scheduler(event_loop);
-        if let Some(timeout) = self.scheduler.timeout() {
-            event_loop.timeout_ms(
-                token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
-                timeout).unwrap();
+        if !self.is_shutting_down {
+            self.scheduler.tick(event_loop);
+            self.deliver_to_scheduler(event_loop);
+            if let Some(timeout) = self.scheduler.timeout() {
+                event_loop.timeout_ms(
+                    token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
+                    timeout).unwrap();
+            }
         }
     }
 
@@ -276,13 +315,21 @@ impl mio_orig::Handler for Handler {
     fn notify(&mut self, event_loop: &mut EventLoop<Handler>, msg: Self::Message) {
         match msg {
             Message::ChannelMsg(token) => self.ready(event_loop, token, EventSet::readable()),
-            Message::Migration(mut coroutine) => {
-                coroutine.reattach_to(event_loop, self);
-                self.scheduler.ready(event_loop, coroutine);
-                self.deliver_to_scheduler(event_loop);
+            Message::Migration(mut co_ctrl) => {
+                co_ctrl.reattach_to(event_loop, self);
+                if !self.is_shutting_down {
+                    self.scheduler.ready(event_loop, co_ctrl);
+                    self.deliver_to_scheduler(event_loop);
+                } else {
+                    drop(co_ctrl);
+                }
             }
             Message::PropagatePanic(cause) => panic::propagate(cause),
-            Message::Terminate => event_loop.shutdown(),
+            Message::Shutdown => self.shutdown(),
+            Message::Terminate => {
+                debug_assert_eq!(self.shared.borrow().thread_shared.coroutines_num.load(Ordering::SeqCst), 0);
+                event_loop.shutdown();
+            }
         }
     }
 
