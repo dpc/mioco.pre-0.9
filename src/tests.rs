@@ -136,6 +136,10 @@ fn empty_subcoroutines() {
     }
 }
 
+fn silent_panic() -> ! {
+    std::panic::propagate(Box::new("explicit panic silented by mioco/src/test.rs"));
+}
+
 #[test]
 fn contain_panics() {
     for &threads in THREADS_N.iter() {
@@ -156,7 +160,9 @@ fn contain_panics_in_subcoroutines() {
         mioco::start_threads(threads, move || {
 
             for _ in 0..512 {
-                mioco::spawn(|| panic!());
+                mioco::spawn(|| {
+                    silent_panic()
+                });
             }
 
             let mut lock = finished_copy.lock().unwrap();
@@ -181,7 +187,7 @@ fn propagate_uncatched_panic() {
         config.set_thread_num(1);
         config
     }).start(|| {
-        panic!()
+        silent_panic()
     });
 }
 
@@ -224,7 +230,7 @@ fn long_chain() {
                 let _ = last_reader.read(&mut buf);
 
                 if &buf[0..5] != test_str.as_str().as_bytes() {
-                    panic!();
+                    silent_panic();
                 }
             }
 
@@ -287,7 +293,7 @@ fn lots_of_event_sources() {
                 let _ = last_reader.read(&mut buf);
 
                 if &buf[0..5] != test_str.as_str().as_bytes() {
-                    panic!();
+                    silent_panic();
                 }
             }
 
@@ -325,7 +331,7 @@ fn destructs_io_on_panic() {
 
             mioco::spawn(move || {
                 let _writer = writer;
-                panic!();
+                silent_panic();
             });
 
 
@@ -358,7 +364,7 @@ fn channel_disconnect_on_sender_drop() {
                 sender.send(0usize).unwrap();
                 mioco::sleep(10);
 
-                panic!();
+                silent_panic();
             });
 
 
@@ -400,7 +406,7 @@ fn channel_disconnect_on_sender_drop_many() {
                         }
 
                         if i % 2 == 0 {
-                            panic!()
+                            silent_panic()
                         } else {
                             Ok(())
                         }
@@ -571,7 +577,9 @@ fn exit_notifier_simple_panic() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || panic!()).exit_notificator();
+            let notify = mioco::spawn_ext(move || {
+                silent_panic()
+            }).exit_notificator();
 
             let notify = notify;
 
@@ -594,7 +602,9 @@ fn exit_notifier_wrap_after_finish() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let handle1 = mioco::spawn_ext(move || panic!());
+            let handle1 = mioco::spawn_ext(move || {
+                silent_panic()
+            });
 
             mioco::sleep(1000);
             let notify1 = handle1.exit_notificator();
