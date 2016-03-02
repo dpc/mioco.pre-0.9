@@ -1,6 +1,6 @@
 use super::{RW, EventSourceId, coroutine};
 use super::thread::Handler;
-use super::{tl_coroutine_current};
+use super::thread::{tl_current_coroutine};
 use super::{token_from_ids};
 use super::mio_orig;
 
@@ -48,7 +48,7 @@ pub trait EventedImpl {
     fn shared(&self) -> &RcEventSource<Self::Raw>;
 
     fn block_on_prv(&self, rw: RW) {
-            let coroutine = tl_coroutine_current();
+            let coroutine = unsafe {tl_current_coroutine()};
             coroutine.block_on(self.shared(), rw);
             coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
             {
@@ -67,7 +67,7 @@ pub trait EventedImpl {
         }
 
         unsafe fn select_add_prv(&self, rw: RW) {
-            let coroutine = tl_coroutine_current();
+            let coroutine = tl_current_coroutine();
 
             if !coroutine.blocked_on.has_remaining() {
                 let count = coroutine.blocked_on.count();

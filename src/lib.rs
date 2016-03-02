@@ -161,6 +161,7 @@ mod coroutine;
 
 pub use thread::Handler;
 use thread::Message;
+use thread::{tl_current_coroutine, tl_current_coroutine_ptr};
 mod thread;
 
 
@@ -831,20 +832,6 @@ impl Config {
     }
 }
 
-// TODO: Technically this leaks unsafe, but only within
-// internals of the module. Any function calling `tl_coroutine_current()`
-// must not pass the reference anywhere outside!
-//
-// It might be possible to use a type system to enforce this. Eg. maybe this
-// should return `Ref` or `RefCell`.
-fn tl_coroutine_current() -> &'static mut Coroutine {
-    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
-    if coroutine == ptr::null_mut() {
-        panic!("mioco API function called outside of coroutine, use `RUST_BACKTRACE=1` to \
-                pinpoint");
-    }
-    unsafe { &mut *coroutine }
-}
 
 /// Start mioco instance.
 ///
@@ -887,7 +874,7 @@ pub fn start_threads<F>(thread_num: usize, f: F)
 pub fn spawn<F>(f: F)
     where F: FnOnce() -> io::Result<()> + Send + 'static
 {
-    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    let coroutine = tl_current_coroutine_ptr();
     if coroutine == ptr::null_mut() {
         std::thread::spawn(|| {
             start(f);
@@ -908,13 +895,13 @@ pub fn spawn<F>(f: F)
 pub fn spawn_ext<F>(f: F) -> CoroutineHandle
     where F: FnOnce() -> io::Result<()> + Send + 'static
 {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
     CoroutineHandle { coroutine: coroutine.spawn_child(f) }
 }
 
 /// Shutdown current mioco instance
 pub fn shutdown() -> ! {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
     {
         let shared = coroutine.handler_shared();
         shared.broadcast_shutdown();
@@ -926,7 +913,7 @@ pub fn shutdown() -> ! {
 
 /// Returns true when executing inside a mioco coroutine, false otherwise.
 pub fn in_coroutine() -> bool {
-    let coroutine = thread::TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow());
+    let coroutine = tl_current_coroutine_ptr();
     coroutine != ptr::null_mut()
 }
 
@@ -949,7 +936,7 @@ pub fn sync<'b, F, R>(f: F) -> R
 
     let f = FakeSend(f);
 
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe{ tl_current_coroutine() };
 
     if coroutine.sync_channel.is_none() {
         let (send, recv) = mpsc::channel();
@@ -977,7 +964,7 @@ pub fn sync<'b, F, R>(f: F) -> R
 
 /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
 pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
     match coroutine.user_data {
         Some(ref arc) => {
             let boxed_any: &Box<Any + Send + Sync> = arc.as_ref();
@@ -990,13 +977,13 @@ pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
 
 /// Sets new user data for the current coroutine
 pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
-    let mut coroutine = tl_coroutine_current();
+    let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.user_data = Some(Arc::new(Box::new(data)));
 }
 
 /// Sets new user data that will inherit to newly spawned coroutines. Use `None` to clear.
 pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>) {
-    let mut coroutine = tl_coroutine_current();
+    let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.inherited_user_data = match data {
         Some(data) => Some(Arc::new(Box::new(data))),
         None => None,
@@ -1009,7 +996,7 @@ pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>
 /// This is useful for load balancing: spawning as many coroutines as
 /// there is handling threads that can run them.
 pub fn thread_num() -> usize {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
 
     coroutine.handler_shared().thread_num()
 }
@@ -1037,7 +1024,7 @@ pub fn sleep(time_ms: i64) {
 ///
 /// Note: named `yield_now` as `yield` is reserved word.
 pub fn yield_now() {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
     coroutine.state = coroutine::State::Yielding;
     co_debug!(coroutine, "yield");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
@@ -1056,7 +1043,7 @@ pub fn yield_now() {
 /// The returned value contains event type and the id of the `EventSource`.
 /// See `EventSource::id()`.
 pub fn select_wait() -> Event {
-    let coroutine = tl_coroutine_current();
+    let coroutine = unsafe { tl_current_coroutine() };
     coroutine.state = coroutine::State::Blocked;
 
     co_debug!(coroutine, "blocked on select");

@@ -1,6 +1,6 @@
 use super::{Event, EventSourceId, RW, coroutine, token_to_ids, sender_retry};
 use super::{CoroutineControl};
-use super::thread::{TL_CURRENT_COROUTINE};
+use super::thread::{tl_current_coroutine_ptr_save, tl_current_coroutine_ptr_restore};
 use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
@@ -549,15 +549,10 @@ pub fn entry_point(coroutine: &RefCell<Coroutine>) {
     }
 }
 
-/// Resume coroutine execution, jumping into it
+/// Resume coroutine execution, jumping into it and unwind it's stack
 // TODO: Make part of the Coroutine, using rc_self
 pub fn jump_in(coroutine: &RefCell<Coroutine>) {
-    let prev = TL_CURRENT_COROUTINE.with(|co| {
-        let mut co = co.borrow_mut();
-        let prev = *co;
-        *co = &mut *coroutine.borrow_mut() as *mut Coroutine;
-        prev
-    });
+    let prev = tl_current_coroutine_ptr_save(&mut *coroutine.borrow_mut() as *mut Coroutine);
 
     {
         let ref mut state = coroutine.borrow_mut().state;
@@ -579,9 +574,7 @@ pub fn jump_in(coroutine: &RefCell<Coroutine>) {
     let t = context.resume(co_ptr);
     coroutine.borrow_mut().context = Some(t.context);
 
-    TL_CURRENT_COROUTINE.with(|co| {
-        *co.borrow_mut() = prev;
-    });
+    tl_current_coroutine_ptr_restore(prev);
 }
 
 /// Block coroutine execution, jumping out of it

@@ -20,8 +20,42 @@ use context;
 /// This reference is used to store a reference to a currently executing
 /// mioco coroutine.
 ///
-/// Should not be used directly, use `tl_coroutine_current()` instead.
-thread_local!(pub static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
+/// Should not be used directly, use `tl_current_coroutine()` instead.
+thread_local!(static TL_CURRENT_COROUTINE: RefCell<*mut Coroutine> = RefCell::new(ptr::null_mut()));
+
+pub fn tl_current_coroutine_ptr() -> *mut Coroutine {
+    TL_CURRENT_COROUTINE.with(|coroutine| *coroutine.borrow())
+}
+
+// TODO: Technically this leaks unsafe, but only within
+// internals of the module. Any function calling `tl_current_coroutine()`
+// must not pass the reference anywhere outside!
+//
+// It might be possible to use a type system to enforce this. Eg. maybe this
+// should return `Ref` or `RefCell`.
+pub unsafe fn tl_current_coroutine() -> &'static mut Coroutine {
+    let coroutine = tl_current_coroutine_ptr();
+    if coroutine == ptr::null_mut() {
+        panic!("mioco API function called outside of coroutine, use `RUST_BACKTRACE=1` to \
+                pinpoint");
+    }
+    &mut *coroutine
+}
+
+pub fn tl_current_coroutine_ptr_save(co_ptr : *mut Coroutine) -> *mut Coroutine {
+    TL_CURRENT_COROUTINE.with(|co| {
+        let mut co = co.borrow_mut();
+        let prev = *co;
+        *co = co_ptr;
+        prev
+    })
+}
+
+pub fn tl_current_coroutine_ptr_restore(co_ptr : *mut Coroutine) {
+    TL_CURRENT_COROUTINE.with(|co| {
+        *co.borrow_mut() = co_ptr;
+    })
+}
 
 /// Can send `Message` to the mioco thread.
 pub type MioSender =
