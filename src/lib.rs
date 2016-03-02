@@ -501,7 +501,7 @@ pub struct CoroutineControl {
 impl Drop for CoroutineControl {
     fn drop(&mut self) {
         if !self.was_handled {
-            self.finish();
+            self.kill();
         }
     }
 }
@@ -521,19 +521,14 @@ impl CoroutineControl {
     pub fn resume(mut self, event_loop: &mut EventLoop<thread::Handler>) {
         self.was_handled = true;
         let co_rc = self.rc.clone();
-        let is_ready = co_rc.borrow().state().is_ready();
-        if is_ready {
-            coroutine::jump_in(&co_rc);
-            self.after_resume(event_loop);
-        } else {
-            panic!("Tried to resume Coroutine that is not ready");
-        }
+        debug_assert!(co_rc.borrow().state().is_ready());
+
+        coroutine::jump_in(&co_rc);
+        self.after_resume(event_loop);
     }
 
     /// After `resume()` (or ignored event()) we need to perform the following maintenance
     fn after_resume(&self, event_loop: &mut EventLoop<thread::Handler>) {
-        // Take care of newly spawned child-coroutines: start them now
-        debug_assert!(!self.rc.borrow().state().is_running());
 
         self.rc.borrow_mut().register_all(event_loop);
         self.rc.borrow_mut().start_children();
@@ -1028,8 +1023,6 @@ pub fn yield_now() {
     coroutine.state = coroutine::State::Yielding;
     co_debug!(coroutine, "yield");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
-    coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
-    debug_assert!(coroutine.state.is_running());
 }
 
 /// Wait till an event is ready
@@ -1049,9 +1042,7 @@ pub fn select_wait() -> Event {
     co_debug!(coroutine, "blocked on select");
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 
-    coroutine::entry_point(&coroutine.self_rc.as_ref().unwrap());
     co_debug!(coroutine, "select ret={:?}", coroutine.last_event);
-    debug_assert!(coroutine.state.is_running());
     let e = coroutine.last_event;
     e
 }

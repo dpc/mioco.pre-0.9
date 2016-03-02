@@ -80,6 +80,7 @@ impl ExitStatus {
     }
 }
 
+
 /// State of `mioco` coroutine
 #[derive(Clone, Debug)]
 pub enum State {
@@ -87,11 +88,9 @@ pub enum State {
     Blocked,
     /// Yielding
     Yielding,
-    /// Currently running
-    Running,
     /// Ready to be started
     Ready,
-    /// Finished
+    /// Done
     Finished(ExitStatus),
 }
 
@@ -100,14 +99,6 @@ impl State {
     pub fn is_ready(&self) -> bool {
         match *self {
             State::Ready => true,
-            _ => false,
-        }
-    }
-
-    /// Is the `State` `Running`?
-    pub fn is_running(&self) -> bool {
-        match *self {
-            State::Running => true,
             _ => false,
         }
     }
@@ -124,13 +115,6 @@ impl State {
     pub fn is_yielding(&self) -> bool {
         match *self {
             State::Yielding => true,
-            _ => false,
-        }
-    }
-    /// Is the `State` `Finished`?
-    pub fn is_finished(&self) -> bool {
-        match *self {
-            State::Finished(_) => true,
             _ => false,
         }
     }
@@ -217,6 +201,19 @@ pub struct Coroutine {
 
     /// Userdata meant for inheritance
     pub inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
+
+    /// Force exit
+    killed : bool,
+}
+
+extern "C" fn unwind_stack(t : context::Transfer) -> context::Transfer {
+    {
+        let coroutine: &mut Coroutine = unsafe { mem::transmute(t.data) };
+        let mut o_c = coroutine.out_context();
+        *o_c = Some(t.context);
+    }
+
+    panic::propagate(Box::new("Killed externally"))
 }
 
 impl Coroutine {
@@ -246,6 +243,7 @@ impl Coroutine {
             coroutines.insert_with(|id| {
                           let coroutine = Coroutine {
                               state: State::Ready,
+                              killed: false,
                               id: id,
                               last_event: Event {
                                   rw: RW::read(),
@@ -274,7 +272,6 @@ impl Coroutine {
 
         coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
 
-
         extern "C" fn init_fn(t : context::Transfer) -> ! {
             let data = t.data;
 
@@ -288,8 +285,11 @@ impl Coroutine {
                 let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
                 co_debug!(coroutine, "started");
 
-                entry_point(coroutine.self_rc.as_ref().unwrap());
                 let f = coroutine.coroutine_func.take().unwrap();
+
+                if coroutine.killed {
+                    panic::propagate(Box::new("Killed externally"))
+                }
 
                 f.call_box(())
             }
@@ -319,22 +319,22 @@ impl Coroutine {
                         .map(|end| end.send(ExitStatus::Exit(arc_res.clone())))
                         .count();
                     coroutine.state = State::Finished(ExitStatus::Exit(arc_res));
-
                 }
                 Err(cause) => {
                     if config.catch_panics {
                         co_debug!(coroutine, "panicked: {:?}", cause.downcast::<&str>());
-                        if let State::Finished(ExitStatus::Killed) = coroutine.state {
+                        if coroutine.killed {
                             coroutine.exit_notificators
                                 .iter()
                                 .map(|end| end.send(ExitStatus::Killed))
                                 .count();
+                            coroutine.state = State::Finished(ExitStatus::Killed);
                         } else {
-                            coroutine.state = State::Finished(ExitStatus::Panic);
                             coroutine.exit_notificators
                                 .iter()
                                 .map(|end| end.send(ExitStatus::Panic))
                                 .count();
+                            coroutine.state = State::Finished(ExitStatus::Panic);
                         }
                     } else {
                         //send fail here instead with the internal reason, so the user may get a nice backtrace
@@ -463,19 +463,19 @@ impl Coroutine {
     pub fn out_context(&self) -> RefMut<Option<context::Context>> {
         RefMut::map(self.handler_shared.as_ref().unwrap().borrow_mut(), |h| &mut h.context)
     }
+
+    pub fn was_running_before(&self) -> bool {
+        self.coroutine_func.is_none()
+    }
 }
 
 impl CoroutineControl {
     /// Finish coroutine
-    pub fn finish(&self) {
-        if !self.rc.borrow().state.is_finished() {
-            {
-                let co = self.rc.borrow();
-                co_debug!(co, "Forcing unwinding");
-            }
-            self.rc.borrow_mut().state = coroutine::State::Finished(coroutine::ExitStatus::Killed);
-            coroutine::jump_in(&self.rc);
+    pub fn kill(&self) {
+        {
+            self.rc.borrow_mut().killed = true;
         }
+        coroutine::jump_in(&self.rc);
     }
 }
 
@@ -510,7 +510,7 @@ impl CoroutineSlabHandle {
 
         if !self.rc.borrow().state().is_blocked() {
             // subsequent event to coroutine that is either already
-            // Finished, or Ready
+            // Exiting, or Ready
             return false;
         }
 
@@ -541,37 +541,46 @@ impl CoroutineSlabHandle {
     }
 }
 
-/// Coroutine entry point checks
-// TODO: Make part of the Coroutine, using rc_self
-pub fn entry_point(coroutine: &RefCell<Coroutine>) {
-    if let State::Finished(ExitStatus::Killed) = coroutine.borrow().state {
-        panic::propagate(Box::new("Killed externally"))
-    }
-}
-
-/// Resume coroutine execution, jumping into it and unwind it's stack
+/// Resume coroutine execution, jumping into it
 // TODO: Make part of the Coroutine, using rc_self
 pub fn jump_in(coroutine: &RefCell<Coroutine>) {
-    let prev = tl_current_coroutine_ptr_save(&mut *coroutine.borrow_mut() as *mut Coroutine);
 
     {
-        let ref mut state = coroutine.borrow_mut().state;
-        match *state {
-            State::Ready => {
-                *state = State::Running;
-            }
-            State::Finished(ExitStatus::Killed) => {}
-            ref state => panic!("coroutine_jump_in: wrong state {:?}", state),
+        let state = coroutine.borrow_mut().state.clone();
+        match state {
+            State::Ready => {},
+            State::Finished(_) => { return }
+            ref state => panic!("coroutine::jump_in: wrong state {:?}", state),
         }
     }
+
+    let (prev, co_ptr) = {
+        let co_ptr = { &mut *coroutine.borrow_mut() as *mut Coroutine };
+        let prev = tl_current_coroutine_ptr_save(co_ptr);
+        let co_ptr : usize = unsafe { mem::transmute(co_ptr) };
+        (prev, co_ptr)
+    };
 
     {
         let co = coroutine.borrow();
         co_debug!(co, "resuming");
     }
-    let co_ptr : usize = unsafe {mem::transmute( &*coroutine.borrow() as *const Coroutine)};
-    let context = coroutine.borrow_mut().context.take().unwrap();
-    let t = context.resume(co_ptr);
+
+    let (context, was_running_before, killed) = {
+        let mut co = coroutine.borrow_mut();
+        (
+            co.context.take().unwrap(),
+            co.was_running_before(),
+            co.killed,
+        )
+    };
+
+    let t = if killed && was_running_before {
+        context.resume_ontop(co_ptr, unwind_stack)
+    } else {
+        context.resume(co_ptr)
+    };
+
     coroutine.borrow_mut().context = Some(t.context);
 
     tl_current_coroutine_ptr_restore(prev);
