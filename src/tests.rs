@@ -1301,3 +1301,24 @@ fn simple_shutdown() {
         });
     }
 }
+
+#[test]
+fn empty_shutdown() {
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, move || {
+            mioco::shutdown();
+        });
+    }
+}
+
+#[test]
+fn empty_shutdown_2() {
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, move || {
+            for _ in 0..16 {
+                mioco::spawn(move || { Ok(()) });
+            }
+            mioco::shutdown();
+        });
+    }
+}
