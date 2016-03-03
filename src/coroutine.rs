@@ -546,8 +546,7 @@ impl CoroutineSlabHandle {
 pub fn jump_in(coroutine: &RefCell<Coroutine>) {
 
     {
-        let state = coroutine.borrow_mut().state.clone();
-        match state {
+        match coroutine.borrow_mut().state {
             State::Ready => {},
             State::Finished(_) => { return }
             ref state => panic!("coroutine::jump_in: wrong state {:?}", state),
