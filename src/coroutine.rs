@@ -183,7 +183,7 @@ pub struct Coroutine {
     pub id: Id,
 
     /// All event sources the coroutine is blocked on
-    pub blocked_on: slab::Slab<Box<RcEventSourceTrait + 'static>, EventSourceId>,
+    pub blocked_on: Vec<Box<RcEventSourceTrait + 'static>>,
 
     /// Newly spawned `Coroutine`-es
     pub children_to_start: Vec<RcCoroutine>,
@@ -253,7 +253,7 @@ impl Coroutine {
                               stack: stack,
                               handler_shared: Some(handler_shared.clone()),
                               exit_notificators: Vec::new(),
-                              blocked_on: slab::Slab::new(4),
+                              blocked_on: Vec::with_capacity(4),
                               children_to_start: Vec::new(),
                               coroutine_func: Some(Box::new(f)),
                               self_rc: None,
@@ -379,13 +379,17 @@ impl Coroutine {
     pub fn block_on<T>(&mut self, event_source : &RcEventSource<T>, rw: RW)
         where T: EventSourceTrait + 'static
     {
+
         co_debug!(self, "blocked on {:?}", rw);
         self.state = coroutine::State::Blocked;
-        self.blocked_on.insert_with(|id| {
-            event_source.common_mut().id = Some(id);
-            event_source.common_mut().blocked_on = rw;
-            event_source.to_trait()
-        });
+        let id = self.blocked_on.len();
+
+        {
+            let mut common = &mut event_source.common_mut();
+            common.id = Some(EventSourceId::new(id));
+            common.blocked_on = rw;
+        }
+        self.blocked_on.push(event_source.to_trait());
     }
 
     pub fn unblock(&mut self, event_loop: &mut EventLoop<Handler>, event : Event) {
@@ -406,10 +410,9 @@ impl Coroutine {
 
     // TODO: Make priv.
     pub fn deregister_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.blocked_on.iter_mut() {
+        for mut io in self.blocked_on.drain(..) {
             io.deregister(event_loop, self.id);
         }
-        self.blocked_on.clear();
     }
 
     // TODO: Make priv.
