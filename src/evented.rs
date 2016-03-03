@@ -67,19 +67,14 @@ pub trait EventedImpl {
 
         unsafe fn select_add_prv(&self, rw: RW) {
             let coroutine = tl_current_coroutine();
-
-            if !coroutine.blocked_on.has_remaining() {
-                let count = coroutine.blocked_on.count();
-                coroutine.blocked_on.grow(count);
+            let id = coroutine.blocked_on.len();
+            let shared = self.shared();
+            {
+                let mut common = &mut shared.0.borrow_mut().common;
+                common.id = Some(EventSourceId::new(id));
+                common.blocked_on = rw;
             }
-
-            coroutine.blocked_on
-                .insert_with(|id| {
-                    self.shared().0.borrow_mut().common.id = Some(id);
-                    self.shared().0.borrow_mut().common.blocked_on = rw;
-                    self.shared().to_trait()
-                })
-            .unwrap();
+            coroutine.blocked_on.push(shared.to_trait());
         }
 }
 

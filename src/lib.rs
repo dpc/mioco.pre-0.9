@@ -299,6 +299,10 @@ fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
 pub struct EventSourceId(usize);
 
 impl EventSourceId {
+    fn new(id : usize) -> Self {
+        EventSourceId(id)
+    }
+
     fn as_usize(&self) -> usize {
         self.0
     }
