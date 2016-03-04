@@ -21,16 +21,16 @@ name = "mioco"
 path = "src/lib.rs"
 
 [dependencies]
-nix = "*"
-log = "*"
-spin = "*"
-time = "*"
-mio = "*"
-num_cpus = "*"
-libc = "^0.1.10"
-thread-scoped = "*"
-context = { git = "https://github.com/zonyitoo/context-rs.git", branch="1.0" }
-slab = "*"
+nix = "0.5.*"
+log = "0.3.5"
+spin = "0.3.5"
+time = "0.1.34"
+mio = "0.5.*"
+num_cpus = "0.2.*"
+libc = "0.1.*"
+thread-scoped = "1.0.*"
+context = "1.0.*"
+slab = "0.1.3"
 
 [dev-dependencies]
 env_logger = "*"

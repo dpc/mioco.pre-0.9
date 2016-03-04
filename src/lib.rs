@@ -41,7 +41,6 @@
 #![feature(std_panic)]
 #![feature(panic_propagate)]
 #![feature(fnbox)]
-#![feature(cell_extras)]
 #![feature(as_unsafe_cell)]
 #![feature(reflect_marker)]
 #![warn(missing_docs)]
