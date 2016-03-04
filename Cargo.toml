@@ -33,6 +33,6 @@ context = "1.0.*"
 slab = "0.1.3"
 
 [dev-dependencies]
-env_logger = "*"
-httparse = "*"
+env_logger = "0.3.*"
+httparse = "1.1.*"
 net2 = "0.2.21"
