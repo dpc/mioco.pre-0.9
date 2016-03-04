@@ -2,7 +2,10 @@
 
 <p align="center">
   <a href="https://travis-ci.org/dpc/mioco">
-      <img src="https://img.shields.io/travis/dpc/mioco/master.svg?style=flat-square" alt="Build Status">
+      <img src="https://img.shields.io/travis/dpc/mioco/master.svg?style=flat-square" alt="Travis CI Build Status">
+  </a>
+  <a href="https://ci.appveyor.com/project/dpc/mioco/branch/master">
+      <img src="https://ci.appveyor.com/api/projects/status/p5rjfbqw2a3pxc4o/branch/master?svg=true" alt="App Veyor Build Status">
   </a>
   <a href="https://crates.io/crates/mioco">
       <img src="http://meritbadge.herokuapp.com/mioco?style=flat-square" alt="crates.io">
