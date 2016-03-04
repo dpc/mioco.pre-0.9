@@ -898,6 +898,10 @@ pub fn spawn_ext<F>(f: F) -> CoroutineHandle
 }
 
 /// Shutdown current mioco instance
+///
+/// Call from inside of a mioco instance to shut it down.
+/// All existing coroutines will be forced in to panic, and
+/// their stack unwind.
 pub fn shutdown() -> ! {
     let coroutine = unsafe { tl_current_coroutine() };
     {
