@@ -1,7 +1,7 @@
 use super::{RW, EventSourceId, coroutine};
 use super::thread::Handler;
-use super::thread::{tl_current_coroutine};
-use super::{token_from_ids};
+use super::thread::tl_current_coroutine;
+use super::token_from_ids;
 use super::mio_orig;
 
 use super::mio_orig::{EventLoop, Token, EventSet};
@@ -48,57 +48,57 @@ pub trait EventedImpl {
     fn shared(&self) -> &RcEventSource<Self::Raw>;
 
     fn block_on_prv(&self, rw: RW) {
-            let coroutine = unsafe {tl_current_coroutine()};
-            coroutine.block_on(self.shared(), rw);
-            coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
-            {
-                co_debug!(coroutine, "resumed due to event {:?}", coroutine.last_event);
-                debug_assert!(rw.has_read() || coroutine.last_event.has_write());
-                debug_assert!(rw.has_write() || coroutine.last_event.has_read());
-                debug_assert!(coroutine.last_event.id().as_usize() ==
-                              self.shared().0.borrow().common.id.unwrap().as_usize());
-            }
+        let coroutine = unsafe { tl_current_coroutine() };
+        coroutine.block_on(self.shared(), rw);
+        coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
+        {
+            co_debug!(coroutine, "resumed due to event {:?}", coroutine.last_event);
+            debug_assert!(rw.has_read() || coroutine.last_event.has_write());
+            debug_assert!(rw.has_write() || coroutine.last_event.has_read());
+            debug_assert!(coroutine.last_event.id().as_usize() ==
+                          self.shared().0.borrow().common.id.unwrap().as_usize());
         }
+    }
 
-        /// Index id of a `EventSource`
-        fn id_prv(&self) -> EventSourceId {
-            self.shared().0.borrow().common.id.unwrap()
-        }
+    /// Index id of a `EventSource`
+    fn id_prv(&self) -> EventSourceId {
+        self.shared().0.borrow().common.id.unwrap()
+    }
 
-        unsafe fn select_add_prv(&self, rw: RW) {
-            let coroutine = tl_current_coroutine();
-            let id = coroutine.blocked_on.len();
-            let shared = self.shared();
-            {
-                let mut common = &mut shared.0.borrow_mut().common;
-                common.id = Some(EventSourceId::new(id));
-                common.blocked_on = rw;
-            }
-            coroutine.blocked_on.push(shared.to_trait());
+    unsafe fn select_add_prv(&self, rw: RW) {
+        let coroutine = tl_current_coroutine();
+        let id = coroutine.blocked_on.len();
+        let shared = self.shared();
+        {
+            let mut common = &mut shared.0.borrow_mut().common;
+            common.id = Some(EventSourceId::new(id));
+            common.blocked_on = rw;
         }
+        coroutine.blocked_on.push(shared.to_trait());
+    }
 }
 
 // All mioco IO functions are guaranteed to not keep any references to
 // `Evented` structs after return. `Rc` is used only when coroutine
 // is blocked - meaning it is not using it.
-unsafe impl<T> Send for MioAdapter<T>
-where T: mio_orig::Evented + Send {}
+unsafe impl<T> Send for MioAdapter<T> where T: mio_orig::Evented + Send
+{}
 
 /// Adapt raw `mio` type to mioco `Evented` requirements.
 ///
 /// See source of `src/tcp.rs` for example of usage.
 pub struct MioAdapter<MT>(RcEventSource<MT>);
 
-impl<MT> MioAdapter<MT>
-where MT : mio_orig::Evented+'static {
+impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static
+{
     /// Create `MioAdapter` from raw mio type.
-    pub fn new(mio_type : MT) -> Self {
+    pub fn new(mio_type: MT) -> Self {
         MioAdapter(RcEventSource::new(mio_type))
     }
 }
 
-impl<MT> EventedImpl for MioAdapter<MT>
-where MT : mio_orig::Evented+'static {
+impl<MT> EventedImpl for MioAdapter<MT> where MT: mio_orig::Evented + 'static
+{
     type Raw = MT;
 
     fn shared(&self) -> &RcEventSource<Self::Raw> {
@@ -106,8 +106,8 @@ where MT : mio_orig::Evented+'static {
     }
 }
 
-impl<MT> MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryRead {
+impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryRead
+{
     /// Try reading data into a buffer.
     ///
     /// This will not block.
@@ -116,8 +116,8 @@ where MT : mio_orig::Evented+'static + mio_orig::TryRead {
     }
 }
 
-impl<MT> io::Read for MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryRead {
+impl<MT> io::Read for MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryRead
+{
     /// Block on read.
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         loop {
@@ -134,8 +134,8 @@ where MT : mio_orig::Evented+'static + mio_orig::TryRead {
     }
 }
 
-impl<MT> MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
+impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
+{
     /// Try writing a data from the buffer.
     ///
     /// This will not block.
@@ -144,8 +144,8 @@ where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
     }
 }
 
-impl<MT> io::Write for MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
+impl<MT> io::Write for MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
+{
     /// Block on write.
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         loop {
@@ -168,8 +168,8 @@ where MT : mio_orig::Evented+'static + mio_orig::TryWrite {
 }
 
 impl<MT, O> MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
-      O : mio_orig::Evented+'static
+    where MT: mio_orig::Evented + 'static + mio_orig::TryAccept<Output = O>,
+          O: mio_orig::Evented + 'static
 {
     /// Attempt to accept a pending connection.
     ///
@@ -177,14 +177,14 @@ where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
     pub fn try_accept(&self) -> io::Result<Option<MioAdapter<O>>> {
         self.shared()
             .io_ref()
-            .accept() // This is `try_accept`, see https://github.com/carllerche/mio/issues/355
+            .accept()
             .map(|t| t.map(|t| MioAdapter::new(t)))
     }
 }
 
 impl<MT, O> MioAdapter<MT>
-where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
-      O : mio_orig::Evented+'static
+    where MT: mio_orig::Evented + 'static + mio_orig::TryAccept<Output = O>,
+          O: mio_orig::Evented + 'static
 {
     /// Block on accepting a connection.
     pub fn accept(&self) -> io::Result<MioAdapter<O>> {
@@ -203,28 +203,27 @@ where MT : mio_orig::Evented+'static + mio_orig::TryAccept<Output=O>,
     }
 }
 
-//    type Output = MioAdapter<MT::Output>;
+// type Output = MioAdapter<MT::Output>;
 #[cfg(not(windows))]
-impl<MT> FromRawFd for MioAdapter<MT>
-where MT : mio_orig::Evented+'static + FromRawFd {
+impl<MT> FromRawFd for MioAdapter<MT> where MT: mio_orig::Evented + 'static + FromRawFd
+{
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         MioAdapter(RcEventSource::new(MT::from_raw_fd(fd)))
     }
 }
 
 #[cfg(not(windows))]
-impl<MT> AsRawFd for MioAdapter<MT>
-where MT : mio_orig::Evented+'static + AsRawFd {
+impl<MT> AsRawFd for MioAdapter<MT> where MT: mio_orig::Evented + 'static + AsRawFd
+{
     fn as_raw_fd(&self) -> RawFd {
         self.shared().0.borrow_mut().io.as_raw_fd()
     }
 }
 
 impl<R, EP> Evented for EP
-where
-EP : EventedImpl<Raw=R>,
-R : EventSourceTrait+'static {
-
+    where EP: EventedImpl<Raw = R>,
+          R: EventSourceTrait + 'static
+{
     unsafe fn select_add(&self, rw: RW) {
         EventedImpl::select_add_prv(self, rw)
     }

@@ -19,23 +19,20 @@ struct FakePipeReader(mioco::sync::mpsc::Receiver<u8>);
 struct FakePipeWriter(mioco::sync::mpsc::Sender<u8>);
 
 #[cfg(windows)]
-impl Read for FakePipeReader
-{
+impl Read for FakePipeReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut i = 0;
         loop {
             if i >= buf.len() {
                 return Ok(i);
             }
-            if let Ok(byte) =
-                if i == 0 {
-                    self.0.recv()
-                } else {
-                    // no matter if disconnected or empty: we will just
-                    // return Ok(i)
-                    self.0.try_recv().map_err(|_| std::sync::mpsc::RecvError)
-                }
-            {
+            if let Ok(byte) = if i == 0 {
+                self.0.recv()
+            } else {
+                // no matter if disconnected or empty: we will just
+                // return Ok(i)
+                self.0.try_recv().map_err(|_| std::sync::mpsc::RecvError)
+            } {
                 buf[i] = byte;
                 i += 1;
             } else {
@@ -46,8 +43,7 @@ impl Read for FakePipeReader
 }
 
 #[cfg(windows)]
-impl ::evented::EventedImpl for FakePipeReader
-{
+impl ::evented::EventedImpl for FakePipeReader {
     type Raw = <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
 
     fn shared(&self) -> &::evented::RcEventSource<<mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw> {
@@ -56,33 +52,27 @@ impl ::evented::EventedImpl for FakePipeReader
 }
 
 #[cfg(windows)]
-impl Write for FakePipeWriter
-{
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize>
-    {
+impl Write for FakePipeWriter {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let len = buf.len();
-        for i in 0..len
-        {
+        for i in 0..len {
             let _ = self.0.send(buf[i].clone());
         }
         Ok(len)
     }
 
-    fn flush(&mut self) -> io::Result<()>
-    {
+    fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }
 }
 
 #[cfg(not(windows))]
-fn pipe() -> (mioco::unix::PipeReader, mioco::unix::PipeWriter)
-{
+fn pipe() -> (mioco::unix::PipeReader, mioco::unix::PipeWriter) {
     mioco::unix::pipe().unwrap()
 }
 
 #[cfg(windows)]
-fn pipe() -> (FakePipeReader, FakePipeWriter)
-{
+fn pipe() -> (FakePipeReader, FakePipeWriter) {
     let (tx, rx) = mioco::sync::mpsc::channel();
     (FakePipeReader(rx), FakePipeWriter(tx))
 }
@@ -160,9 +150,7 @@ fn contain_panics_in_subcoroutines() {
         mioco::start_threads(threads, move || {
 
             for _ in 0..512 {
-                mioco::spawn(|| {
-                    silent_panic()
-                });
+                mioco::spawn(|| silent_panic());
             }
 
             let mut lock = finished_copy.lock().unwrap();
@@ -179,16 +167,15 @@ fn contain_panics_in_subcoroutines() {
 #[should_panic]
 #[cfg(debug_assertions)] //optimizations seem to let this test fail. lets disable that for now.
 fn propagate_uncatched_panic() {
-    use ::{Mioco, Config};
+    use {Mioco, Config};
 
     Mioco::new_configured({
         let mut config = Config::new();
         config.set_catch_panics(false);
         config.set_thread_num(1);
         config
-    }).start(|| {
-        silent_panic()
-    });
+    })
+        .start(|| silent_panic());
 }
 
 #[test]
@@ -384,7 +371,7 @@ fn channel_disconnect_on_sender_drop_many() {
         mioco::start_threads(threads, move || {
 
             let (sender, receiver) = mioco::sync::mpsc::channel();
-            const HOW_MANY : usize = 10;
+            const HOW_MANY: usize = 10;
 
             mioco::spawn(move || {
                 for _ in 0..HOW_MANY {
@@ -577,9 +564,7 @@ fn exit_notifier_simple_panic() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || {
-                silent_panic()
-            }).exit_notificator();
+            let notify = mioco::spawn_ext(move || silent_panic()).exit_notificator();
 
             let notify = notify;
 
@@ -602,9 +587,7 @@ fn exit_notifier_wrap_after_finish() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let handle1 = mioco::spawn_ext(move || {
-                silent_panic()
-            });
+            let handle1 = mioco::spawn_ext(move || silent_panic());
 
             mioco::sleep(1000);
             let notify1 = handle1.exit_notificator();
@@ -902,7 +885,7 @@ fn million_coroutines() {
 
     unsafe {
         config.set_stack_size(1024 * 16)
-            .set_stack_protection(false);
+              .set_stack_protection(false);
         config.event_loop().timer_wheel_size(1024 * 256);
     }
 
@@ -1042,7 +1025,9 @@ fn tcp_basic_client_server() {
                     SocketAddr::V4(..) => TcpBuilder::new_v4(),
                     SocketAddr::V6(..) => TcpBuilder::new_v6(),
                 });
-                let stream = mioco::tcp::TcpStream::connect_stream(try!(sock.to_tcp_stream()), &addr).unwrap();
+                let stream = mioco::tcp::TcpStream::connect_stream(try!(sock.to_tcp_stream()),
+                                                                   &addr)
+                                 .unwrap();
                 stream.try_write(b"Hello world").unwrap().unwrap();
                 Ok(())
             });
@@ -1212,7 +1197,7 @@ fn in_coroutine_false() {
 fn mpsc_outside_outside() {
     let (tx1, rx1) = mioco::sync::mpsc::channel();
     let (tx2, rx2) = mioco::sync::mpsc::channel();
-    thread::spawn(move|| {
+    thread::spawn(move || {
         for i in 0..10 {
             tx1.send(i).unwrap();
             assert_eq!(rx2.recv().unwrap(), i);
@@ -1229,7 +1214,7 @@ fn mpsc_outside_outside() {
 fn mpsc_inside_outside() {
     let (tx1, rx1) = mioco::sync::mpsc::channel();
     let (tx2, rx2) = mioco::sync::mpsc::channel();
-    mioco::spawn(move|| {
+    mioco::spawn(move || {
         for i in 0..10 {
             tx1.send(i).unwrap();
             assert_eq!(rx2.recv().unwrap(), i);
@@ -1256,7 +1241,7 @@ fn mpsc_inside_inside() {
         let finished_copy2 = finished_ok2.clone();
 
         mioco::start_threads(threads, move || {
-            mioco::spawn(move|| {
+            mioco::spawn(move || {
                 for i in 0..10 {
                     tx1.send(i).unwrap();
                     assert_eq!(rx2.recv().unwrap(), i);
@@ -1265,7 +1250,7 @@ fn mpsc_inside_inside() {
                 *lock = true;
                 Ok(())
             });
-            mioco::spawn(move|| {
+            mioco::spawn(move || {
                 for i in 0..10 {
                     assert_eq!(rx1.recv().unwrap(), i);
                     tx2.send(i).unwrap();
@@ -1339,7 +1324,7 @@ fn empty_shutdown_2() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, move || {
             for _ in 0..16 {
-                mioco::spawn(move || { Ok(()) });
+                mioco::spawn(move || Ok(()));
             }
             mioco::shutdown();
         });

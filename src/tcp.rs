@@ -35,8 +35,7 @@ impl TcpListener {
 
     /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
     pub fn from_listener(listener: std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::from_listener(listener, addr)
-            .map(|t| MioAdapter::new(t))
+        mio_orig::tcp::TcpListener::from_listener(listener, addr).map(|t| MioAdapter::new(t))
     }
 }
 

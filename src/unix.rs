@@ -1,9 +1,9 @@
-use super::{RW,};
+use super::RW;
 use super::evented::{RcEventSource, Evented, EventedImpl, MioAdapter};
 use std::io;
 use super::mio_orig;
 use std::path::Path;
-use std::os::unix::io::{RawFd};
+use std::os::unix::io::RawFd;
 
 /// Unix pipe reader
 pub type PipeReader = MioAdapter<mio_orig::unix::PipeReader>;
@@ -130,7 +130,6 @@ impl UnixStream {
 pub fn pipe() -> io::Result<(PipeReader, PipeWriter)> {
     let (raw_reader, raw_writer) = try!(mio_orig::unix::pipe());
 
-    Ok((MioAdapter::new(raw_reader),
-        MioAdapter::new(raw_writer)))
+    Ok((MioAdapter::new(raw_reader), MioAdapter::new(raw_writer)))
 
 }

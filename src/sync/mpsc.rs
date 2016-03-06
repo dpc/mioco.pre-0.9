@@ -24,9 +24,9 @@ struct ChannelShared {
 pub struct Receiver<T>(RcEventSource<ReceiverCore<T>>);
 
 struct ReceiverCore<T> {
-    receiver : mpsc::Receiver<T>,
-    shared : ArcChannelShared,
-    counter : ArcCounter,
+    receiver: mpsc::Receiver<T>,
+    shared: ArcChannelShared,
+    counter: ArcCounter,
 }
 
 impl<T> EventedImpl for Receiver<T> where T: 'static
@@ -48,8 +48,7 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         lock.sender = Some(event_loop.channel());
 
         if self.counter.load(Ordering::SeqCst) != 0 {
-            trace!("Receiver({}): not empty; self notify",
-                   token.as_usize());
+            trace!("Receiver({}): not empty; self notify", token.as_usize());
             lock.token = None;
             let sender = lock.sender.clone().unwrap();
             // don't loop holding a lock
@@ -84,7 +83,7 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
 }
 
 impl<T> Receiver<T> {
-    fn new(shared: ArcChannelShared, counter : ArcCounter, receiver : mpsc::Receiver<T>) -> Self {
+    fn new(shared: ArcChannelShared, counter: ArcCounter, receiver: mpsc::Receiver<T>) -> Self {
         let core = ReceiverCore {
             shared: shared,
             counter: counter,
@@ -108,9 +107,7 @@ impl<T> Receiver<T> where T: 'static
                 match recv {
                     Err(mpsc::TryRecvError::Empty) => self.block_on(RW::read()),
                     Err(mpsc::TryRecvError::Disconnected) => return Err(mpsc::RecvError),
-                    Ok(t) => {
-                        return Ok(t)
-                    },
+                    Ok(t) => return Ok(t),
                 }
                 debug_assert!(self.empty_shared_token());
             }
@@ -143,8 +140,8 @@ impl<T> Receiver<T> where T: 'static
 }
 
 struct SenderShared {
-    shared : ArcChannelShared,
-    counter : ArcCounter,
+    shared: ArcChannelShared,
+    counter: ArcCounter,
 }
 
 impl Drop for SenderShared {
@@ -178,8 +175,8 @@ impl<T> Clone for Sender<T> {
 }
 
 impl<T> Sender<T> {
-    fn new(shared: ArcChannelShared, counter : ArcCounter, sender: mpsc::Sender<T>) -> Self {
-        Sender{
+    fn new(shared: ArcChannelShared, counter: ArcCounter, sender: mpsc::Sender<T>) -> Self {
+        Sender {
             shared: Arc::new(SenderShared {
                 shared: shared,
                 counter: counter,
@@ -189,7 +186,7 @@ impl<T> Sender<T> {
     }
 }
 
-fn maybe_notify_receiver(shared : &ArcChannelShared) {
+fn maybe_notify_receiver(shared: &ArcChannelShared) {
     let mut lock = shared.lock();
     let ChannelShared {
         ref mut sender,
@@ -229,7 +226,7 @@ impl<T> Sender<T> {
 ///
 /// When receiving end is outside of coroutine, channel will behave just
 /// like `std::sync::mpsc::channel()`.
-pub fn channel <T>() -> (Sender<T>, Receiver<T>) {
+pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
     let shared = ChannelShared {
         token: None,
         sender: None,
@@ -239,10 +236,8 @@ pub fn channel <T>() -> (Sender<T>, Receiver<T>) {
 
     let counter = Arc::new(AtomicUsize::new(0));
     let (sender, receiver) = mpsc::channel();
-    (
-        Sender::new(shared.clone(), counter.clone(), sender),
-        Receiver::new(shared, counter, receiver),
-        )
+    (Sender::new(shared.clone(), counter.clone(), sender),
+     Receiver::new(shared, counter, receiver))
 }
 
 

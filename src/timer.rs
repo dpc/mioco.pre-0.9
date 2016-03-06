@@ -1,4 +1,4 @@
-use super::{RW};
+use super::RW;
 use super::thread::Handler;
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use super::mio_orig::{EventLoop, Token, EventSet};
@@ -119,7 +119,6 @@ impl EventSourceTrait for TimerCore {
     }
 
     fn deregister(&self, _event_loop: &mut EventLoop<Handler>, _token: Token) {}
-
-    }
+}
 
 unsafe impl Send for Timer {}

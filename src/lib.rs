@@ -69,11 +69,11 @@ pub mod mio {
 }
 
 use std::any::Any;
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::io;
 use std::marker::Reflect;
-use std::mem::{self};
+use std::mem;
 
 use mio_orig::{Token, EventLoop, EventLoopConfig};
 use mio_orig::Handler as MioHandler;
@@ -261,7 +261,8 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
         }
 
         if counter > 20000 {
-            panic!("Mio Queue Full, process hangs. consider increasing `EventLoopConfig::notify_capacity");
+            panic!("Mio Queue Full, process hangs. consider increasing \
+                    `EventLoopConfig::notify_capacity");
         }
 
         if !warning_printed {
@@ -298,7 +299,7 @@ fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
 pub struct EventSourceId(usize);
 
 impl EventSourceId {
-    fn new(id : usize) -> Self {
+    fn new(id: usize) -> Self {
         EventSourceId(id)
     }
 
@@ -575,7 +576,9 @@ impl CoroutineControl {
     }
 
     /// Finish migrating Coroutine by attaching it to a new thread
-    pub fn reattach_to(&mut self, event_loop: &mut EventLoop<thread::Handler>, handler: &mut thread::Handler) {
+    pub fn reattach_to(&mut self,
+                       event_loop: &mut EventLoop<thread::Handler>,
+                       handler: &mut thread::Handler) {
         let handler_shared = handler.shared().clone();
 
         let id = handler_shared.borrow_mut().attach(self.rc.clone());
@@ -640,8 +643,7 @@ impl Mioco {
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        info!("starting instance with {} threads",
-              self.config.thread_num);
+        info!("starting instance with {} threads", self.config.thread_num);
         let thread_shared = Arc::new(thread::HandlerThreadShared::new(self.config.thread_num));
 
         let mut event_loops = VecDeque::new();
@@ -674,8 +676,7 @@ impl Mioco {
                                                        senders,
                                                        thread_shared,
                                                        None,
-                                                       coroutine_config,
-                                                       );
+                                                       coroutine_config);
                            });
 
             match join {
@@ -711,7 +712,10 @@ impl Mioco {
         where F: FnOnce() -> io::Result<()> + Send + 'static,
               F: Send
     {
-        let handler_shared = thread::HandlerShared::new(senders, thread_shared, coroutine_config, thread_id);
+        let handler_shared = thread::HandlerShared::new(senders,
+                                                        thread_shared,
+                                                        coroutine_config,
+                                                        thread_id);
         let shared = Rc::new(RefCell::new(handler_shared));
         if let Some(f) = f {
             let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
@@ -742,7 +746,7 @@ pub struct Config {
     scheduler: Arc<Box<Scheduler>>,
     event_loop_config: EventLoopConfig,
     user_data: Option<Arc<Box<Any + Send + Sync>>>,
-    coroutine_config : coroutine::Config,
+    coroutine_config: coroutine::Config,
 }
 
 impl Config {
@@ -938,11 +942,11 @@ pub fn sync<'b, F, R>(f: F) -> R
 
     let f = FakeSend(f);
 
-    let coroutine = unsafe{ tl_current_coroutine() };
+    let coroutine = unsafe { tl_current_coroutine() };
 
     if coroutine.sync_channel.is_none() {
         let (send, recv) = mpsc::channel();
-        coroutine.sync_channel= Some((send, recv));
+        coroutine.sync_channel = Some((send, recv));
     }
 
     let &(ref tx, ref rx) = coroutine.sync_channel.as_ref().unwrap();

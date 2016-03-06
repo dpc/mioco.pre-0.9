@@ -1,6 +1,6 @@
 use std;
 use std::any::Any;
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::panic;
@@ -8,7 +8,8 @@ use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::collections::VecDeque;
 
-use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine, STARTING_ID, SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT};
+use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine, STARTING_ID, SPECIAL_ID,
+                       SPECIAL_ID_SCHED_TIMEOUT};
 use super::{SchedulerThread, token_to_ids, token_from_ids, CoroutineControl, sender_retry};
 use super::mio_orig::{self, EventLoop, Token, EventSet};
 
@@ -42,7 +43,7 @@ pub unsafe fn tl_current_coroutine() -> &'static mut Coroutine {
     &mut *coroutine
 }
 
-pub fn tl_current_coroutine_ptr_save(co_ptr : *mut Coroutine) -> *mut Coroutine {
+pub fn tl_current_coroutine_ptr_save(co_ptr: *mut Coroutine) -> *mut Coroutine {
     TL_CURRENT_COROUTINE.with(|co| {
         let mut co = co.borrow_mut();
         let prev = *co;
@@ -51,7 +52,7 @@ pub fn tl_current_coroutine_ptr_save(co_ptr : *mut Coroutine) -> *mut Coroutine 
     })
 }
 
-pub fn tl_current_coroutine_ptr_restore(co_ptr : *mut Coroutine) {
+pub fn tl_current_coroutine_ptr_restore(co_ptr: *mut Coroutine) {
     TL_CURRENT_COROUTINE.with(|co| {
         *co.borrow_mut() = co_ptr;
     })
@@ -112,10 +113,10 @@ pub struct HandlerShared {
 
 impl HandlerShared {
     pub fn new(senders: Vec<MioSender>,
-           thread_shared: ArcHandlerThreadShared,
-           coroutine_config: coroutine::Config,
-           thread_id: usize)
-           -> Self {
+               thread_shared: ArcHandlerThreadShared,
+               coroutine_config: coroutine::Config,
+               thread_id: usize)
+               -> Self {
         HandlerShared {
             context: None,
             coroutines: slab::Slab::new_starting_at(STARTING_ID, 512),
@@ -128,11 +129,11 @@ impl HandlerShared {
         }
     }
 
-    pub fn add_spawned(&mut self, coroutine_ctrl : CoroutineControl) {
+    pub fn add_spawned(&mut self, coroutine_ctrl: CoroutineControl) {
         self.spawned.push_back(coroutine_ctrl);
     }
 
-    pub fn add_ready(&mut self, coroutine_ctrl : CoroutineControl) {
+    pub fn add_ready(&mut self, coroutine_ctrl: CoroutineControl) {
         self.ready.push_back(coroutine_ctrl);
     }
 
@@ -140,7 +141,7 @@ impl HandlerShared {
         self.senders[self.thread_id].clone()
     }
 
-    pub fn get_sender_to_thread(&self, thread_id : usize) -> MioSender {
+    pub fn get_sender_to_thread(&self, thread_id: usize) -> MioSender {
         self.senders[thread_id].clone()
     }
 
@@ -190,7 +191,7 @@ impl HandlerShared {
         self.thread_id
     }
 
-    pub fn attach(&mut self, rc_coroutine : RcCoroutine) -> coroutine::Id {
+    pub fn attach(&mut self, rc_coroutine: RcCoroutine) -> coroutine::Id {
         let co_slab_handle = CoroutineSlabHandle::new(rc_coroutine);
 
         if !self.coroutines.has_remaining() {
@@ -198,10 +199,10 @@ impl HandlerShared {
             self.coroutines.grow(count);
         }
 
-        self.coroutines.insert(co_slab_handle)
+        self.coroutines
+            .insert(co_slab_handle)
             .unwrap_or_else(|_| panic!())
     }
-
 }
 
 /// Mioco event loop `Handler`
@@ -213,7 +214,7 @@ pub struct Handler {
     scheduler: Box<SchedulerThread + 'static>,
 
     /// Is this handler in the process of shutting down
-    is_shutting_down : bool,
+    is_shutting_down: bool,
 }
 
 impl Handler {
@@ -267,14 +268,14 @@ impl Handler {
         self.is_shutting_down = true;
 
         let len = self.shared.borrow().coroutines.count() +
-            self.shared.borrow().coroutines.remaining();
+                  self.shared.borrow().coroutines.remaining();
 
-        for i in coroutine::STARTING_ID.as_usize()..(coroutine::STARTING_ID.as_usize()+len) {
+        for i in coroutine::STARTING_ID.as_usize()..(coroutine::STARTING_ID.as_usize() + len) {
             self.shutdown_one_coroutine(coroutine::Id::new(i));
         }
     }
 
-    fn shutdown_one_coroutine(&mut self, id : coroutine::Id) {
+    fn shutdown_one_coroutine(&mut self, id: coroutine::Id) {
         let contains = self.shared.borrow().coroutines.contains(id);
 
         if contains {
@@ -312,9 +313,9 @@ impl mio_orig::Handler for Handler {
             self.scheduler.tick(event_loop);
             self.deliver_to_scheduler(event_loop);
             if let Some(timeout) = self.scheduler.timeout() {
-                event_loop.timeout_ms(
-                    token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
-                    timeout).unwrap();
+                event_loop.timeout_ms(token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
+                                      timeout)
+                          .unwrap();
             }
         }
     }
@@ -361,7 +362,12 @@ impl mio_orig::Handler for Handler {
             Message::PropagatePanic(cause) => panic::propagate(cause),
             Message::Shutdown => self.shutdown(),
             Message::Terminate => {
-                debug_assert_eq!(self.shared.borrow().thread_shared.coroutines_num.load(Ordering::SeqCst), 0);
+                debug_assert_eq!(self.shared
+                                     .borrow()
+                                     .thread_shared
+                                     .coroutines_num
+                                     .load(Ordering::SeqCst),
+                                 0);
                 event_loop.shutdown();
             }
         }
