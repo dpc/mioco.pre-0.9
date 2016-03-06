@@ -1303,6 +1303,29 @@ fn simple_shutdown() {
 }
 
 #[test]
+fn simple_shutdown_on_blocked() {
+    for &threads in THREADS_N.iter() {
+        mioco::start_threads(threads, move || {
+            for _ in 0..1024 {
+                mioco::spawn(move || {
+                    loop {
+                        let (mut reader, _writer) = pipe();
+                        let mut buf = [0u8; 16];
+                        let _ = reader.read(&mut buf);
+                    }
+                });
+            }
+
+            for _ in 0..2 {
+                mioco::yield_now();
+            }
+
+            mioco::shutdown();
+        });
+    }
+}
+
+#[test]
 fn empty_shutdown() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, move || {
