@@ -12,17 +12,17 @@ pub type UdpSocket = MioAdapter<mio_orig::udp::UdpSocket>;
 impl UdpSocket {
     /// Return a new unbound IPv4 UDP Socket.
     pub fn v4() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v4().map(|t| MioAdapter::new(t))
+        mio_orig::udp::UdpSocket::v4().map(MioAdapter::new)
     }
 
     /// Return a new unbound IPv6 UDP Socket.
     pub fn v6() -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::v6().map(|t| MioAdapter::new(t))
+        mio_orig::udp::UdpSocket::v6().map(MioAdapter::new)
     }
 
     /// Return a new bound UDP Socket.
     pub fn bound(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::udp::UdpSocket::bound(addr).map(|t| MioAdapter::new(t))
+        mio_orig::udp::UdpSocket::bound(addr).map(MioAdapter::new)
     }
 
     /// Bind the unbound UDP Socket.
@@ -38,7 +38,7 @@ impl UdpSocket {
 
     /// Try cloning the socket.
     pub fn try_clone(&self) -> io::Result<UdpSocket> {
-        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 
     /// Block on read.

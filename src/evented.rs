@@ -178,7 +178,7 @@ impl<MT, O> MioAdapter<MT>
         self.shared()
             .io_ref()
             .accept()
-            .map(|t| t.map(|t| MioAdapter::new(t)))
+            .map(|t| t.map(MioAdapter::new))
     }
 }
 

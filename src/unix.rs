@@ -41,7 +41,7 @@ pub type UnixSocket = MioAdapter<mio_orig::unix::UnixSocket>;
 impl UnixSocket {
     /// Returns a new, unbound, Unix domain socket
     pub fn stream() -> io::Result<UnixSocket> {
-        mio_orig::unix::UnixSocket::stream().map(|t| MioAdapter::new(t))
+        mio_orig::unix::UnixSocket::stream().map(MioAdapter::new)
     }
 
     /// Connect the socket to the specified address
@@ -60,7 +60,7 @@ impl UnixSocket {
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 }
 
@@ -71,12 +71,12 @@ pub type UnixStream = MioAdapter<mio_orig::unix::UnixStream>;
 impl UnixStream {
     /// Connect UnixStream to `path`
     pub fn connect<P: AsRef<Path> + ?Sized>(path: &P) -> io::Result<UnixStream> {
-        mio_orig::unix::UnixStream::connect(path).map(|t| MioAdapter::new(t))
+        mio_orig::unix::UnixStream::connect(path).map(MioAdapter::new)
     }
 
     /// Clone
     pub fn try_clone(&self) -> io::Result<Self> {
-        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 
     /// Try reading data into a buffer.

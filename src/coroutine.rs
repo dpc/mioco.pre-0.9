@@ -224,54 +224,6 @@ impl Coroutine {
                     -> RcCoroutine
         where F: FnOnce() -> io::Result<()> + Send + 'static
     {
-        let config = handler_shared.borrow().coroutine_config;
-
-        let id = {
-            let coroutines = &mut handler_shared.borrow_mut().coroutines;
-
-            if !coroutines.has_remaining() {
-                let count = coroutines.count();
-                coroutines.grow(count);
-            }
-
-            let stack = if config.stack_protection {
-                AnyStack::Protected(stack::ProtectedFixedSizeStack::new(config.stack_size).unwrap())
-            } else {
-                AnyStack::Unprotected(stack::FixedSizeStack::new(config.stack_size).unwrap())
-            };
-
-            coroutines.insert_with(|id| {
-                          let coroutine = Coroutine {
-                              state: State::Ready,
-                              killed: false,
-                              id: id,
-                              last_event: Event {
-                                  rw: RW::read(),
-                                  id: EventSourceId(0),
-                              },
-                              context: Some(context::Context::new(&stack, init_fn)),
-                              stack: stack,
-                              handler_shared: Some(handler_shared.clone()),
-                              exit_notificators: Vec::new(),
-                              blocked_on: Vec::with_capacity(4),
-                              children_to_start: Vec::new(),
-                              coroutine_func: Some(Box::new(f)),
-                              self_rc: None,
-                              sync_channel: None,
-                              user_data: inherited_user_data.clone(),
-                              inherited_user_data: inherited_user_data,
-                          };
-
-                          CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
-                      })
-                      .expect("Run out of slab for coroutines")
-        };
-        handler_shared.borrow_mut().coroutines_inc();
-
-        let coroutine_rc = handler_shared.borrow().coroutines[id].rc.clone();
-
-        coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
-
         extern "C" fn init_fn(t: context::Transfer) -> ! {
             let data = t.data;
 
@@ -348,6 +300,55 @@ impl Coroutine {
             let _ = context.resume(0);
             unreachable!();
         }
+        let config = handler_shared.borrow().coroutine_config;
+
+        let id = {
+            let coroutines = &mut handler_shared.borrow_mut().coroutines;
+
+            if !coroutines.has_remaining() {
+                let count = coroutines.count();
+                coroutines.grow(count);
+            }
+
+            let stack = if config.stack_protection {
+                AnyStack::Protected(stack::ProtectedFixedSizeStack::new(config.stack_size).unwrap())
+            } else {
+                AnyStack::Unprotected(stack::FixedSizeStack::new(config.stack_size).unwrap())
+            };
+
+            coroutines.insert_with(|id| {
+                          let coroutine = Coroutine {
+                              state: State::Ready,
+                              killed: false,
+                              id: id,
+                              last_event: Event {
+                                  rw: RW::read(),
+                                  id: EventSourceId(0),
+                              },
+                              context: Some(context::Context::new(&stack, init_fn)),
+                              stack: stack,
+                              handler_shared: Some(handler_shared.clone()),
+                              exit_notificators: Vec::new(),
+                              blocked_on: Vec::with_capacity(4),
+                              children_to_start: Vec::new(),
+                              coroutine_func: Some(Box::new(f)),
+                              self_rc: None,
+                              sync_channel: None,
+                              user_data: inherited_user_data.clone(),
+                              inherited_user_data: inherited_user_data,
+                          };
+
+                          CoroutineSlabHandle::new(Rc::new(RefCell::new(coroutine)))
+                      })
+                      .expect("Run out of slab for coroutines")
+        };
+        handler_shared.borrow_mut().coroutines_inc();
+
+        let coroutine_rc = handler_shared.borrow().coroutines[id].rc.clone();
+
+        coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
+
+        
 
         {
             let co = coroutine_rc.borrow();
@@ -417,7 +418,7 @@ impl Coroutine {
 
     // TODO: Make priv.
     pub fn register_all(&mut self, event_loop: &mut EventLoop<Handler>) {
-        for io in self.blocked_on.iter_mut() {
+        for io in &mut self.blocked_on {
             io.register(event_loop, self.id);
         }
     }
@@ -546,7 +547,7 @@ impl CoroutineSlabHandle {
                        rw: event,
                        id: io_id,
                    });
-        return true;
+        true
     }
 
     pub fn id(&self) -> coroutine::Id {

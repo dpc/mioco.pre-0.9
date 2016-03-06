@@ -352,11 +352,11 @@ impl mio_orig::Handler for Handler {
             Message::ChannelMsg(token) => self.ready(event_loop, token, EventSet::readable()),
             Message::Migration(mut co_ctrl) => {
                 co_ctrl.reattach_to(event_loop, self);
-                if !self.is_shutting_down {
+                if self.is_shutting_down {
+                    drop(co_ctrl);
+                } else {
                     self.scheduler.ready(event_loop, co_ctrl);
                     self.deliver_to_scheduler(event_loop);
-                } else {
-                    drop(co_ctrl);
                 }
             }
             Message::PropagatePanic(cause) => panic::propagate(cause),

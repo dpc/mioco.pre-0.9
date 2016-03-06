@@ -23,19 +23,19 @@ impl TcpListener {
 
     /// Try cloning the listener descriptor.
     pub fn try_clone(&self) -> io::Result<TcpListener> {
-        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 }
 
 impl TcpListener {
     /// Bind to a port
     pub fn bind(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::bind(addr).map(|t| MioAdapter::new(t))
+        mio_orig::tcp::TcpListener::bind(addr).map(MioAdapter::new)
     }
 
     /// Creates a new TcpListener from an instance of a `std::net::TcpListener` type.
     pub fn from_listener(listener: std::net::TcpListener, addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpListener::from_listener(listener, addr).map(|t| MioAdapter::new(t))
+        mio_orig::tcp::TcpListener::from_listener(listener, addr).map(MioAdapter::new)
     }
 }
 
@@ -94,6 +94,6 @@ impl TcpStream {
 
     /// Try cloning the socket descriptor.
     pub fn try_clone(&self) -> io::Result<TcpStream> {
-        self.shared().io_ref().try_clone().map(|t| MioAdapter::new(t))
+        self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 }

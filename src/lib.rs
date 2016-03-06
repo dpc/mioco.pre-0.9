@@ -336,7 +336,7 @@ impl CoroutineHandle {
             ..
         } = *co;
 
-        if let &coroutine::State::Finished(ref exit) = state {
+        if let coroutine::State::Finished(ref exit) = *state {
             let _ = outer.send(exit.clone());
         } else {
             exit_notificators.push(outer);
@@ -485,10 +485,10 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 
     fn timeout(&mut self) -> Option<u64> {
-        if self.delayed.len() != 0 {
-            Some(1000)
-        } else {
+        if self.delayed.is_empty() {
             None
+        } else {
+            Some(1000)
         }
     }
 }
@@ -599,7 +599,7 @@ impl CoroutineControl {
     }
 
     /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
-    pub fn get_userdata<'a, T: Any>(&'a self) -> Option<&'a T> {
+    pub fn get_userdata<T: Any>(&self) -> Option<&T> {
         let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
 
         match coroutine_ref.user_data {
@@ -759,14 +759,13 @@ impl Config {
     ///
     /// See `start` and `start_threads` for convenience wrappers.
     pub fn new() -> Self {
-        let config = Config {
+        Config {
             thread_num: num_cpus::get(),
             scheduler: Arc::new(Box::new(FifoScheduler::new())),
             event_loop_config: Default::default(),
             user_data: None,
             coroutine_config: Default::default(),
-        };
-        config
+        }
     }
 
     /// Set numer of threads to run mioco with
@@ -1057,8 +1056,7 @@ pub fn select_wait() -> Event {
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 
     co_debug!(coroutine, "select ret={:?}", coroutine.last_event);
-    let e = coroutine.last_event;
-    e
+    coroutine.last_event
 }
 
 /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
