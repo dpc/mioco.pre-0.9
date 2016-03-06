@@ -46,18 +46,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-135' class='srclink' href='../../src/context/stack.rs.html#125' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct FixedSizeStack(_);</pre><div class='docblock'><p>A simple implementation of <code>Stack</code>.</p>
+        </span><a id='src-116' class='srclink' href='../../src/context/stack.rs.html#129' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct FixedSizeStack(_);</pre><div class='docblock'><p>A very simple and straightforward implementation of <code>Stack</code>.</p>
 
 <p>Allocates stack space using virtual memory, whose pages will
 only be mapped to physical memory if they are used.</p>
 
-<p>It is recommended to use <code>ProtectedFixedSizeStack</code> instead.</p>
+<p><em>As a general rule it is recommended to use <code>ProtectedFixedSizeStack</code> instead.</em></p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/stack/struct.FixedSizeStack.html' title='context::stack::FixedSizeStack'>FixedSizeStack</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../../context/stack/struct.FixedSizeStack.html' title='context::stack::FixedSizeStack'>FixedSizeStack</a>, <a class='enum' href='../../context/stack/enum.StackError.html' title='context::stack::StackError'>StackError</a>&gt;</code></h4>
-<div class='docblock'><p>Allocate a new stack of <strong>at least</strong> <code>size</code> bytes + one additional guard page.</p>
+<div class='docblock'><p>Allocates a new stack of <strong>at least</strong> <code>size</code> bytes.</p>
 
-<p><code>size</code> is rounded up to a multiple of the size of a memory page and
-does not include the size of the guard page itself.</p>
+<p><code>size</code> is rounded up to a multiple of the size of a memory page.</p>
 </div></div><h2 id='deref-methods'>Methods from <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a>&lt;Target=<a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>&gt;</h2><div class='impl-items'><h4 id='method.top' class='method'><code>fn <a href='#method.top' class='fnname'>top</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a></code></h4>
 <div class='docblock'><p>Returns the top of the stack from which on it grows downwards towards bottom().</p>
 </div><h4 id='method.bottom' class='method'><code>fn <a href='#method.bottom' class='fnname'>bottom</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a></code></h4>

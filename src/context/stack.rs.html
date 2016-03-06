@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/context-rs-44ad4be5ac90aec5/1.0/src/stack.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-1.0.0/src/stack.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>stack.rs.html -- source</title>
@@ -279,6 +279,13 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2016 coroutine-rs Developers</span>
 <span class='comment'>//</span>
@@ -303,8 +310,10 @@
     <span class='ident'>IoError</span>(<span class='ident'>io</span>::<span class='ident'>Error</span>),
 }
 
-<span class='doccomment'>/// Represents some kind of stack memory.</span>
-<span class='doccomment'>/// Use either FixedSizeStack or ProtectedFixedSizeStack to allocate actual stack space.</span>
+<span class='doccomment'>/// Represents any kind of stack memory.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// `FixedSizeStack` as well as `ProtectedFixedSizeStack`</span>
+<span class='doccomment'>/// can be used to allocate actual stack space.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Stack</span> {
     <span class='ident'>top</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>,
@@ -312,7 +321,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>Stack</span> {
-    <span class='doccomment'>/// Creates a representation of some stack memory (non-owning).</span>
+    <span class='doccomment'>/// Creates a (non-owning) representation of some stack memory.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>top</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>, <span class='ident'>bottom</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>) <span class='op'>-&gt;</span> <span class='ident'>Stack</span> {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>top</span> <span class='op'>&gt;=</span> <span class='ident'>bottom</span>);
@@ -355,31 +364,33 @@
 
     <span class='doccomment'>/// Returns a implementation defined default stack size.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This is usually provided by the &quot;soft stack limit&quot;</span>
-    <span class='doccomment'>/// if the platform has one or is a multiple of the `min_size()`.</span>
+    <span class='doccomment'>/// This value can vary greatly between platforms, but is usually only a couple</span>
+    <span class='doccomment'>/// memory pages in size and enough for most use-cases with little recursion.</span>
+    <span class='doccomment'>/// It&#39;s usually a better idea to specifiy an explicit stack size instead.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>default_size</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='ident'>sys</span>::<span class='ident'>default_stack_size</span>()
     }
 
-    <span class='doccomment'>/// Allocate a new stack of `size`.</span>
+    <span class='doccomment'>/// Allocates a new stack of `size`.</span>
     <span class='kw'>fn</span> <span class='ident'>allocate</span>(<span class='kw-2'>mut</span> <span class='ident'>size</span>: <span class='ident'>usize</span>, <span class='ident'>protected</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Stack</span>, <span class='ident'>StackError</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>page_size</span> <span class='op'>=</span> <span class='ident'>sys</span>::<span class='ident'>page_size</span>();
         <span class='kw'>let</span> <span class='ident'>min_stack_size</span> <span class='op'>=</span> <span class='ident'>sys</span>::<span class='ident'>min_stack_size</span>();
         <span class='kw'>let</span> <span class='ident'>max_stack_size</span> <span class='op'>=</span> <span class='ident'>sys</span>::<span class='ident'>max_stack_size</span>();
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>add</span> <span class='op'>=</span> <span class='ident'>page_size</span> <span class='op'>-</span> <span class='number'>1</span>;
+        <span class='kw'>let</span> <span class='ident'>add_shift</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>protected</span> {
+            <span class='number'>1</span>
+        } <span class='kw'>else</span> {
+            <span class='number'>0</span>
+        };
+        <span class='kw'>let</span> <span class='ident'>add</span> <span class='op'>=</span> <span class='ident'>page_size</span> <span class='op'>&lt;&lt;</span> <span class='ident'>add_shift</span>;
 
         <span class='kw'>if</span> <span class='ident'>size</span> <span class='op'>&lt;</span> <span class='ident'>min_stack_size</span> {
             <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>min_stack_size</span>;
         }
 
-        <span class='kw'>if</span> <span class='ident'>protected</span> {
-            <span class='ident'>add</span> <span class='op'>=</span> <span class='ident'>add</span> <span class='op'>+</span> <span class='ident'>page_size</span>;
-        }
+        <span class='ident'>size</span> <span class='op'>=</span> (<span class='ident'>size</span> <span class='op'>-</span> <span class='number'>1</span>) <span class='kw-2'>&amp;</span> <span class='op'>!</span>(<span class='ident'>page_size</span> <span class='op'>-</span> <span class='number'>1</span>);
 
-        <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='kw-2'>mut</span> <span class='ident'>size</span>) <span class='op'>=</span> <span class='ident'>size</span>.<span class='ident'>checked_add</span>(<span class='ident'>add</span>) {
-            <span class='ident'>size</span> <span class='op'>=</span> <span class='ident'>size</span> <span class='kw-2'>&amp;</span> <span class='op'>!</span>(<span class='ident'>page_size</span> <span class='op'>-</span> <span class='number'>1</span>);
-
+        <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>size</span>) <span class='op'>=</span> <span class='ident'>size</span>.<span class='ident'>checked_add</span>(<span class='ident'>add</span>) {
             <span class='kw'>if</span> <span class='ident'>size</span> <span class='op'>&lt;=</span> <span class='ident'>max_stack_size</span> {
                 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='ident'>sys</span>::<span class='ident'>allocate_stack</span>(<span class='ident'>size</span>);
 
@@ -389,28 +400,27 @@
                     }
                 }
 
-                <span class='kw'>return</span> <span class='ident'>ret</span>.<span class='ident'>map_err</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> <span class='ident'>StackError</span>::<span class='ident'>IoError</span>(<span class='ident'>err</span>));
+                <span class='kw'>return</span> <span class='ident'>ret</span>.<span class='ident'>map_err</span>(<span class='ident'>StackError</span>::<span class='ident'>IoError</span>);
             }
         }
 
-        <span class='prelude-val'>Err</span>(<span class='ident'>StackError</span>::<span class='ident'>ExceedsMaximumSize</span>(<span class='ident'>max_stack_size</span> <span class='op'>-</span> <span class='ident'>page_size</span>))
+        <span class='prelude-val'>Err</span>(<span class='ident'>StackError</span>::<span class='ident'>ExceedsMaximumSize</span>(<span class='ident'>max_stack_size</span> <span class='op'>-</span> <span class='ident'>add</span>))
     }
 }
 
-<span class='doccomment'>/// A simple implementation of `Stack`.</span>
+<span class='doccomment'>/// A very simple and straightforward implementation of `Stack`.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Allocates stack space using virtual memory, whose pages will</span>
 <span class='doccomment'>/// only be mapped to physical memory if they are used.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// It is recommended to use `ProtectedFixedSizeStack` instead.</span>
+<span class='doccomment'>/// _As a general rule it is recommended to use `ProtectedFixedSizeStack` instead._</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>FixedSizeStack</span>(<span class='ident'>Stack</span>);
 
 <span class='kw'>impl</span> <span class='ident'>FixedSizeStack</span> {
-    <span class='doccomment'>/// Allocate a new stack of **at least** `size` bytes + one additional guard page.</span>
+    <span class='doccomment'>/// Allocates a new stack of **at least** `size` bytes.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// `size` is rounded up to a multiple of the size of a memory page and</span>
-    <span class='doccomment'>/// does not include the size of the guard page itself.</span>
+    <span class='doccomment'>/// `size` is rounded up to a multiple of the size of a memory page.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>FixedSizeStack</span>, <span class='ident'>StackError</span><span class='op'>&gt;</span> {
         <span class='ident'>Stack</span>::<span class='ident'>allocate</span>(<span class='ident'>size</span>, <span class='boolval'>false</span>).<span class='ident'>map</span>(<span class='ident'>FixedSizeStack</span>)
     }
@@ -437,21 +447,21 @@
     }
 }
 
-<span class='doccomment'>/// A more secure, but a bit slower implementation of `Stack` compared to `FixedSizeStack`.</span>
+<span class='doccomment'>/// A more secure, but slightly slower version of `FixedSizeStack`.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Allocates stack space using virtual memory, whose pages will</span>
 <span class='doccomment'>/// only be mapped to physical memory if they are used.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// The additional guard page is made protected and inaccessible.</span>
 <span class='doccomment'>/// Now if a stack overflow occurs it should (hopefully) hit this guard page and</span>
-<span class='doccomment'>/// will cause a segmentation fault instead letting the memory being silently overwritten.</span>
+<span class='doccomment'>/// cause a segmentation fault instead letting the memory being overwritten silently.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// It is recommended to use this class in general to create stack memory.</span>
+<span class='doccomment'>/// _As a general rule it is recommended to use **this** struct to create stack memory._</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>ProtectedFixedSizeStack</span>(<span class='ident'>Stack</span>);
 
 <span class='kw'>impl</span> <span class='ident'>ProtectedFixedSizeStack</span> {
-    <span class='doccomment'>/// Allocate a new stack of **at least** `size` bytes + one additional guard page.</span>
+    <span class='doccomment'>/// Allocates a new stack of **at least** `size` bytes + one additional guard page.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// `size` is rounded up to a multiple of the size of a memory page and</span>
     <span class='doccomment'>/// does not include the size of the guard page itself.</span>
@@ -507,12 +517,16 @@
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>stack_size_too_large</span>() {
-        <span class='kw'>match</span> <span class='ident'>FixedSizeStack</span>::<span class='ident'>new</span>(<span class='ident'>sys</span>::<span class='ident'>max_stack_size</span>().<span class='ident'>saturating_add</span>(<span class='number'>1</span>)) {
-            <span class='prelude-val'>Err</span>(<span class='ident'>StackError</span>::<span class='ident'>ExceedsMaximumSize</span>(..)) <span class='op'>=&gt;</span> {}
-            _ <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
+        <span class='kw'>let</span> <span class='ident'>stack_size</span> <span class='op'>=</span> <span class='ident'>sys</span>::<span class='ident'>max_stack_size</span>() <span class='kw-2'>&amp;</span> <span class='op'>!</span>(<span class='ident'>sys</span>::<span class='ident'>page_size</span>() <span class='op'>-</span> <span class='number'>1</span>);
+
+        <span class='kw'>match</span> <span class='ident'>FixedSizeStack</span>::<span class='ident'>new</span>(<span class='ident'>stack_size</span>) {
+            <span class='prelude-val'>Err</span>(<span class='ident'>StackError</span>::<span class='ident'>ExceedsMaximumSize</span>(..)) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
+            _ <span class='op'>=&gt;</span> {}
         }
 
-        <span class='kw'>match</span> <span class='ident'>ProtectedFixedSizeStack</span>::<span class='ident'>new</span>(<span class='ident'>sys</span>::<span class='ident'>max_stack_size</span>().<span class='ident'>saturating_add</span>(<span class='number'>1</span>)) {
+        <span class='kw'>let</span> <span class='ident'>stack_size</span> <span class='op'>=</span> <span class='ident'>stack_size</span> <span class='op'>+</span> <span class='number'>1</span>;
+
+        <span class='kw'>match</span> <span class='ident'>FixedSizeStack</span>::<span class='ident'>new</span>(<span class='ident'>stack_size</span>) {
             <span class='prelude-val'>Err</span>(<span class='ident'>StackError</span>::<span class='ident'>ExceedsMaximumSize</span>(..)) <span class='op'>=&gt;</span> {}
             _ <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
         }

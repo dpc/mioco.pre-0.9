@@ -9,7 +9,6 @@
 
     <title>bit_vec::BitVec - Rust</title>
 
-    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -76,14 +75,14 @@
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
 <div class='docblock'><p>Creates an empty <code>BitVec</code>.</p>
 
-<h1 id='examples-1' class='section-header'><a href='#examples-1'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>new</span>();</pre>
 </div><h4 id='method.from_elem' class='method'><code>fn <a href='#method.from_elem' class='fnname'>from_elem</a>(nbits: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, bit: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; Self</code></h4>
 <div class='docblock'><p>Creates a <code>BitVec</code> that holds <code>nbits</code> elements, setting each element
 to <code>bit</code>.</p>
 
-<h1 id='examples-2' class='section-header'><a href='#examples-2'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>10</span>, <span class='boolval'>false</span>);
@@ -104,7 +103,7 @@ reallocating. If <code>capacity</code> is 0, it will not allocate.</p>
 with the most significant bits of each byte coming first. Each
 bit becomes <code>true</code> if equal to 1 or <code>false</code> if equal to 0.</p>
 
-<h1 id='examples-3' class='section-header'><a href='#examples-3'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b10100000</span>, <span class='number'>0b00010010</span>]);
@@ -116,7 +115,7 @@ bit becomes <code>true</code> if equal to 1 or <code>false</code> if equal to 0.
 <div class='docblock'><p>Creates a <code>BitVec</code> of the specified length where the value at each index
 is <code>f(index)</code>.</p>
 
-<h1 id='examples-4' class='section-header'><a href='#examples-4'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_fn</span>(<span class='number'>5</span>, <span class='op'>|</span><span class='ident'>i</span><span class='op'>|</span> { <span class='ident'>i</span> <span class='op'>%</span> <span class='number'>2</span> <span class='op'>==</span> <span class='number'>0</span> });
@@ -134,7 +133,7 @@ is <code>f(index)</code>.</p>
 </div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, i: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
 <div class='docblock'><p>Retrieves the value at index <code>i</code>, or <code>None</code> if the index is out of bounds.</p>
 
-<h1 id='examples-5' class='section-header'><a href='#examples-5'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b01100000</span>]);
@@ -150,7 +149,7 @@ is <code>f(index)</code>.</p>
 <h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if <code>i</code> is out of bounds.</p>
 
-<h1 id='examples-6' class='section-header'><a href='#examples-6'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>5</span>, <span class='boolval'>false</span>);
@@ -159,7 +158,7 @@ is <code>f(index)</code>.</p>
 </div><h4 id='method.set_all' class='method'><code>fn <a href='#method.set_all' class='fnname'>set_all</a>(&amp;mut self)</code></h4>
 <div class='docblock'><p>Sets all bits to 1.</p>
 
-<h1 id='examples-7' class='section-header'><a href='#examples-7'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>before</span> <span class='op'>=</span> <span class='number'>0b01100000</span>;
@@ -171,7 +170,7 @@ is <code>f(index)</code>.</p>
 </div><h4 id='method.negate' class='method'><code>fn <a href='#method.negate' class='fnname'>negate</a>(&amp;mut self)</code></h4>
 <div class='docblock'><p>Flips all bits.</p>
 
-<h1 id='examples-8' class='section-header'><a href='#examples-8'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>before</span> <span class='op'>=</span> <span class='number'>0b01100000</span>;
@@ -187,10 +186,10 @@ function.</p>
 <p>Sets <code>self</code> to the union of <code>self</code> and <code>other</code>. Both bitvectors must be
 the same length. Returns <code>true</code> if <code>self</code> changed.</p>
 
-<h1 id='panics-1' class='section-header'><a href='#panics-1'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the bitvectors are of different lengths.</p>
 
-<h1 id='examples-9' class='section-header'><a href='#examples-9'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>a</span>   <span class='op'>=</span> <span class='number'>0b01100100</span>;
@@ -209,10 +208,10 @@ bitwise <code>and</code> function.</p>
 <p>Sets <code>self</code> to the intersection of <code>self</code> and <code>other</code>. Both bitvectors
 must be the same length. Returns <code>true</code> if <code>self</code> changed.</p>
 
-<h1 id='panics-2' class='section-header'><a href='#panics-2'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the bitvectors are of different lengths.</p>
 
-<h1 id='examples-10' class='section-header'><a href='#examples-10'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>a</span>   <span class='op'>=</span> <span class='number'>0b01100100</span>;
@@ -231,10 +230,10 @@ must be the same length. Returns <code>true</code> if <code>self</code> changed.
 element of <code>other</code> at the same index. Both bitvectors must be the same
 length. Returns <code>true</code> if <code>self</code> changed.</p>
 
-<h1 id='panics-3' class='section-header'><a href='#panics-3'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the bitvectors are of different length.</p>
 
-<h1 id='examples-11' class='section-header'><a href='#examples-11'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>a</span>   <span class='op'>=</span> <span class='number'>0b01100100</span>;
@@ -256,7 +255,7 @@ length. Returns <code>true</code> if <code>self</code> changed.</p>
 </div><h4 id='method.all' class='method'><code>fn <a href='#method.all' class='fnname'>all</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns <code>true</code> if all bits are 1.</p>
 
-<h1 id='examples-12' class='section-header'><a href='#examples-12'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>5</span>, <span class='boolval'>true</span>);
@@ -267,7 +266,7 @@ length. Returns <code>true</code> if <code>self</code> changed.</p>
 </div><h4 id='method.iter' class='method'><code>fn <a href='#method.iter' class='fnname'>iter</a>(&amp;self) -&gt; <a class='struct' href='../bit_vec/struct.Iter.html' title='bit_vec::Iter'>Iter</a>&lt;B&gt;</code></h4>
 <div class='docblock'><p>Returns an iterator over the elements of the vector in order.</p>
 
-<h1 id='examples-13' class='section-header'><a href='#examples-13'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b01110100</span>, <span class='number'>0b10010010</span>]);
@@ -275,7 +274,7 @@ length. Returns <code>true</code> if <code>self</code> changed.</p>
 </div><h4 id='method.none' class='method'><code>fn <a href='#method.none' class='fnname'>none</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns <code>true</code> if all bits are 0.</p>
 
-<h1 id='examples-14' class='section-header'><a href='#examples-14'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>10</span>, <span class='boolval'>false</span>);
@@ -286,7 +285,7 @@ length. Returns <code>true</code> if <code>self</code> changed.</p>
 </div><h4 id='method.any' class='method'><code>fn <a href='#method.any' class='fnname'>any</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns <code>true</code> if any bit is 1.</p>
 
-<h1 id='examples-15' class='section-header'><a href='#examples-15'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>10</span>, <span class='boolval'>false</span>);
@@ -300,7 +299,7 @@ length. Returns <code>true</code> if <code>self</code> changed.</p>
 size of the <code>BitVec</code> is not a multiple of eight then trailing bits
 will be filled-in with <code>false</code>.</p>
 
-<h1 id='examples-16' class='section-header'><a href='#examples-16'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>3</span>, <span class='boolval'>true</span>);
@@ -317,10 +316,10 @@ will be filled-in with <code>false</code>.</p>
 <div class='docblock'><p>Compares a <code>BitVec</code> to a slice of <code>bool</code>s.
 Both the <code>BitVec</code> and slice must have the same length.</p>
 
-<h1 id='panics-4' class='section-header'><a href='#panics-4'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the <code>BitVec</code> and slice are of different length.</p>
 
-<h1 id='examples-17' class='section-header'><a href='#examples-17'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b10100000</span>]);
@@ -333,7 +332,7 @@ Both the <code>BitVec</code> and slice must have the same length.</p>
 <p>If <code>len</code> is greater than the vector&#39;s current length, this has no
 effect.</p>
 
-<h1 id='examples-18' class='section-header'><a href='#examples-18'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b01001011</span>]);
@@ -343,10 +342,10 @@ effect.</p>
 <div class='docblock'><p>Reserves capacity for at least <code>additional</code> more bits to be inserted in the given
 <code>BitVec</code>. The collection may reserve more space to avoid frequent reallocations.</p>
 
-<h1 id='panics-5' class='section-header'><a href='#panics-5'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the new capacity overflows <code>usize</code>.</p>
 
-<h1 id='examples-19' class='section-header'><a href='#examples-19'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>3</span>, <span class='boolval'>false</span>);
@@ -361,10 +360,10 @@ given <code>BitVec</code>. Does nothing if the capacity is already sufficient.</
 capacity can not be relied upon to be precisely minimal. Prefer <code>reserve</code> if future
 insertions are expected.</p>
 
-<h1 id='panics-6' class='section-header'><a href='#panics-6'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the new capacity overflows <code>usize</code>.</p>
 
-<h1 id='examples-20' class='section-header'><a href='#examples-20'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_elem</span>(<span class='number'>3</span>, <span class='boolval'>false</span>);
@@ -375,7 +374,7 @@ insertions are expected.</p>
 <div class='docblock'><p>Returns the capacity in bits for this bit vector. Inserting any
 element less than this amount will not trigger a resizing.</p>
 
-<h1 id='examples-21' class='section-header'><a href='#examples-21'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>new</span>();
@@ -384,10 +383,10 @@ element less than this amount will not trigger a resizing.</p>
 </div><h4 id='method.grow' class='method'><code>fn <a href='#method.grow' class='fnname'>grow</a>(&amp;mut self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, value: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>)</code></h4>
 <div class='docblock'><p>Grows the <code>BitVec</code> in-place, adding <code>n</code> copies of <code>value</code> to the <code>BitVec</code>.</p>
 
-<h1 id='panics-7' class='section-header'><a href='#panics-7'>Panics</a></h1>
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p>Panics if the new len overflows a <code>usize</code>.</p>
 
-<h1 id='examples-22' class='section-header'><a href='#examples-22'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b01001011</span>]);
@@ -397,7 +396,7 @@ element less than this amount will not trigger a resizing.</p>
 </div><h4 id='method.pop' class='method'><code>fn <a href='#method.pop' class='fnname'>pop</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
 <div class='docblock'><p>Removes the last bit from the BitVec, and returns it. Returns None if the BitVec is empty.</p>
 
-<h1 id='examples-23' class='section-header'><a href='#examples-23'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>from_bytes</span>(<span class='kw-2'>&amp;</span>[<span class='number'>0b01001001</span>]);
@@ -407,7 +406,7 @@ element less than this amount will not trigger a resizing.</p>
 </div><h4 id='method.push' class='method'><code>fn <a href='#method.push' class='fnname'>push</a>(&amp;mut self, elem: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>)</code></h4>
 <div class='docblock'><p>Pushes a <code>bool</code> onto the end.</p>
 
-<h1 id='examples-24' class='section-header'><a href='#examples-24'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>bit_vec</span>::<span class='ident'>BitVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bv</span> <span class='op'>=</span> <span class='ident'>BitVec</span>::<span class='ident'>new</span>();
@@ -445,9 +444,9 @@ element less than this amount will not trigger a resizing.</p>
 </div><h3 class='impl'><code>impl&lt;B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;'a, B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for &amp;'a <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <h4 id='assoc_type.IntoIter' class='type'><code>type IntoIter = <a class='struct' href='../bit_vec/struct.Iter.html' title='bit_vec::Iter'>Iter</a>&lt;'a, B&gt;</code></h4>
 <h4 id='method.into_iter' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html#method.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../bit_vec/struct.Iter.html' title='bit_vec::Iter'>Iter</a>&lt;'a, B&gt;</code></h4>
-</div><h3 class='impl'><code>impl&lt;B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item-1' class='type'><code>type Item = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
-<h4 id='assoc_type.IntoIter-1' class='type'><code>type IntoIter = <a class='struct' href='../bit_vec/struct.IntoIter.html' title='bit_vec::IntoIter'>IntoIter</a>&lt;B&gt;</code></h4>
-<h4 id='method.into_iter-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html#method.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../bit_vec/struct.IntoIter.html' title='bit_vec::IntoIter'>IntoIter</a>&lt;B&gt;</code></h4>
+</div><h3 class='impl'><code>impl&lt;B: <a class='trait' href='../bit_vec/trait.BitBlock.html' title='bit_vec::BitBlock'>BitBlock</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='../bit_vec/struct.BitVec.html' title='bit_vec::BitVec'>BitVec</a>&lt;B&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<h4 id='assoc_type.IntoIter' class='type'><code>type IntoIter = <a class='struct' href='../bit_vec/struct.IntoIter.html' title='bit_vec::IntoIter'>IntoIter</a>&lt;B&gt;</code></h4>
+<h4 id='method.into_iter' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html#method.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../bit_vec/struct.IntoIter.html' title='bit_vec::IntoIter'>IntoIter</a>&lt;B&gt;</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 
@@ -507,6 +506,6 @@ element less than this amount will not trigger a resizing.</p>
     <script src="../jquery.js"></script>
     <script src="../main.js"></script>
     
-    <script defer src="../search-index.js"></script>
+    <script async src="../search-index.js"></script>
 </body>
 </html>

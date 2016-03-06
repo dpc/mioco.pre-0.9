@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-7' class='srclink' href='../../src/context/context.rs.html#8-235' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-7' class='srclink' href='../../src/context/context.rs.html#8-226' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Provides the <code>Context</code> and <code>Transfer</code> types for
 saving and restoring the current state of execution.</p>
 
@@ -57,7 +57,7 @@ saving and restoring the current state of execution.</p>
                         <td><a class='struct' href='struct.Context.html'
                                title='context::context::Context'>Context</a></td>
                         <td class='docblock short'>
-                             <p>A <code>Context</code> provides the capability of saving and restoring the current state of execution.</p>
+                             <p>A <code>Context</code> stores a <code>ContextFn</code>&#39;s state of execution, for it to be resumed later.</p>
                         </td>
                     </tr>
                 
@@ -65,7 +65,8 @@ saving and restoring the current state of execution.</p>
                         <td><a class='struct' href='struct.Transfer.html'
                                title='context::context::Transfer'>Transfer</a></td>
                         <td class='docblock short'>
-                             <p>This is the return value by <code>Context::resume()</code> and <code>Context::resume_ontop()</code>.</p>
+                             <p>Contains the previously active <code>Context</code> and the <code>data</code> passed to resume the current one and
+is used as the return value by <code>Context::resume()</code> and <code>Context::resume_ontop()</code></p>
                         </td>
                     </tr>
                 </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
@@ -82,7 +83,7 @@ saving and restoring the current state of execution.</p>
                         <td><a class='type' href='type.ResumeOntopFn.html'
                                title='context::context::ResumeOntopFn'>ResumeOntopFn</a></td>
                         <td class='docblock short'>
-                             <p>Functions of this signature are used as the callback after resuming ontop of a <code>Context</code>.</p>
+                             <p>Functions of this signature are used as the callback while resuming ontop of a <code>Context</code>.</p>
                         </td>
                     </tr>
                 </table></section>

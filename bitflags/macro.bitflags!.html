@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-4' class='srclink' href='../src/bitflags/lib.rs.html#133-349' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-5' class='srclink' href='../src/bitflags/lib.rs.html#147-364' title='goto source code'>[src]</a></span></h1>
 <pre class='rust macro'>
 <span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>bitflags</span> {
     ($(<span class='attribute'>#[<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>meta</span>]</span>)<span class='op'>*</span> <span class='ident'>flags</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>BitFlags</span>:<span class='ident'>ident</span>: <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>T</span>:<span class='ident'>ty</span> {
@@ -62,7 +62,8 @@ bitmask flags. It is useful for creating typesafe wrappers for C APIs.</p>
 <p>The flags should only be defined for integer types, otherwise unexpected
 type errors may occur at compile time.</p>
 
-<h1 id='example' class='section-header'><a href='#example'>Example</a></h1><pre class='rust rust-example-rendered'>
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>bitflags</span>;
 
@@ -88,6 +89,7 @@ type errors may occur at compile time.</p>
 
 <p>The generated <code>struct</code>s can also be extended with type and trait
 implementations:</p>
+
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>bitflags</span>;

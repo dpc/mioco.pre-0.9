@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MioAdapter","Adapt raw `mio` type to mioco `Evented` requirements.See source of `src/tcp.rs` for example of usage."]],"trait":[["Evented","Mioco event source.All types used as asynchronous event sources implement this trait.A generic implementation: `MioAdapter` implements this trait, wrapping native mio types (implementing `mio::Evented` trait)."]]});
+initSidebarItems({"struct":[["MioAdapter","Adapt raw `mio` type to mioco `Evented` requirements."]],"trait":[["Evented","Mioco event source."]]});

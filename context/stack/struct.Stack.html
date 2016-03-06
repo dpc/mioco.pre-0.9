@@ -46,13 +46,15 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-99' class='srclink' href='../../src/context/stack.rs.html#27-30' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-81' class='srclink' href='../../src/context/stack.rs.html#29-32' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Stack {
     // some fields omitted
-}</pre><div class='docblock'><p>Represents some kind of stack memory.
-Use either FixedSizeStack or ProtectedFixedSizeStack to allocate actual stack space.</p>
+}</pre><div class='docblock'><p>Represents any kind of stack memory.</p>
+
+<p><code>FixedSizeStack</code> as well as <code>ProtectedFixedSizeStack</code>
+can be used to allocate actual stack space.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(top: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a>, bottom: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a>) -&gt; <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h4>
-<div class='docblock'><p>Creates a representation of some stack memory (non-owning).</p>
+<div class='docblock'><p>Creates a (non-owning) representation of some stack memory.</p>
 </div><h4 id='method.top' class='method'><code>fn <a href='#method.top' class='fnname'>top</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a></code></h4>
 <div class='docblock'><p>Returns the top of the stack from which on it grows downwards towards bottom().</p>
 </div><h4 id='method.bottom' class='method'><code>fn <a href='#method.bottom' class='fnname'>bottom</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a></code></h4>
@@ -66,8 +68,9 @@ Use either FixedSizeStack or ProtectedFixedSizeStack to allocate actual stack sp
 </div><h4 id='method.default_size' class='method'><code>fn <a href='#method.default_size' class='fnname'>default_size</a>() -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <div class='docblock'><p>Returns a implementation defined default stack size.</p>
 
-<p>This is usually provided by the &quot;soft stack limit&quot;
-if the platform has one or is a multiple of the <code>min_size()</code>.</p>
+<p>This value can vary greatly between platforms, but is usually only a couple
+memory pages in size and enough for most use-cases with little recursion.
+It&#39;s usually a better idea to specifiy an explicit stack size instead.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>

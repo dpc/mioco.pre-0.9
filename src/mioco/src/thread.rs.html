@@ -382,6 +382,40 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
@@ -405,8 +439,42 @@
 <span class='doccomment'>/// This reference is used to store a reference to a currently executing</span>
 <span class='doccomment'>/// mioco coroutine.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Should not be used directly, use `tl_coroutine_current()` instead.</span>
-<span class='macro'>thread_local</span><span class='macro'>!</span>(<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>TL_CURRENT_COROUTINE</span>: <span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>ptr</span>::<span class='ident'>null_mut</span>()));
+<span class='doccomment'>/// Should not be used directly, use `tl_current_coroutine()` instead.</span>
+<span class='macro'>thread_local</span><span class='macro'>!</span>(<span class='kw'>static</span> <span class='ident'>TL_CURRENT_COROUTINE</span>: <span class='ident'>RefCell</span><span class='op'>&lt;</span><span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>ptr</span>::<span class='ident'>null_mut</span>()));
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> {
+    <span class='ident'>TL_CURRENT_COROUTINE</span>.<span class='ident'>with</span>(<span class='op'>|</span><span class='ident'>coroutine</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>coroutine</span>.<span class='ident'>borrow</span>())
+}
+
+<span class='comment'>// TODO: Technically this leaks unsafe, but only within</span>
+<span class='comment'>// internals of the module. Any function calling `tl_current_coroutine()`</span>
+<span class='comment'>// must not pass the reference anywhere outside!</span>
+<span class='comment'>//</span>
+<span class='comment'>// It might be possible to use a type system to enforce this. Eg. maybe this</span>
+<span class='comment'>// should return `Ref` or `RefCell`.</span>
+<span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine</span>() <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> {
+    <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='ident'>tl_current_coroutine_ptr</span>();
+    <span class='kw'>if</span> <span class='ident'>coroutine</span> <span class='op'>==</span> <span class='ident'>ptr</span>::<span class='ident'>null_mut</span>() {
+        <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;mioco API function called outside of coroutine, use `RUST_BACKTRACE=1` to \
+                pinpoint&quot;</span>);
+    }
+    <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='ident'>coroutine</span>
+}
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_save</span>(<span class='ident'>co_ptr</span> : <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> {
+    <span class='ident'>TL_CURRENT_COROUTINE</span>.<span class='ident'>with</span>(<span class='op'>|</span><span class='ident'>co</span><span class='op'>|</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>co</span>.<span class='ident'>borrow_mut</span>();
+        <span class='kw'>let</span> <span class='ident'>prev</span> <span class='op'>=</span> <span class='op'>*</span><span class='ident'>co</span>;
+        <span class='op'>*</span><span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>co_ptr</span>;
+        <span class='ident'>prev</span>
+    })
+}
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_restore</span>(<span class='ident'>co_ptr</span> : <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) {
+    <span class='ident'>TL_CURRENT_COROUTINE</span>.<span class='ident'>with</span>(<span class='op'>|</span><span class='ident'>co</span><span class='op'>|</span> {
+        <span class='op'>*</span><span class='ident'>co</span>.<span class='ident'>borrow_mut</span>() <span class='op'>=</span> <span class='ident'>co_ptr</span>;
+    })
+}
 
 <span class='doccomment'>/// Can send `Message` to the mioco thread.</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>MioSender</span> <span class='op'>=</span>

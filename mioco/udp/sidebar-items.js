@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["IpAddr","An IP address, either a IPv4 or IPv6 address.Once `std::net::IpAddr` is stable, this will go away."]],"type":[["UdpSocket","Udp Socket"]]});
+initSidebarItems({"enum":[["IpAddr","An IP address, either a IPv4 or IPv6 address."]],"type":[["UdpSocket","Udp Socket"]]});

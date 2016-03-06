@@ -45,26 +45,21 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-6286' class='srclink' href='https://doc.rust-lang.org/nightly/std/net/enum.Shutdown.html?gotosrc=6286' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-698' class='srclink' href='../../../mio_orig/net/tcp/enum.Shutdown.html?gotosrc=698' title='goto source code'>[src]</a></span></h1>
 <pre class='rust enum'>pub enum Shutdown {
     Read,
     Write,
     Both,
-}</pre><div class='docblock'><p>Possible values which can be passed to the <code>shutdown</code> method of <code>TcpStream</code>.</p>
-</div><h2 class='variants'>Variants</h2>
-<table><tr><td id='variant.Read'><code>Read</code></td><td><div class='docblock'><p>Indicates that the reading portion of this stream/socket should be shut
-down. All currently blocked and future reads will return <code>Ok(0)</code>.</p>
-</div></td></tr><tr><td id='variant.Write'><code>Write</code></td><td><div class='docblock'><p>Indicates that the writing portion of this stream/socket should be shut
-down. All currently blocked and future writes will return an error.</p>
-</div></td></tr><tr><td id='variant.Both'><code>Both</code></td><td><div class='docblock'><p>Shut down both the reading and writing portions of this stream.</p>
-
-<p>See <code>Shutdown::Read</code> and <code>Shutdown::Write</code> for more information.</p>
+}</pre><h2 class='variants'>Variants</h2>
+<table><tr><td id='variant.Read'><code>Read</code></td><td><div class='docblock'><p>Further receptions will be disallowed.</p>
+</div></td></tr><tr><td id='variant.Write'><code>Write</code></td><td><div class='docblock'><p>Further  transmissions will be disallowed.</p>
+</div></td></tr><tr><td id='variant.Both'><code>Both</code></td><td><div class='docblock'><p>Further receptions and transmissions will be disallowed.</p>
 </div></td></tr></table><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html' title='core::fmt::Error'>Error</a>&gt;</code></h4>
-</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a>&lt;<a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a>&gt; for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a>&lt;<a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a>&gt; for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
-</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h4>
 <h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
-</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='enum' href='../../../mioco/mio/tcp/enum.Shutdown.html' title='mioco::mio::tcp::Shutdown'>Shutdown</a></code></h3><div class='impl-items'></div></section>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -123,6 +118,6 @@ down. All currently blocked and future writes will return an error.</p>
     <script src="../../../jquery.js"></script>
     <script src="../../../main.js"></script>
     
-    <script defer src="../../../search-index.js"></script>
+    <script async src="../../../search-index.js"></script>
 </body>
 </html>

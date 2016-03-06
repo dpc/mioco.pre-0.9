@@ -46,8 +46,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-28' class='srclink' href='../../src/context/context.rs.html#62' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct Context(_);</pre><div class='docblock'><p>A <code>Context</code> provides the capability of saving and restoring the current state of execution.</p>
+        </span><a id='src-28' class='srclink' href='../../src/context/context.rs.html#63' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Context(_);</pre><div class='docblock'><p>A <code>Context</code> stores a <code>ContextFn</code>&#39;s state of execution, for it to be resumed later.</p>
 
 <p>If we have 2 or more <code>Context</code> instances, we can thus easily &quot;freeze&quot; the
 current state of execution and explicitely switch to another <code>Context</code>.
@@ -56,11 +56,7 @@ can in turn &quot;freeze&quot; and switch to another <code>Context</code>.</p>
 
 <h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
 <p>See <a href="https://github.com/zonyitoo/context-rs/blob/master/examples/basic.rs">examples/basic.rs</a></p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.empty' class='method'><code>unsafe fn <a href='#method.empty' class='fnname'>empty</a>() -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
-<div class='docblock'><p>Returns a <code>Context</code> struct cont.</p>
-
-<p>This method is used in combination with <code>Transfer::empty()</code>.</p>
-</div><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(stack: &amp;<a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>, f: <a class='type' href='../../context/context/type.ContextFn.html' title='context::context::ContextFn'>ContextFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(stack: &amp;<a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>, f: <a class='type' href='../../context/context/type.ContextFn.html' title='context::context::ContextFn'>ContextFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
 <div class='docblock'><p>Creates a new <code>Context</code> prepared to execute <code>f</code> at the beginning of <code>stack</code>.</p>
 
 <p><code>f</code> is not executed until the first call to <code>resume()</code>.</p>
@@ -81,20 +77,18 @@ the <code>data</code> argument used to resume the current one.</p>
 
 <p>This method identical to <code>resume()</code> with a minor difference:</p>
 
-<p>The argument <code>f</code> is executed right before the targeted <code>Context</code> pointed to by <code>self</code>
-is woken up and returns from it&#39;s call to <code>resume()</code>. The method <code>f</code> is now passed the
-<code>Transfer</code> struct which would normally be returned by <code>resume()</code> and is allowed to inspect
-and modify it. When <code>f</code> is done it has to return a <code>Transfer</code> struct which is then finally
-the one the <code>resume()</code> method returns in the targeted <code>Context</code>.</p>
+<p>The argument <code>f</code> is executed right after the targeted <code>Context</code>, pointed to by <code>self</code>,
+is woken up, but before it returns from it&#39;s call to <code>resume()</code>.
+<code>f</code> now gets passed the <code>Transfer</code> struct which would normally be returned by <code>resume()</code>
+and is allowed to inspect and modify it. The <code>Transfer</code> struct <code>f</code> returns is then
+finally the one returned by <code>resume()</code> in the targeted <code>Context</code>.</p>
 
-<p>This behaviour can be used to either execute additional code or map the <code>Transfer</code> struct
+<p>This behaviour can be used to either execute additional code or <em>map</em> the <code>Transfer</code> struct
 to another one before it&#39;s returned, without the targeted <code>Context</code> giving it&#39;s consent.
 For instance it can be used to unwind the stack of an unfinished <code>Context</code>,
 by calling this method with a function that panics, or to deallocate the own stack,
 by deferring the actual deallocation until we jumped to another, safe <code>Context</code>.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
-<h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
-</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

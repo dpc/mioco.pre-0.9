@@ -55,7 +55,8 @@ consequences. This will skip all unwinding code, which means that anything
 relying on unwinding for cleanup (such as flushing and closing a buffer to a
 file) may act in an unexpected way.</p>
 
-<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><span class='rusttest'>extern crate libc;
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
+<span class='rusttest'>extern crate libc;
 
 fn main() {
     unsafe {

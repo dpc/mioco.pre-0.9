@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/git/checkouts/context-rs-44ad4be5ac90aec5/1.0/src/context.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-1.0.0/src/context.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>context.rs.html -- source</title>
@@ -267,15 +267,6 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2016 coroutine-rs Developers</span>
 <span class='comment'>//</span>
@@ -284,8 +275,8 @@
 <span class='comment'>// http://opensource.org/licenses/MIT&gt;, at your option. This file may not be</span>
 <span class='comment'>// copied, modified, or distributed except according to those terms.</span>
 
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>raw</span>::<span class='ident'>c_void</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ptr</span>;
 
 <span class='kw'>use</span> <span class='ident'>stack</span>::<span class='ident'>Stack</span>;
 
@@ -298,7 +289,7 @@
     <span class='doccomment'>/// * `size` - The size of the stack.</span>
     <span class='doccomment'>/// * `f`    - A function to be invoked on the first call to jump_fcontext(this, _).</span>
     <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>never</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>make_fcontext</span>(<span class='ident'>sp</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>, <span class='ident'>size</span>: <span class='ident'>usize</span>, <span class='ident'>f</span>: <span class='ident'>ContextFn</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>;
+    <span class='kw'>fn</span> <span class='ident'>make_fcontext</span>(<span class='ident'>sp</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>c_void</span>, <span class='ident'>size</span>: <span class='ident'>usize</span>, <span class='ident'>f</span>: <span class='ident'>ContextFn</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>c_void</span>;
 
     <span class='doccomment'>/// Yields the execution to another `Context`.</span>
     <span class='doccomment'>///</span>
@@ -307,7 +298,7 @@
     <span class='doccomment'>/// * `p`  - An arbitrary argument that will be set as the `data` field</span>
     <span class='doccomment'>///          of the `Transfer` object passed to the other Context.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>never</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>jump_fcontext</span>(<span class='ident'>to</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>, <span class='ident'>p</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span>;
+    <span class='kw'>fn</span> <span class='ident'>jump_fcontext</span>(<span class='ident'>to</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>c_void</span>, <span class='ident'>p</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span>;
 
     <span class='doccomment'>/// Yields the execution to another `Context` and executes a function &quot;ontop&quot; of it&#39;s stack.</span>
     <span class='doccomment'>///</span>
@@ -317,16 +308,16 @@
     <span class='doccomment'>///          of the `Transfer` object passed to the other Context.</span>
     <span class='doccomment'>/// * `f`  - A function to be invoked on `to` before returning.</span>
     <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>never</span>)]</span>
-    <span class='kw'>fn</span> <span class='ident'>ontop_fcontext</span>(<span class='ident'>to</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>, <span class='ident'>p</span>: <span class='ident'>usize</span>, <span class='ident'>f</span>: <span class='ident'>ResumeOntopFn</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span>;
+    <span class='kw'>fn</span> <span class='ident'>ontop_fcontext</span>(<span class='ident'>to</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>c_void</span>, <span class='ident'>p</span>: <span class='ident'>usize</span>, <span class='ident'>f</span>: <span class='ident'>ResumeOntopFn</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span>;
 }
 
 <span class='doccomment'>/// Functions of this signature are used as the entry point for a new `Context`.</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ContextFn</span> <span class='op'>=</span> <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span>(<span class='ident'>t</span>: <span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='op'>!</span>;
 
-<span class='doccomment'>/// Functions of this signature are used as the callback after resuming ontop of a `Context`.</span>
+<span class='doccomment'>/// Functions of this signature are used as the callback while resuming ontop of a `Context`.</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ResumeOntopFn</span> <span class='op'>=</span> <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span>(<span class='ident'>t</span>: <span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span>;
 
-<span class='doccomment'>/// A `Context` provides the capability of saving and restoring the current state of execution.</span>
+<span class='doccomment'>/// A `Context` stores a `ContextFn`&#39;s state of execution, for it to be resumed later.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// If we have 2 or more `Context` instances, we can thus easily &quot;freeze&quot; the</span>
 <span class='doccomment'>/// current state of execution and explicitely switch to another `Context`.</span>
@@ -336,21 +327,14 @@
 <span class='doccomment'>/// # Examples</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// See [examples/basic.rs](https://github.com/zonyitoo/context-rs/blob/master/examples/basic.rs)</span>
+<span class='comment'>// The reference is using &#39;static because we can&#39;t possibly imply the</span>
+<span class='comment'>// lifetime of the Context instances returned by resume() anyways.</span>
 <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>, <span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Context</span>(<span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>);
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Context</span>(<span class='kw-2'>&amp;</span><span class='lifetime'>&#39;static</span> <span class='ident'>c_void</span>);
 
 <span class='comment'>// NOTE: Rustc is kinda dumb and introduces a overhead of up to 500% compared to the asm methods</span>
 <span class='comment'>//       if we don&#39;t explicitely inline them or use LTO (e.g.: 3ns/iter VS. 18ns/iter on i7 3770).</span>
 <span class='kw'>impl</span> <span class='ident'>Context</span> {
-    <span class='doccomment'>/// Returns a `Context` struct cont.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This method is used in combination with `Transfer::empty()`.</span>
-    <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
-    <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>empty</span>() <span class='op'>-&gt;</span> <span class='ident'>Context</span> {
-        <span class='ident'>Context</span>(<span class='ident'>ptr</span>::<span class='ident'>null_mut</span>())
-    }
-
     <span class='doccomment'>/// Creates a new `Context` prepared to execute `f` at the beginning of `stack`.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// `f` is not executed until the first call to `resume()`.</span>
@@ -379,13 +363,13 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This method identical to `resume()` with a minor difference:</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// The argument `f` is executed right before the targeted `Context` pointed to by `self`</span>
-    <span class='doccomment'>/// is woken up and returns from it&#39;s call to `resume()`. The method `f` is now passed the</span>
-    <span class='doccomment'>/// `Transfer` struct which would normally be returned by `resume()` and is allowed to inspect</span>
-    <span class='doccomment'>/// and modify it. When `f` is done it has to return a `Transfer` struct which is then finally</span>
-    <span class='doccomment'>/// the one the `resume()` method returns in the targeted `Context`.</span>
+    <span class='doccomment'>/// The argument `f` is executed right after the targeted `Context`, pointed to by `self`,</span>
+    <span class='doccomment'>/// is woken up, but before it returns from it&#39;s call to `resume()`.</span>
+    <span class='doccomment'>/// `f` now gets passed the `Transfer` struct which would normally be returned by `resume()`</span>
+    <span class='doccomment'>/// and is allowed to inspect and modify it. The `Transfer` struct `f` returns is then</span>
+    <span class='doccomment'>/// finally the one returned by `resume()` in the targeted `Context`.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This behaviour can be used to either execute additional code or map the `Transfer` struct</span>
+    <span class='doccomment'>/// This behaviour can be used to either execute additional code or *map* the `Transfer` struct</span>
     <span class='doccomment'>/// to another one before it&#39;s returned, without the targeted `Context` giving it&#39;s consent.</span>
     <span class='doccomment'>/// For instance it can be used to unwind the stack of an unfinished `Context`,</span>
     <span class='doccomment'>/// by calling this method with a function that panics, or to deallocate the own stack,</span>
@@ -396,7 +380,14 @@
     }
 }
 
-<span class='doccomment'>/// This is the return value by `Context::resume()` and `Context::resume_ontop()`.</span>
+<span class='kw'>impl</span> <span class='ident'>fmt</span>::<span class='ident'>Debug</span> <span class='kw'>for</span> <span class='ident'>Context</span> {
+    <span class='kw'>fn</span> <span class='ident'>fmt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>f</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>fmt</span>::<span class='ident'>Formatter</span>) <span class='op'>-&gt;</span> <span class='ident'>fmt</span>::<span class='prelude-ty'>Result</span> {
+        <span class='macro'>write</span><span class='macro'>!</span>(<span class='ident'>f</span>, <span class='string'>&quot;Context({:p})&quot;</span>, <span class='self'>self</span>.<span class='number'>0</span>)
+    }
+}
+
+<span class='doccomment'>/// Contains the previously active `Context` and the `data` passed to resume the current one and</span>
+<span class='doccomment'>/// is used as the return value by `Context::resume()` and `Context::resume_ontop()`</span>
 <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Transfer</span> {
@@ -417,20 +408,6 @@
             <span class='ident'>data</span>: <span class='ident'>data</span>,
         }
     }
-
-    <span class='doccomment'>/// Returns a `Transfer` struct with the `context` member set to a null-pointer reference.</span>
-    <span class='doccomment'>///</span>
-    <span class='doccomment'>/// This method can be used if there is a need to return a `Transfer`</span>
-    <span class='doccomment'>/// struct but there is no `Context` left to be returned.</span>
-    <span class='doccomment'>/// This is for instance the case if you use `resume_ontop()` to destroy</span>
-    <span class='doccomment'>/// the stack as can be seen in the deallocate_ontop() test.</span>
-    <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
-    <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>empty</span>(<span class='ident'>data</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>Transfer</span> {
-        <span class='ident'>Transfer</span> {
-            <span class='ident'>context</span>: <span class='ident'>Context</span>::<span class='ident'>empty</span>(),
-            <span class='ident'>data</span>: <span class='ident'>data</span>,
-        }
-    }
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
@@ -447,22 +424,27 @@
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>Context</span><span class='op'>&gt;</span>(), <span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span><span class='op'>&gt;</span>());
     }
 
-    <span class='comment'>// This test ensure that stack frames are aligned by at least 16 bytes.</span>
-    <span class='comment'>// This is important as some compilers including rustc assume a stack frame alignment of 16</span>
-    <span class='comment'>// bytes to use SSE with fixed offsets instead of aligning the frame for every function call.</span>
+    <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;nightly&quot;</span>)]</span>
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>stack_alignment</span>() {
+        <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>non_camel_case_types</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>simd</span>)]</span>
+        <span class='kw'>struct</span> <span class='ident'>u8x16</span>(<span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>, <span class='ident'>u8</span>);
+
         <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span> <span class='ident'>context_function</span>(<span class='ident'>t</span>: <span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='op'>!</span> {
-            <span class='kw'>let</span> <span class='ident'>i</span>: [<span class='ident'>u8</span>; <span class='number'>512</span>] <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>uninitialized</span>() };
-            <span class='ident'>t</span>.<span class='ident'>context</span>.<span class='ident'>resume</span>(<span class='kw-2'>&amp;</span><span class='ident'>i</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> _ <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>%</span> <span class='number'>16</span>);
+            <span class='comment'>// If we do not use an array in combination with mem::uninitialized(),</span>
+            <span class='comment'>// Rust will still generate SSE/NEON operations for the assignment</span>
+            <span class='comment'>// and make the test crash with a segmentation fault due to misalignment.</span>
+            <span class='kw'>let</span> <span class='ident'>data</span>: [<span class='ident'>u8x16</span>; <span class='number'>1</span>] <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>uninitialized</span>() };
+            <span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>data</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> _ <span class='kw'>as</span> <span class='ident'>usize</span>;
+
+            <span class='ident'>t</span>.<span class='ident'>context</span>.<span class='ident'>resume</span>(<span class='ident'>addr</span> <span class='op'>%</span> <span class='ident'>mem</span>::<span class='ident'>align_of</span>::<span class='op'>&lt;</span><span class='ident'>u8x16</span><span class='op'>&gt;</span>());
             <span class='macro'>unreachable</span><span class='macro'>!</span>();
         }
 
         <span class='kw'>let</span> <span class='ident'>stack</span> <span class='op'>=</span> <span class='ident'>ProtectedFixedSizeStack</span>::<span class='ident'>default</span>();
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>stack</span>.<span class='ident'>top</span>() <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>%</span> <span class='number'>16</span>, <span class='number'>0</span>);
-        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>stack</span>.<span class='ident'>bottom</span>() <span class='kw'>as</span> <span class='ident'>usize</span> <span class='op'>%</span> <span class='number'>16</span>, <span class='number'>0</span>);
-
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>Transfer</span>::<span class='ident'>new</span>(<span class='ident'>Context</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>stack</span>, <span class='ident'>context_function</span>), <span class='number'>0</span>);
+
         <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>t</span>.<span class='ident'>context</span>.<span class='ident'>resume</span>(<span class='number'>0</span>);
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>t</span>.<span class='ident'>data</span>, <span class='number'>0</span>);
     }
