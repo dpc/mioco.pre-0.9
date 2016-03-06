@@ -1,6 +1,6 @@
 [package]
 name = "mioco"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
 description = "Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines)."
 keywords = ["mio", "aio", "io", "coroutine", "async"]
