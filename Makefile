@@ -23,13 +23,16 @@ EXAMPLES = $(shell cd examples 2>/dev/null && ls *.rs 2>/dev/null | sed -e 's/.r
 
 all: $(ALL_TARGETS)
 
-.PHONY: run test build doc clean
+.PHONY: run test build doc clean clippy
 run test build clean:
 	cargo $@ $(CARGO_FLAGS)
 
 check:
 	$(info Running check; use `make build` to actually build)
 	cargo $@ $(CARGO_FLAGS)
+
+clippy:
+	cargo build --features clippy
 
 .PHONY: bench
 bench:

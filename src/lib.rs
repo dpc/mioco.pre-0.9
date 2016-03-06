@@ -46,6 +46,9 @@
 #![warn(missing_docs)]
 #![allow(private_in_public)]
 
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
+
 #[cfg(test)]
 extern crate env_logger;
 #[cfg(test)]
