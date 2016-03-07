@@ -856,6 +856,8 @@ pub fn start_threads<F, T>(thread_num: usize, f: F) -> std::thread::Result<T>
 }
 
 /// Allows to join on mioco Coroutine
+///
+/// Can be used both inside and outside of mioco instance.
 pub struct JoinHandle<T> {
     receiver : sync::mpsc::Receiver<T>,
 }
@@ -864,7 +866,11 @@ impl<T> JoinHandle<T>
 where
 T: Send + 'static,
 {
-    fn join(self) -> std::thread::Result<T> {
+    /// Block waiting for coroutine completion
+    ///
+    /// Return value returned by coroutine or `Err` if coroutine panicked or
+    /// was killed.
+    pub fn join(self) -> std::thread::Result<T> {
         match self.receiver.recv() {
             Ok(t) => Ok(t),
             // TODO: More informative errors
