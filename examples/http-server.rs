@@ -36,20 +36,20 @@ fn main() {
 
     mioco::start(move || {
         for _ in 0..mioco::thread_num() {
-            let listener = try!(listener.try_clone());
+            let listener = listener.try_clone().unwrap();
             mioco::spawn(move || {
                 loop {
-                    let mut conn = try!(listener.accept());
+                    let mut conn = listener.accept().unwrap();
                     mioco::spawn(move || {
                         let mut buf_i = 0;
                         let mut buf = [0u8; 1024];
 
                         let mut headers = [httparse::EMPTY_HEADER; 16];
                         loop {
-                            let len = try!(conn.read(&mut buf[buf_i..]));
+                            let len = conn.read(&mut buf[buf_i..]).unwrap();
 
                             if len == 0 {
-                                return Ok(());
+                                return;
                             }
 
                             buf_i += len;
@@ -61,15 +61,15 @@ fn main() {
                                 let req_len = res.unwrap();
                                 match req.path {
                                     Some(ref _path) => {
-                                        let _ = try!(conn.write_all(&RESPONSE.as_bytes()));
+                                        let _ = conn.write_all(&RESPONSE.as_bytes()).unwrap();
                                         if req_len != buf_i {
                                             // request has a body; TODO: handle it
                                         }
                                         buf_i = 0;
                                     },
                                     None => {
-                                        let _ = try!(conn.write_all(&RESPONSE_404.as_bytes()));
-                                        return Ok(());
+                                        let _ = conn.write_all(&RESPONSE_404.as_bytes()).unwrap();
+                                        return;
                                     }
                                 }
                             }
@@ -78,6 +78,5 @@ fn main() {
                 }
             });
         }
-        Ok(())
-    });
+    }).unwrap();
 }

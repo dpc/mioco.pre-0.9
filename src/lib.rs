@@ -74,7 +74,6 @@ pub mod mio {
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::io;
 use std::marker::Reflect;
 use std::mem;
 
@@ -317,31 +316,6 @@ impl slab::Index for EventSourceId {
     }
     fn from_usize(i: usize) -> Self {
         EventSourceId(i)
-    }
-}
-
-/// Handle to spawned coroutine
-pub struct CoroutineHandle {
-    coroutine: RcCoroutine,
-}
-
-impl CoroutineHandle {
-    /// Create an exit notificator
-    pub fn exit_notificator(&self) -> mpsc::Receiver<coroutine::ExitStatus> {
-        let (outer, inner) = mpsc::channel();
-        let mut co = self.coroutine.borrow_mut();
-        let Coroutine {
-            ref state,
-            ref mut exit_notificators,
-            ..
-        } = *co;
-
-        if let coroutine::State::Finished(ref exit) = *state {
-            let _ = outer.send(exit.clone());
-        } else {
-            exit_notificators.push(outer);
-        }
-        inner
     }
 }
 
@@ -635,16 +609,32 @@ impl Mioco {
         }
     }
 
-    /// Start mioco handling
+    /// Start mioco instance
     ///
     /// Takes a starting handler function that will be executed in `mioco` environment.
     ///
     /// Will block until `mioco` is finished - there are no more handlers to run.
     ///
-    /// See `MiocoHandle::spawn()`.
-    pub fn start<F>(&mut self, f: F)
-        where F: FnOnce() -> io::Result<()> + Send + 'static,
-              F: Send
+    /// See `MiocoHandle::start()`.
+    pub fn start<F, T>(&mut self, f: F) -> std::thread::Result<T>
+        where F: FnOnce() -> T,
+              F: Send + 'static,
+              T: Send + 'static,
+      {
+          let (sender, receiver) = sync::mpsc::channel();
+
+          self.run(f, sender);
+
+          let join = JoinHandle {
+              receiver: receiver,
+          };
+          join.join()
+      }
+
+    fn run<F, T>(&mut self, f: F, co_exit_sender : sync::mpsc::Sender<T>)
+        where F: FnOnce() -> T,
+              F: Send + 'static,
+              T: Send + 'static,
     {
         info!("starting instance with {} threads", self.config.thread_num);
         let thread_shared = Arc::new(thread::HandlerThreadShared::new(self.config.thread_num));
@@ -672,7 +662,7 @@ impl Mioco {
                            .name(format!("mioco_thread_{}", i))
                            .spawn(move || {
                                let sched = scheduler.spawn_thread();
-                               Mioco::thread_loop::<F>(None,
+                               Mioco::thread_loop::<F, T>(None,
                                                        sched,
                                                        event_loop,
                                                        i,
@@ -690,7 +680,7 @@ impl Mioco {
 
         let mut user_data = None;
         mem::swap(&mut user_data, &mut self.config.user_data);
-        Mioco::thread_loop(Some(f),
+        Mioco::thread_loop(Some((f, co_exit_sender)),
                            sched,
                            first_event_loop,
                            0,
@@ -704,7 +694,7 @@ impl Mioco {
         }
     }
 
-    fn thread_loop<F>(f: Option<F>,
+    fn thread_loop<F, T>(f_and_sender: Option<(F, sync::mpsc::Sender<T>)>,
                       scheduler: Box<SchedulerThread + 'static>,
                       mut event_loop: EventLoop<thread::Handler>,
                       thread_id: usize,
@@ -712,16 +702,17 @@ impl Mioco {
                       thread_shared: thread::ArcHandlerThreadShared,
                       userdata: Option<Arc<Box<Any + Send + Sync>>>,
                       coroutine_config: coroutine::Config)
-        where F: FnOnce() -> io::Result<()> + Send + 'static,
-              F: Send
+        where F: FnOnce() -> T,
+              F: Send + 'static,
+              T: Send + 'static,
     {
         let handler_shared = thread::HandlerShared::new(senders,
                                                         thread_shared,
                                                         coroutine_config,
                                                         thread_id);
         let shared = Rc::new(RefCell::new(handler_shared));
-        if let Some(f) = f {
-            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f);
+        if let Some((f, exit_sender)) = f_and_sender {
+            let coroutine_rc = Coroutine::spawn(shared.clone(), userdata, f, exit_sender);
             // Mark started only after first coroutine is spawned so that
             // threads don't start, detect no coroutines, and exit prematurely
             shared.borrow().signal_start_all();
@@ -839,15 +830,14 @@ impl Config {
 
 /// Start mioco instance.
 ///
-/// Will start new mioco instance and return only after it's done.
-///
-/// Shorthand for creating new `Mioco` instance with default settings and
-/// starting it right away.
-pub fn start<F>(f: F)
-    where F: FnOnce() -> io::Result<()> + Send + 'static,
-          F: Send
+/// Creates a mioco instance with default configureation and calls
+/// `Mioco::start(f)` on it.
+pub fn start<F, T>(f: F) -> std::thread::Result<T>
+    where F: FnOnce() -> T,
+          F: Send + 'static,
+          T: Send + 'static,
 {
-    Mioco::new().start(f);
+    Mioco::new().start(f)
 }
 
 /// Start mioco instance using a given number of threads.
@@ -855,13 +845,32 @@ pub fn start<F>(f: F)
 /// Returns after mioco instance exits.
 ///
 /// Shorthand for `mioco::start()` running given number of threads.
-pub fn start_threads<F>(thread_num: usize, f: F)
-    where F: FnOnce() -> io::Result<()> + Send + 'static,
-          F: Send
+pub fn start_threads<F, T>(thread_num: usize, f: F) -> std::thread::Result<T>
+    where F: FnOnce() -> T,
+          F: Send + 'static,
+          T: Send + 'static,
 {
     let mut config = Config::new();
     config.set_thread_num(thread_num);
-    Mioco::new_configured(config).start(f);
+    Mioco::new_configured(config).start(f)
+}
+
+/// Allows to join on mioco Coroutine
+pub struct JoinHandle<T> {
+    receiver : sync::mpsc::Receiver<T>,
+}
+
+impl<T> JoinHandle<T>
+where
+T: Send + 'static,
+{
+    fn join(self) -> std::thread::Result<T> {
+        match self.receiver.recv() {
+            Ok(t) => Ok(t),
+            // TODO: More informative errors
+            Err(err) => Err(Box::new(err)),
+        }
+    }
 }
 
 /// Spawn a mioco coroutine.
@@ -875,32 +884,26 @@ pub fn start_threads<F>(thread_num: usize, f: F)
 /// * this call will not block
 /// * coroutine will be executing in some mioco instance
 /// the exact details might change.
-pub fn spawn<F>(f: F)
-    where F: FnOnce() -> io::Result<()> + Send + 'static
+pub fn spawn<F, T>(f: F) -> JoinHandle<T>
+    where F: FnOnce() -> T,
+          F: Send + 'static,
+          T: Send + 'static,
 {
     let coroutine = tl_current_coroutine_ptr();
+    let (sender, receiver) = sync::mpsc::channel();
+
     if coroutine == ptr::null_mut() {
         std::thread::spawn(|| {
-            start(f);
+            Mioco::new().run(f, sender);
         });
     } else {
-        spawn_ext(f);
+        let coroutine = unsafe { tl_current_coroutine() };
+        coroutine.spawn_child(f, sender)
     }
-}
 
-/// Spawn a `mioco` coroutine
-///
-/// Can't be used outside of existing coroutine.
-///
-/// Returns a `CoroutineHandle` that can be used to perform
-/// additional operations.
-// TODO: Could this be unified with `spawn()` so the return type
-// can be simply ignored?
-pub fn spawn_ext<F>(f: F) -> CoroutineHandle
-    where F: FnOnce() -> io::Result<()> + Send + 'static
-{
-    let coroutine = unsafe { tl_current_coroutine() };
-    CoroutineHandle { coroutine: coroutine.spawn_child(f) }
+    JoinHandle {
+        receiver: receiver,
+    }
 }
 
 /// Shutdown current mioco instance

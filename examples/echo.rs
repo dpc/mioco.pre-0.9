@@ -23,18 +23,16 @@ fn main() {
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
         loop {
-            let mut conn = try!(listener.accept());
+            let mut conn = listener.accept().unwrap();
 
             mioco::spawn(move || {
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let size = try!(conn.read(&mut buf));
+                    let size = conn.read(&mut buf).unwrap();
                     if size == 0 {/* eof */ break; }
-                    try!(conn.write_all(&mut buf[0..size]))
+                    conn.write_all(&mut buf[0..size]).unwrap();
                 }
-
-                Ok(())
             });
         }
-    });
+    }).unwrap();
 }

@@ -1,6 +1,6 @@
 use super::{Event, EventSourceId, RW, coroutine, token_to_ids, sender_retry};
 use super::CoroutineControl;
-use super::thread::{tl_current_coroutine_ptr_save, tl_current_coroutine_ptr_restore};
+use super::thread::{tl_current_coroutine_ptr_save, tl_current_coroutine_ptr_restore, tl_current_coroutine};
 use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
@@ -91,7 +91,7 @@ pub enum State {
     /// Ready to be started
     Ready,
     /// Done
-    Finished(ExitStatus),
+    Finished,
 }
 
 impl State {
@@ -175,10 +175,6 @@ pub struct Coroutine {
     /// `Handler` shared data that this `Coroutine` is running in
     handler_shared: Option<RcHandlerShared>,
 
-    /// `Coroutine` will send exit status on it's finish
-    /// through this list of Mailboxes
-    pub exit_notificators: Vec<mpsc::Sender<ExitStatus>>,
-
     /// Current coroutine Id
     pub id: Id,
 
@@ -189,7 +185,7 @@ pub struct Coroutine {
     pub children_to_start: Vec<RcCoroutine>,
 
     /// Function to be run inside Coroutine
-    coroutine_func: Option<Box<FnBox() -> io::Result<()> + Send + 'static>>,
+    coroutine_func: Option<Box<FnBox()>>,
 
     /// In case Rc to self is needed
     pub self_rc: Option<RcCoroutine>,
@@ -218,44 +214,67 @@ extern "C" fn unwind_stack(t: context::Transfer) -> context::Transfer {
 
 impl Coroutine {
     /// Spawn a new Coroutine
-    pub fn spawn<F>(handler_shared: RcHandlerShared,
+    pub fn spawn<F, T>(handler_shared: RcHandlerShared,
                     inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-                    f: F)
+                    coroutine_user_fn: F,
+                    exit_sender : mpsc::Sender<T>)
                     -> RcCoroutine
-        where F: FnOnce() -> io::Result<()> + Send + 'static
+        where F: FnOnce() -> T,
+              F: Send + 'static,
+              T: Send + 'static,
     {
-        extern "C" fn init_fn(t: context::Transfer) -> ! {
+        /// C function that context-rs needs
+        extern "C" fn coroutine_context_start_fn(t: context::Transfer) -> ! {
             let data = t.data;
 
-            {
-                let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
-                *coroutine.out_context() = Some(t.context);
-            }
-
-            // never panic inside init_fn, that causes a SIGILL
-            let res = panic::recover(move || {
+            let f = {
                 let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
                 co_debug!(coroutine, "started");
 
-                let f = coroutine.coroutine_func.take().unwrap();
+                *coroutine.out_context() = Some(t.context);
 
+                coroutine.coroutine_func.take().unwrap()
+            };
+
+            f.call_box(());
+
+            let context = {
+                let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
+                let context = coroutine.out_context().take().unwrap();
+                co_debug!(coroutine, "ended");
+                context
+            };
+
+            let _ = context.resume(0);
+            unreachable!();
+        }
+
+        // Inner body of the coroutine, handling the user-provided
+        // coroutine code (which can have different signatures),
+        // and sending the notification back
+        let coroutine_main_fn = move || {
+            let coroutine_user_fn = panic::AssertRecoverSafe::new(coroutine_user_fn);
+            let res = panic::recover(move || {
+
+                let coroutine = unsafe { tl_current_coroutine() };
                 if coroutine.killed {
                     panic::propagate(Box::new("Killed externally"))
                 }
 
-                f.call_box(())
+                coroutine_user_fn.into_inner()()
             });
 
-            let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
+            let coroutine = unsafe { tl_current_coroutine() };
             coroutine.blocked_on.clear();
             coroutine.self_rc = None;
+            coroutine.state = State::Finished;
 
             let id = coroutine.id;
             {
                 let mut handler_shared = coroutine.handler_shared
-                                                  .as_ref()
-                                                  .unwrap()
-                                                  .borrow_mut();
+                    .as_ref()
+                    .unwrap()
+                    .borrow_mut();
                 handler_shared.coroutines.remove(id).unwrap();
                 handler_shared.coroutines_dec();
             }
@@ -263,43 +282,23 @@ impl Coroutine {
             let config = coroutine.handler_shared().coroutine_config;
             match res {
                 Ok(res) => {
-                    co_debug!(coroutine, "finished with ret={:?}", res);
-                    let arc_res = Arc::new(res);
-                    coroutine.exit_notificators
-                             .iter()
-                             .map(|end| end.send(ExitStatus::Exit(arc_res.clone())))
-                             .count();
-                    coroutine.state = State::Finished(ExitStatus::Exit(arc_res));
+                    co_debug!(coroutine, "finished normally");
+                    let _ = exit_sender.send(res);
                 }
                 Err(cause) => {
                     if config.catch_panics {
-                        co_debug!(coroutine, "panicked: {:?}", cause.downcast::<&str>());
-                        if coroutine.killed {
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Killed))
-                                     .count();
-                            coroutine.state = State::Finished(ExitStatus::Killed);
-                        } else {
-                            coroutine.exit_notificators
-                                     .iter()
-                                     .map(|end| end.send(ExitStatus::Panic))
-                                     .count();
-                            coroutine.state = State::Finished(ExitStatus::Panic);
-                        }
+                        co_debug!(coroutine, "finished by panick: {:?}", cause.downcast::<&str>());
                     } else {
                         // send fail here instead with the internal reason, so the user may get a nice backtrace
                         let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
                         sender_retry(&handler.get_sender_to_own_thread(),
-                                     Message::PropagatePanic(cause));
+                        Message::PropagatePanic(cause));
                     }
                 }
             }
 
-            let context = coroutine.out_context().take().unwrap();
-            let _ = context.resume(0);
-            unreachable!();
-        }
+        };
+
         let config = handler_shared.borrow().coroutine_config;
 
         let id = {
@@ -325,13 +324,12 @@ impl Coroutine {
                                   rw: RW::read(),
                                   id: EventSourceId(0),
                               },
-                              context: Some(context::Context::new(&stack, init_fn)),
+                              context: Some(context::Context::new(&stack, coroutine_context_start_fn)),
                               stack: stack,
                               handler_shared: Some(handler_shared.clone()),
-                              exit_notificators: Vec::new(),
                               blocked_on: Vec::with_capacity(4),
                               children_to_start: Vec::new(),
-                              coroutine_func: Some(Box::new(f)),
+                              coroutine_func: Some(Box::new(coroutine_main_fn)),
                               self_rc: None,
                               sync_channel: None,
                               user_data: inherited_user_data.clone(),
@@ -357,16 +355,19 @@ impl Coroutine {
         coroutine_rc
     }
 
-    pub fn spawn_child<F>(&mut self, f: F) -> RcCoroutine
-        where F: FnOnce() -> io::Result<()> + Send + 'static
+    pub fn spawn_child<F, T>(&mut self, f: F,
+                             exit_sender : mpsc::Sender<T>
+                            )
+        where F: FnOnce() -> T,
+              F: Send + 'static,
+              T: Send + 'static,
     {
 
         co_debug!(self, "spawning child");
         let child = Coroutine::spawn(self.handler_shared.as_ref().unwrap().clone(),
                                      self.inherited_user_data.clone(),
-                                     f);
-        self.children_to_start.push(child.clone());
-        child
+                                     f, exit_sender);
+        self.children_to_start.push(child);
     }
 
     pub fn handler_shared(&self) -> cell::Ref<HandlerShared> {
@@ -564,7 +565,7 @@ pub fn jump_in(coroutine: &RefCell<Coroutine>) {
         let co = &coroutine.borrow();
         match co.state {
             State::Ready => {}
-            State::Finished(_) => return,
+            State::Finished => return,
             _ => debug_assert!(co.killed),
         }
     }

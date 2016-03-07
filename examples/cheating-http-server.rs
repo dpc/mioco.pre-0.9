@@ -28,19 +28,18 @@ fn main() {
 
     mioco::start(move || {
         for _ in 0..mioco::thread_num() {
-            let listener = try!(listener.try_clone());
+            let listener = listener.try_clone().unwrap();
             mioco::spawn(move || {
                 loop {
-                    let conn = try!(listener.accept());
+                    let conn = listener.accept().unwrap();
                     mioco::spawn(move || {
                         let mut conn = conn;
                         loop {
-                            let _ = try!(conn.write_all(&RESPONSE.as_bytes()));
+                            let _ = conn.write_all(&RESPONSE.as_bytes()).unwrap();
                         }
                     });
                 }
             });
         }
-        Ok(())
-    });
+    }).unwrap();
 }
