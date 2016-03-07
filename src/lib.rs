@@ -619,22 +619,20 @@ impl Mioco {
     pub fn start<F, T>(&mut self, f: F) -> std::thread::Result<T>
         where F: FnOnce() -> T,
               F: Send + 'static,
-              T: Send + 'static,
-      {
-          let (sender, receiver) = sync::mpsc::channel();
+              T: Send + 'static
+    {
+        let (sender, receiver) = sync::mpsc::channel();
 
-          self.run(f, sender);
+        self.run(f, sender);
 
-          let join = JoinHandle {
-              receiver: receiver,
-          };
-          join.join()
-      }
+        let join = JoinHandle { receiver: receiver };
+        join.join()
+    }
 
-    fn run<F, T>(&mut self, f: F, co_exit_sender : sync::mpsc::Sender<T>)
+    fn run<F, T>(&mut self, f: F, co_exit_sender: sync::mpsc::Sender<T>)
         where F: FnOnce() -> T,
               F: Send + 'static,
-              T: Send + 'static,
+              T: Send + 'static
     {
         info!("starting instance with {} threads", self.config.thread_num);
         let thread_shared = Arc::new(thread::HandlerThreadShared::new(self.config.thread_num));
@@ -663,13 +661,13 @@ impl Mioco {
                            .spawn(move || {
                                let sched = scheduler.spawn_thread();
                                Mioco::thread_loop::<F, T>(None,
-                                                       sched,
-                                                       event_loop,
-                                                       i,
-                                                       senders,
-                                                       thread_shared,
-                                                       None,
-                                                       coroutine_config);
+                                                          sched,
+                                                          event_loop,
+                                                          i,
+                                                          senders,
+                                                          thread_shared,
+                                                          None,
+                                                          coroutine_config);
                            });
 
             match join {
@@ -695,16 +693,16 @@ impl Mioco {
     }
 
     fn thread_loop<F, T>(f_and_sender: Option<(F, sync::mpsc::Sender<T>)>,
-                      scheduler: Box<SchedulerThread + 'static>,
-                      mut event_loop: EventLoop<thread::Handler>,
-                      thread_id: usize,
-                      senders: Vec<thread::MioSender>,
-                      thread_shared: thread::ArcHandlerThreadShared,
-                      userdata: Option<Arc<Box<Any + Send + Sync>>>,
-                      coroutine_config: coroutine::Config)
+                         scheduler: Box<SchedulerThread + 'static>,
+                         mut event_loop: EventLoop<thread::Handler>,
+                         thread_id: usize,
+                         senders: Vec<thread::MioSender>,
+                         thread_shared: thread::ArcHandlerThreadShared,
+                         userdata: Option<Arc<Box<Any + Send + Sync>>>,
+                         coroutine_config: coroutine::Config)
         where F: FnOnce() -> T,
               F: Send + 'static,
-              T: Send + 'static,
+              T: Send + 'static
     {
         let handler_shared = thread::HandlerShared::new(senders,
                                                         thread_shared,
@@ -835,7 +833,7 @@ impl Config {
 pub fn start<F, T>(f: F) -> std::thread::Result<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
-          T: Send + 'static,
+          T: Send + 'static
 {
     Mioco::new().start(f)
 }
@@ -848,7 +846,7 @@ pub fn start<F, T>(f: F) -> std::thread::Result<T>
 pub fn start_threads<F, T>(thread_num: usize, f: F) -> std::thread::Result<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
-          T: Send + 'static,
+          T: Send + 'static
 {
     let mut config = Config::new();
     config.set_thread_num(thread_num);
@@ -859,12 +857,10 @@ pub fn start_threads<F, T>(thread_num: usize, f: F) -> std::thread::Result<T>
 ///
 /// Can be used both inside and outside of mioco instance.
 pub struct JoinHandle<T> {
-    receiver : sync::mpsc::Receiver<T>,
+    receiver: sync::mpsc::Receiver<T>,
 }
 
-impl<T> JoinHandle<T>
-where
-T: Send + 'static,
+impl<T> JoinHandle<T> where T: Send + 'static
 {
     /// Block waiting for coroutine completion
     ///
@@ -893,7 +889,7 @@ T: Send + 'static,
 pub fn spawn<F, T>(f: F) -> JoinHandle<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
-          T: Send + 'static,
+          T: Send + 'static
 {
     let coroutine = tl_current_coroutine_ptr();
     let (sender, receiver) = sync::mpsc::channel();
@@ -907,9 +903,7 @@ pub fn spawn<F, T>(f: F) -> JoinHandle<T>
         coroutine.spawn_child(f, sender)
     }
 
-    JoinHandle {
-        receiver: receiver,
-    }
+    JoinHandle { receiver: receiver }
 }
 
 /// Shutdown current mioco instance

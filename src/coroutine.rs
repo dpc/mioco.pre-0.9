@@ -1,6 +1,7 @@
 use super::{Event, EventSourceId, RW, coroutine, token_to_ids, sender_retry};
 use super::CoroutineControl;
-use super::thread::{tl_current_coroutine_ptr_save, tl_current_coroutine_ptr_restore, tl_current_coroutine};
+use super::thread::{tl_current_coroutine_ptr_save, tl_current_coroutine_ptr_restore,
+                    tl_current_coroutine};
 use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
@@ -215,13 +216,13 @@ extern "C" fn unwind_stack(t: context::Transfer) -> context::Transfer {
 impl Coroutine {
     /// Spawn a new Coroutine
     pub fn spawn<F, T>(handler_shared: RcHandlerShared,
-                    inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
-                    coroutine_user_fn: F,
-                    exit_sender : mpsc::Sender<T>)
-                    -> RcCoroutine
+                       inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
+                       coroutine_user_fn: F,
+                       exit_sender: mpsc::Sender<T>)
+                       -> RcCoroutine
         where F: FnOnce() -> T,
               F: Send + 'static,
-              T: Send + 'static,
+              T: Send + 'static
     {
         /// C function that context-rs needs
         extern "C" fn coroutine_context_start_fn(t: context::Transfer) -> ! {
@@ -272,9 +273,9 @@ impl Coroutine {
             let id = coroutine.id;
             {
                 let mut handler_shared = coroutine.handler_shared
-                    .as_ref()
-                    .unwrap()
-                    .borrow_mut();
+                                                  .as_ref()
+                                                  .unwrap()
+                                                  .borrow_mut();
                 handler_shared.coroutines.remove(id).unwrap();
                 handler_shared.coroutines_dec();
             }
@@ -287,12 +288,14 @@ impl Coroutine {
                 }
                 Err(cause) => {
                     if config.catch_panics {
-                        co_debug!(coroutine, "finished by panick: {:?}", cause.downcast::<&str>());
+                        co_debug!(coroutine,
+                                  "finished by panick: {:?}",
+                                  cause.downcast::<&str>());
                     } else {
                         // send fail here instead with the internal reason, so the user may get a nice backtrace
                         let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
                         sender_retry(&handler.get_sender_to_own_thread(),
-                        Message::PropagatePanic(cause));
+                                     Message::PropagatePanic(cause));
                     }
                 }
             }
@@ -324,7 +327,8 @@ impl Coroutine {
                                   rw: RW::read(),
                                   id: EventSourceId(0),
                               },
-                              context: Some(context::Context::new(&stack, coroutine_context_start_fn)),
+                              context: Some(context::Context::new(&stack,
+                                                                  coroutine_context_start_fn)),
                               stack: stack,
                               handler_shared: Some(handler_shared.clone()),
                               blocked_on: Vec::with_capacity(4),
@@ -346,7 +350,7 @@ impl Coroutine {
 
         coroutine_rc.borrow_mut().self_rc = Some(coroutine_rc.clone());
 
-        
+
 
         {
             let co = coroutine_rc.borrow();
@@ -355,18 +359,17 @@ impl Coroutine {
         coroutine_rc
     }
 
-    pub fn spawn_child<F, T>(&mut self, f: F,
-                             exit_sender : mpsc::Sender<T>
-                            )
+    pub fn spawn_child<F, T>(&mut self, f: F, exit_sender: mpsc::Sender<T>)
         where F: FnOnce() -> T,
               F: Send + 'static,
-              T: Send + 'static,
+              T: Send + 'static
     {
 
         co_debug!(self, "spawning child");
         let child = Coroutine::spawn(self.handler_shared.as_ref().unwrap().clone(),
                                      self.inherited_user_data.clone(),
-                                     f, exit_sender);
+                                     f,
+                                     exit_sender);
         self.children_to_start.push(child);
     }
 
