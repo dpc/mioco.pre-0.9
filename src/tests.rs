@@ -89,9 +89,8 @@ fn empty_handler() {
         mioco::start_threads(threads, move || {
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -111,16 +110,13 @@ fn empty_subcoroutines() {
                 mioco::spawn(move || {
                     let mut lock = counter_subcopy.lock().unwrap();
                     *lock += 1;
-
-                    Ok(())
                 });
             }
 
             let mut lock = counter_copy.lock().unwrap();
             *lock += 1;
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert_eq!(*counter.lock().unwrap(), 512 + 1);
     }
@@ -135,7 +131,9 @@ fn contain_panics() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
-        mioco::start_threads(threads, move || panic!());
+        let res = mioco::start_threads(threads, move || silent_panic());
+
+        assert!(res.is_err());
 
         assert!(!*finished_ok.lock().unwrap());
     }
@@ -155,9 +153,8 @@ fn contain_panics_in_subcoroutines() {
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -169,13 +166,13 @@ fn contain_panics_in_subcoroutines() {
 fn propagate_uncatched_panic() {
     use {Mioco, Config};
 
-    Mioco::new_configured({
-        let mut config = Config::new();
-        config.set_catch_panics(false);
-        config.set_thread_num(1);
-        config
-    })
-        .start(|| silent_panic());
+    let _: std::thread::Result<()> = Mioco::new_configured({
+                                         let mut config = Config::new();
+                                         config.set_catch_panics(false);
+                                         config.set_thread_num(1);
+                                         config
+                                     })
+                                         .start(|| silent_panic());
 }
 
 #[test]
@@ -190,8 +187,7 @@ fn long_chain() {
 
             let mut prev_reader = first_reader;
 
-            // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
-            for _ in 0..128 {
+            for _ in 0..1024 {
                 let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
@@ -199,8 +195,6 @@ fn long_chain() {
                     let mut writer = writer;
 
                     let _ = std::io::copy(&mut reader, &mut writer);
-
-                    Ok(())
                 });
 
                 prev_reader = reader;
@@ -223,9 +217,8 @@ fn long_chain() {
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -243,8 +236,7 @@ fn lots_of_event_sources() {
 
             let mut prev_reader = first_reader;
 
-            // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
-            for _ in 0..4 {
+            for _ in 0..8 {
                 let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
@@ -262,8 +254,6 @@ fn lots_of_event_sources() {
                     let mut writer = writer;
 
                     let _ = std::io::copy(&mut reader, &mut writer);
-
-                    Ok(())
                 });
 
                 prev_reader = reader;
@@ -286,9 +276,7 @@ fn lots_of_event_sources() {
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-
-            Ok(())
-        });
+        }).unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -313,17 +301,14 @@ fn destructs_io_on_panic() {
 
                 let mut lock = finished_ok_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
 
             mioco::spawn(move || {
                 let _writer = writer;
                 silent_panic();
             });
-
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -344,7 +329,6 @@ fn channel_disconnect_on_sender_drop() {
                 assert!(receiver.recv().is_err());
                 let mut lock = finished_ok_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
 
             mioco::spawn(move || {
@@ -353,10 +337,8 @@ fn channel_disconnect_on_sender_drop() {
 
                 silent_panic();
             });
-
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -380,7 +362,6 @@ fn channel_disconnect_on_sender_drop_many() {
                 assert!(receiver.recv().is_err());
                 let mut lock = finished_ok_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
 
             for i in 0..HOW_MANY {
@@ -394,14 +375,12 @@ fn channel_disconnect_on_sender_drop_many() {
 
                         if i % 2 == 0 {
                             silent_panic()
-                        } else {
-                            Ok(())
                         }
                     }
                 });
             }
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -431,7 +410,6 @@ fn timer_times_out() {
 
                 let mut lock = finished_ok_1_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
 
             mioco::spawn(move || {
@@ -441,12 +419,9 @@ fn timer_times_out() {
 
                 let mut lock = finished_ok_2_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
-
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok_1.lock().unwrap());
         assert!(*finished_ok_2.lock().unwrap());
@@ -469,11 +444,9 @@ fn timer_default_timeout() {
 
                 let mut lock = finished_ok_copy.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -486,8 +459,8 @@ fn sleep_takes_time() {
 
         mioco::start_threads(threads, move || {
             mioco::sleep(500);
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
     }
@@ -505,9 +478,8 @@ fn timer_select_takes_time() {
             select!(
                 timer:r => {},
                 );
-
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
     }
@@ -521,15 +493,14 @@ fn basic_timer_stress_test() {
                 for t in 0..100 {
                     mioco::spawn(move || {
                         mioco::sleep(t);
-                        Ok(())
                     });
 
                 }
 
                 mioco::sleep(1);
             }
-            Ok(())
-        });
+        })
+            .unwrap();
     }
 }
 
@@ -541,16 +512,14 @@ fn exit_notifier_simple() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || Ok(())).exit_notificator();
+            let notify = mioco::spawn(move || {});
 
-            let notify = notify;
-
-            assert!(!notify.recv().unwrap().is_panic());
+            assert_eq!(notify.join().unwrap(), ());
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -564,54 +533,14 @@ fn exit_notifier_simple_panic() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let notify = mioco::spawn_ext(move || silent_panic()).exit_notificator();
+            let notify = mioco::spawn(move || silent_panic());
 
-            let notify = notify;
-
-            assert!(notify.recv().unwrap().is_panic());
+            assert!(notify.join().is_err());
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-            Ok(())
-        });
-
-        assert!(*finished_ok.lock().unwrap());
-    }
-}
-
-#[test]
-fn exit_notifier_wrap_after_finish() {
-    for &threads in THREADS_N.iter() {
-        let finished_ok = Arc::new(Mutex::new(false));
-
-        let finished_copy = finished_ok.clone();
-        mioco::start_threads(threads, move || {
-
-            let handle1 = mioco::spawn_ext(move || silent_panic());
-
-            mioco::sleep(1000);
-            let notify1 = handle1.exit_notificator();
-
-            let handle2 = mioco::spawn_ext(move || {
-                let notify1 = notify1;
-                assert!(notify1.recv().unwrap().is_panic());
-                Ok(())
-            });
-
-            let notify2 = handle2.exit_notificator();
-            let notify2 = notify2;
-            assert!(!notify2.recv().unwrap().is_panic());
-
-
-            let notify1 = handle1.exit_notificator();
-            let notify1 = notify1;
-            assert!(notify1.recv().unwrap().is_panic());
-
-
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -633,10 +562,10 @@ fn tiny_stacks() {
         let mut mioco = mioco::Mioco::new_configured(config);
 
         mioco.start(move || {
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-            Ok(())
-        });
+                 let mut lock = finished_copy.lock().unwrap();
+                 *lock = true;
+             })
+             .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -662,8 +591,8 @@ fn basic_sync() {
             let mut lock = finished_copy.lock().unwrap();
             assert_eq!(*lock, false);
             *lock = true;
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -678,8 +607,8 @@ fn sync_takes_time() {
             mioco::sync(|| {
                 thread::sleep(std::time::Duration::from_millis(500));
             });
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
     }
@@ -703,8 +632,8 @@ fn basic_sync_in_loop() {
             }
 
             assert_eq!(counter, 10000);
-            Ok(())
-        });
+        })
+            .unwrap();
     }
 }
 
@@ -741,11 +670,11 @@ fn scheduler_kill_on_initial_drop() {
     let finished_ok = Arc::new(Mutex::new(false));
 
     let finished_copy = finished_ok.clone();
-    mioco.start(move || {
+    let res = mioco.start(move || {
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
-        Ok(())
     });
+    assert!(res.is_err());
 
     assert!(!*finished_ok.lock().unwrap());
 }
@@ -785,7 +714,7 @@ fn scheduler_kill_on_drop() {
 
     let started_copy = started_ok.clone();
     let finished_copy = finished_ok.clone();
-    mioco.start(move || {
+    let res = mioco.start(move || {
         {
             let mut lock = started_copy.lock().unwrap();
             *lock = true;
@@ -793,8 +722,9 @@ fn scheduler_kill_on_drop() {
         mioco::sleep(1000);
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
-        Ok(())
     });
+
+    assert!(res.is_err());
 
     assert!(*started_ok.lock().unwrap());
     assert!(!*finished_ok.lock().unwrap());
@@ -840,15 +770,15 @@ fn simple_yield() {
         let mut mioco = mioco::Mioco::new_configured(config);
 
         mioco.start(move || {
-            // long enough to test recursion exhausting stack
-            // small enough to finish in sane time
-            for _ in 0..10000 {
-                mioco::yield_now();
-            }
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-            Ok(())
-        });
+                 // long enough to test recursion exhausting stack
+                 // small enough to finish in sane time
+                 for _ in 0..10000 {
+                     mioco::yield_now();
+                 }
+                 let mut lock = finished_copy.lock().unwrap();
+                 *lock = true;
+             })
+             .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -862,8 +792,6 @@ fn spawn_as_start() {
     mioco::spawn(move || {
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
-
-        Ok(())
     });
 
     for _ in 0..60 {
@@ -895,21 +823,19 @@ fn million_coroutines() {
     let finished_copy = finished_ok.clone();
 
     mioco_server.start(move || {
-        for _ in 0..250 {
-            for _ in 0..1000 {
-                mioco::spawn(|| {
-                    mioco::sleep(5000);
-                    Ok(())
-                });
-            }
-            // This is a workaround MIO queues becoming full
-            mioco::yield_now();
-        }
-        let mut lock = finished_copy.lock().unwrap();
-        *lock = true;
-
-        Ok(())
-    });
+                    for _ in 0..250 {
+                        for _ in 0..1000 {
+                            mioco::spawn(|| {
+                                mioco::sleep(5000);
+                            });
+                        }
+                        // This is a workaround MIO queues becoming full
+                        mioco::yield_now();
+                    }
+                    let mut lock = finished_copy.lock().unwrap();
+                    *lock = true;
+                })
+                .unwrap();
 
     assert!(*finished_ok.lock().unwrap());
 }
@@ -935,14 +861,13 @@ fn simple_rwlock() {
                     }
                     let mut counter = counter.write().unwrap();
                     *counter = *counter + 1;
-                    Ok(())
                 });
             }
             mioco::sleep(200);
             let mut counter = copy_counter.write().unwrap();
             *counter = 1;
-            Ok(())
-        });
+        })
+            .unwrap();
 
 
         assert_eq!(*counter.native_lock().read().unwrap(), (threads * 4) + 1);
@@ -970,14 +895,13 @@ fn simple_mutex() {
                     }
                     let mut counter = counter.lock().unwrap();
                     *counter = *counter + 1;
-                    Ok(())
                 });
             }
             mioco::sleep(200);
             let mut counter = copy_counter.lock().unwrap();
             *counter = 1;
-            Ok(())
-        });
+        })
+            .unwrap();
 
 
         assert_eq!(*counter.native_lock().lock().unwrap(), (threads * 4) + 1);
@@ -1005,14 +929,12 @@ fn tcp_basic_client_server() {
                 for i in 0..2 {
                     let mut conn = listener.accept().unwrap();
                     let mut buf = [0u8; 1024];
-                    let size = try!(conn.read(&mut buf));
+                    let size = conn.read(&mut buf).unwrap();
                     assert_eq!(size, 11);
 
                     let mut lock = finished_copy.lock().unwrap();
                     *lock = i == 1;
                 }
-
-                Ok(())
             });
 
             mioco::spawn(move || {
@@ -1021,18 +943,18 @@ fn tcp_basic_client_server() {
                 let stream = mioco::tcp::TcpStream::connect(&addr).unwrap();
                 stream.try_write(b"Hello world").unwrap().unwrap();
 
-                let sock = try!(match addr {
-                    SocketAddr::V4(..) => TcpBuilder::new_v4(),
-                    SocketAddr::V6(..) => TcpBuilder::new_v6(),
-                });
-                let stream = mioco::tcp::TcpStream::connect_stream(try!(sock.to_tcp_stream()),
+                let sock = match addr {
+                               SocketAddr::V4(..) => TcpBuilder::new_v4(),
+                               SocketAddr::V6(..) => TcpBuilder::new_v6(),
+                           }
+                           .unwrap();
+                let stream = mioco::tcp::TcpStream::connect_stream(sock.to_tcp_stream().unwrap(),
                                                                    &addr)
                                  .unwrap();
                 stream.try_write(b"Hello world").unwrap().unwrap();
-                Ok(())
             });
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -1044,8 +966,8 @@ fn simple_userdata() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
             assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
-            Ok(())
         })
+            .unwrap();
     }
 }
 
@@ -1055,8 +977,8 @@ fn userdata_wrong_type() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
             assert_eq!(mioco::get_userdata::<i32>(), None);
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1095,11 +1017,12 @@ fn userdata_scheduler() {
     let finished_ok = Arc::new(Mutex::new(false));
 
     let finished_copy = finished_ok.clone();
-    mioco.start(move || {
+    let res = mioco.start(move || {
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
-        Ok(())
     });
+
+    assert!(res.is_err());
 
     assert!(!*finished_ok.lock().unwrap());
 }
@@ -1111,10 +1034,9 @@ fn simple_userdata_inheritance() {
             mioco::set_children_userdata(Some(42 as u32));
             mioco::spawn(|| {
                 assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
-                Ok(())
             });
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1124,10 +1046,9 @@ fn no_userdata_inheritance() {
         mioco::start_threads(threads, || {
             mioco::spawn(|| {
                 assert_eq!(mioco::get_userdata::<u32>(), None);
-                Ok(())
             });
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1139,12 +1060,10 @@ fn userdata_multi_inheritance() {
             mioco::spawn(|| {
                 mioco::spawn(|| {
                     assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 42);
-                    Ok(())
                 });
-                Ok(())
             });
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1157,12 +1076,10 @@ fn userdata_inheritance_reset() {
                 mioco::set_children_userdata::<u32>(None);
                 mioco::spawn(|| {
                     assert_eq!(mioco::get_userdata::<u32>(), None);
-                    Ok(())
                 });
-                Ok(())
             });
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1175,8 +1092,8 @@ fn userdata_no_reference_invalidation() {
             mioco::set_userdata(41 as u32);
             assert_eq!(*reference, 42);
             assert_eq!(*mioco::get_userdata::<u32>().unwrap(), 41);
-            Ok(())
         })
+            .unwrap()
     }
 }
 
@@ -1184,8 +1101,8 @@ fn userdata_no_reference_invalidation() {
 fn in_coroutine_true() {
     mioco::start(|| {
         assert!(mioco::in_coroutine());
-        Ok(())
-    });
+    })
+        .unwrap();
 }
 
 #[test]
@@ -1219,7 +1136,6 @@ fn mpsc_inside_outside() {
             tx1.send(i).unwrap();
             assert_eq!(rx2.recv().unwrap(), i);
         }
-        Ok(())
     });
     for i in 0..10 {
         assert_eq!(rx1.recv().unwrap(), i);
@@ -1248,7 +1164,6 @@ fn mpsc_inside_inside() {
                 }
                 let mut lock = finished_copy1.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
             mioco::spawn(move || {
                 for i in 0..10 {
@@ -1257,10 +1172,9 @@ fn mpsc_inside_inside() {
                 }
                 let mut lock = finished_copy2.lock().unwrap();
                 *lock = true;
-                Ok(())
             });
-            Ok(())
-        });
+        })
+            .unwrap();
 
         assert!(*finished_ok1.lock().unwrap());
         assert!(*finished_ok2.lock().unwrap());
@@ -1270,7 +1184,7 @@ fn mpsc_inside_inside() {
 #[test]
 fn simple_shutdown() {
     for &threads in THREADS_N.iter() {
-        mioco::start_threads(threads, move || {
+        let res = mioco::start_threads(threads, move || {
             for _ in 0..1024 {
                 mioco::spawn(move || {
                     loop {
@@ -1284,13 +1198,14 @@ fn simple_shutdown() {
             }
             mioco::shutdown();
         });
+        assert!(res.is_err());
     }
 }
 
 #[test]
 fn simple_shutdown_on_blocked() {
     for &threads in THREADS_N.iter() {
-        mioco::start_threads(threads, move || {
+        let res = mioco::start_threads(threads, move || {
             for _ in 0..1024 {
                 mioco::spawn(move || {
                     loop {
@@ -1307,26 +1222,49 @@ fn simple_shutdown_on_blocked() {
 
             mioco::shutdown();
         });
+        assert!(res.is_err());
     }
 }
 
 #[test]
 fn empty_shutdown() {
     for &threads in THREADS_N.iter() {
-        mioco::start_threads(threads, move || {
+        let res = mioco::start_threads(threads, move || {
             mioco::shutdown();
         });
+
+        assert!(res.is_err());
     }
 }
 
 #[test]
 fn empty_shutdown_2() {
     for &threads in THREADS_N.iter() {
-        mioco::start_threads(threads, move || {
+        let res = mioco::start_threads(threads, move || {
             for _ in 0..16 {
-                mioco::spawn(move || Ok(()));
+                mioco::spawn(move || {});
             }
             mioco::shutdown();
         });
+
+        assert!(res.is_err());
     }
+}
+
+#[test]
+fn multiple_return_types() {
+    for &threads in THREADS_N.iter() {
+        let res = mioco::start_threads(threads, move || {
+            let join1 = mioco::spawn(move || 3);
+            let join2 = mioco::spawn(move || "foobar");
+
+            assert_eq!(join1.join().unwrap(), 3);
+            assert_eq!(join2.join().unwrap(), "foobar");
+
+            vec![1, 2]
+        });
+
+        assert_eq!(res.unwrap(), vec![1, 2]);
+    }
+
 }

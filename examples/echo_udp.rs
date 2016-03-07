@@ -19,15 +19,14 @@ fn main() {
                 let ip = Ipv4Addr::new(0, 0, 0, 0);
                 let addr = SocketAddr::V4(SocketAddrV4::new(ip, port));
 
-                let mut sock = try!(UdpSocket::v4());
-                try!(sock.bind(&addr));
+                let mut sock = UdpSocket::v4().unwrap();
+                sock.bind(&addr).unwrap();
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let (len, addr) = try!(sock.read(&mut buf));
-                    try!(sock.write(&mut buf[0..len], &addr));
+                    let (len, addr) = sock.read(&mut buf).unwrap();
+                    sock.write(&mut buf[0..len], &addr).unwrap();
                 }
             });
         }
-        Ok(())
-    });
+    }).unwrap();
 }

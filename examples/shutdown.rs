@@ -21,7 +21,6 @@ fn main() {
                 }
             });
         }
-        Ok(())
     });
 
     println!("Sleeping");
