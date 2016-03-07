@@ -184,8 +184,7 @@ fn long_chain() {
 
             let mut prev_reader = first_reader;
 
-            // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
-            for _ in 0..128 {
+            for _ in 0..1024 {
                 let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
@@ -233,8 +232,7 @@ fn lots_of_event_sources() {
 
             let mut prev_reader = first_reader;
 
-            // TODO: increase after https://github.com/dpc/mioco/issues/8 is fixed
-            for _ in 0..4 {
+            for _ in 0..8 {
                 let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
@@ -525,34 +523,6 @@ fn exit_notifier_simple_panic() {
             let notify = mioco::spawn(move || silent_panic());
 
             assert!(notify.join().is_err());
-
-            let mut lock = finished_copy.lock().unwrap();
-            *lock = true;
-        }).unwrap();
-
-        assert!(*finished_ok.lock().unwrap());
-    }
-}
-
-// TODO: rewrite
-#[test]
-fn exit_notifier_wrap_after_finish() {
-    for &threads in THREADS_N.iter() {
-        let finished_ok = Arc::new(Mutex::new(false));
-
-        let finished_copy = finished_ok.clone();
-        mioco::start_threads(threads, move || {
-
-            let join1 = mioco::spawn(move || silent_panic());
-
-            mioco::sleep(1000);
-
-            let join2 = mioco::spawn(move || {
-                let join1 = join1;
-                assert!(join1.join().is_err());
-            });
-
-            assert!(join2.join().is_ok());
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
