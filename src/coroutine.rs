@@ -13,8 +13,8 @@ use super::mio_orig::{Token, EventSet};
 use context::{self, stack};
 use slab;
 
+use std::thread;
 use std::any::Any;
-use std::io;
 use std::cell;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -58,29 +58,8 @@ impl slab::Index for Id {
     }
 }
 
-
-/// Coroutine exit status (value returned or panic)
-#[derive(Clone, Debug)]
-pub enum ExitStatus {
-    /// Coroutine panicked
-    Panic,
-    /// Killed externally
-    Killed,
-    /// Coroutine returned some value
-    Exit(Arc<io::Result<()>>),
-}
-
-impl ExitStatus {
-    /// Is the `ExitStatus` a `Panic`?
-    #[allow(unused)]
-    pub fn is_panic(&self) -> bool {
-        match *self {
-            ExitStatus::Panic => true,
-            _ => false,
-        }
-    }
-}
-
+pub type ExitStatus<T> = thread::Result<T>;
+pub type ExitSender<T> = mpsc::Sender<ExitStatus<T>>;
 
 /// State of `mioco` coroutine
 #[derive(Clone, Debug)]
@@ -157,6 +136,8 @@ impl Deref for AnyStack {
     }
 }
 
+struct Killed;
+
 /// Mioco coroutine (a.k.a. *mioco handler*)
 // TODO: Make everything private
 pub struct Coroutine {
@@ -210,7 +191,7 @@ extern "C" fn unwind_stack(t: context::Transfer) -> context::Transfer {
         *o_c = Some(t.context);
     }
 
-    panic::propagate(Box::new("Killed externally"))
+    panic::propagate(Box::new(Killed))
 }
 
 impl Coroutine {
@@ -218,7 +199,7 @@ impl Coroutine {
     pub fn spawn<F, T>(handler_shared: RcHandlerShared,
                        inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
                        coroutine_user_fn: F,
-                       exit_sender: mpsc::Sender<T>)
+                       exit_sender: ExitSender<T>)
                        -> RcCoroutine
         where F: FnOnce() -> T,
               F: Send + 'static,
@@ -259,7 +240,7 @@ impl Coroutine {
 
                 let coroutine = unsafe { tl_current_coroutine() };
                 if coroutine.killed {
-                    panic::propagate(Box::new("Killed externally"))
+                    panic::propagate(Box::new(Killed))
                 }
 
                 coroutine_user_fn.into_inner()()
@@ -284,13 +265,12 @@ impl Coroutine {
             match res {
                 Ok(res) => {
                     co_debug!(coroutine, "finished normally");
-                    let _ = exit_sender.send(res);
+                    let _ = exit_sender.send(Ok(res));
                 }
                 Err(cause) => {
                     if config.catch_panics {
-                        co_debug!(coroutine,
-                                  "finished by panick: {:?}",
-                                  cause.downcast::<&str>());
+                        co_debug!(coroutine, "finished by panick");
+                        let _ = exit_sender.send(Err(cause));
                     } else {
                         // send fail here instead with the internal reason, so the user may get a nice backtrace
                         let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
@@ -359,7 +339,7 @@ impl Coroutine {
         coroutine_rc
     }
 
-    pub fn spawn_child<F, T>(&mut self, f: F, exit_sender: mpsc::Sender<T>)
+    pub fn spawn_child<F, T>(&mut self, f: F, exit_sender: ExitSender<T>)
         where F: FnOnce() -> T,
               F: Send + 'static,
               T: Send + 'static

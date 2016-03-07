@@ -156,7 +156,6 @@ pub mod udp;
 pub use evented::{Evented, MioAdapter};
 mod evented;
 
-pub use coroutine::ExitStatus;
 use coroutine::{Coroutine, RcCoroutine};
 mod coroutine;
 
@@ -629,7 +628,7 @@ impl Mioco {
         join.join()
     }
 
-    fn run<F, T>(&mut self, f: F, co_exit_sender: sync::mpsc::Sender<T>)
+    fn run<F, T>(&mut self, f: F, co_exit_sender: coroutine::ExitSender<T>)
         where F: FnOnce() -> T,
               F: Send + 'static,
               T: Send + 'static
@@ -692,7 +691,7 @@ impl Mioco {
         }
     }
 
-    fn thread_loop<F, T>(f_and_sender: Option<(F, sync::mpsc::Sender<T>)>,
+    fn thread_loop<F, T>(f_and_sender: Option<(F, coroutine::ExitSender<T>)>,
                          scheduler: Box<SchedulerThread + 'static>,
                          mut event_loop: EventLoop<thread::Handler>,
                          thread_id: usize,
@@ -857,7 +856,7 @@ pub fn start_threads<F, T>(thread_num: usize, f: F) -> std::thread::Result<T>
 ///
 /// Can be used both inside and outside of mioco instance.
 pub struct JoinHandle<T> {
-    receiver: sync::mpsc::Receiver<T>,
+    receiver: sync::mpsc::Receiver<coroutine::ExitStatus<T>>,
 }
 
 impl<T> JoinHandle<T> where T: Send + 'static
@@ -868,7 +867,7 @@ impl<T> JoinHandle<T> where T: Send + 'static
     /// was killed.
     pub fn join(self) -> std::thread::Result<T> {
         match self.receiver.recv() {
-            Ok(t) => Ok(t),
+            Ok(t) => t,
             // TODO: More informative errors
             Err(err) => Err(Box::new(err)),
         }
