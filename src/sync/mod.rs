@@ -11,6 +11,8 @@ pub mod mpsc;
 /// A reader-writer lock
 ///
 /// Based on `std::sync::RwLock`. Calls `mioco::yield_now()` on contention.
+///
+/// Works both inside and outside of mioco.
 #[derive(Debug)]
 pub struct RwLock<T: ?Sized> {
     lock: ssync::RwLock<T>,
@@ -34,6 +36,14 @@ impl<T: ?Sized> RwLock<T> {
     /// Locks this rwlock with shared read access, blocking the current
     /// coroutine until it can be acquired.
     pub fn read(&self) -> ssync::LockResult<ssync::RwLockReadGuard<T>> {
+        if mioco::in_coroutine() {
+            self.read_in_mioco()
+        } else {
+            self.lock.read()
+        }
+    }
+
+    fn read_in_mioco(&self) -> ssync::LockResult<ssync::RwLockReadGuard<T>> {
         loop {
             match self.lock.try_read() {
                 Ok(guard) => return Ok(guard),
@@ -57,6 +67,14 @@ impl<T: ?Sized> RwLock<T> {
     /// Locks this rwlock with exclusive write access, blocking the current
     /// coroutine until it can be acquired.
     pub fn write(&self) -> ssync::LockResult<ssync::RwLockWriteGuard<T>> {
+        if mioco::in_coroutine() {
+            self.write_in_mioco()
+        } else {
+            self.lock.write()
+        }
+    }
+
+    fn write_in_mioco(&self) -> ssync::LockResult<ssync::RwLockWriteGuard<T>> {
         loop {
             match self.lock.try_write() {
                 Ok(guard) => return Ok(guard),
@@ -86,7 +104,11 @@ impl<T: ?Sized> RwLock<T> {
 
 /// A Mutex
 ///
-/// Based on `std::sync::Mutex`. Calls `mioco::yield_now()` on contention.
+/// Based on `std::sync::Mutex`.
+///
+/// Calls `mioco::yield_now()` on contention. (NOTE: Subject to potential change).
+///
+/// Works both inside and outside of mioco.
 pub struct Mutex<T: ?Sized> {
     lock: ssync::Mutex<T>,
 }
@@ -114,6 +136,14 @@ impl<T: ?Sized> Mutex<T> {
 
     /// Acquire a mutex, blocking the current coroutine until it is able to do so.
     pub fn lock(&self) -> ssync::LockResult<ssync::MutexGuard<T>> {
+        if mioco::in_coroutine() {
+            self.lock_in_mioco()
+        } else {
+            self.lock.lock()
+        }
+    }
+
+    fn lock_in_mioco(&self) -> ssync::LockResult<ssync::MutexGuard<T>> {
         loop {
             match self.try_lock() {
                 Ok(guard) => return Ok(guard),
