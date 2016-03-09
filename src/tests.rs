@@ -333,7 +333,7 @@ fn channel_disconnect_on_sender_drop() {
 
             mioco::spawn(move || {
                 sender.send(0usize).unwrap();
-                mioco::sleep(10);
+                mioco::sleep_ms(10);
 
                 silent_panic();
             });
@@ -370,7 +370,7 @@ fn channel_disconnect_on_sender_drop_many() {
                     move || {
                         sender.send(0usize).unwrap();
                         if i % 3 == 0 {
-                            mioco::sleep(10);
+                            mioco::sleep_ms(10);
                         }
 
                         if i % 2 == 0 {
@@ -414,7 +414,7 @@ fn timer_times_out() {
 
             mioco::spawn(move || {
                 let mut writer = writer;
-                mioco::sleep(1000);
+                mioco::sleep_ms(1000);
                 let _ = writer.write_all("test".as_bytes());
 
                 let mut lock = finished_ok_2_copy.lock().unwrap();
@@ -458,7 +458,7 @@ fn sleep_takes_time() {
         let starting_time = SteadyTime::now();
 
         mioco::start_threads(threads, move || {
-            mioco::sleep(500);
+            mioco::sleep_ms(500);
         })
             .unwrap();
 
@@ -492,12 +492,12 @@ fn basic_timer_stress_test() {
             for _ in 0..10 {
                 for t in 0..100 {
                     mioco::spawn(move || {
-                        mioco::sleep(t);
+                        mioco::sleep_ms(t);
                     });
 
                 }
 
-                mioco::sleep(1);
+                mioco::sleep_ms(1);
             }
         })
             .unwrap();
@@ -580,7 +580,7 @@ fn basic_sync() {
 
         mioco::start_threads(threads, move || {
             let res = mioco::sync(|| {
-                thread::sleep(std::time::Duration::from_secs(1));
+                mioco::sleep_ms(1000);
                 let mut lock = finished_copy.lock().unwrap();
                 assert_eq!(*lock, true);
                 *lock = false;
@@ -605,7 +605,7 @@ fn sync_takes_time() {
 
         mioco::start_threads(threads, move || {
             mioco::sync(|| {
-                thread::sleep(std::time::Duration::from_millis(500));
+                mioco::sleep_ms(500);
             });
         })
             .unwrap();
@@ -623,7 +623,7 @@ fn basic_sync_in_loop() {
                 let res = mioco::sync(|| {
                     if i & 0xf == 0 {
                         // cut the wait
-                        thread::sleep(std::time::Duration::from_millis(1));
+                        mioco::sleep_ms(1);
                     }
                     counter += 1;
                     i
@@ -719,7 +719,7 @@ fn scheduler_kill_on_drop() {
             let mut lock = started_copy.lock().unwrap();
             *lock = true;
         }
-        mioco::sleep(1000);
+        mioco::sleep_ms(1000);
         let mut lock = finished_copy.lock().unwrap();
         *lock = true;
     });
@@ -795,7 +795,7 @@ fn spawn_as_start() {
     });
 
     for _ in 0..60 {
-        thread::sleep(std::time::Duration::from_secs(1));
+        mioco::sleep(std::time::Duration::from_secs(1));
         if *finished_ok.lock().unwrap() {
             return;
         }
@@ -826,7 +826,7 @@ fn million_coroutines() {
                     for _ in 0..250 {
                         for _ in 0..1000 {
                             mioco::spawn(|| {
-                                mioco::sleep(5000);
+                                mioco::sleep_ms(5000);
                             });
                         }
                         // This is a workaround MIO queues becoming full
@@ -840,37 +840,92 @@ fn million_coroutines() {
     assert!(*finished_ok.lock().unwrap());
 }
 
+fn rwlock_wait_for_nonzero(counter : &mioco::sync::RwLock<usize>) {
+    loop {
+        {
+            let counter = counter.read().unwrap();
+            if *counter != 0 {
+                break;
+            }
+        }
+        mioco::sleep_ms(10)
+    }
+}
+
+fn rwlock_wait_and_increment(counter : &mioco::sync::RwLock<usize>) {
+    rwlock_wait_for_nonzero(counter);
+    let mut counter = counter.write().unwrap();
+    *counter = *counter + 1;
+}
+
+fn mutex_wait_for_nonzero(counter : &mioco::sync::Mutex<usize>) {
+    loop {
+        {
+            let counter = counter.lock().unwrap();
+            if *counter != 0 {
+                break;
+            }
+        }
+        mioco::sleep_ms(10)
+    }
+}
+
+fn mutex_wait_and_increment(counter : &mioco::sync::Mutex<usize>) {
+    mutex_wait_for_nonzero(counter);
+    let mut counter = counter.lock().unwrap();
+    *counter = *counter + 1;
+}
+
 #[test]
 fn simple_rwlock() {
     for &threads in THREADS_N.iter() {
         let counter = Arc::new(mioco::sync::RwLock::new(0usize));
-        let copy_counter = counter.clone();
+        let counter_copy = counter.clone();
         mioco::start_threads(threads, move || {
             for _ in 0..(threads * 4) {
-                let counter = copy_counter.clone();
+
+                let counter = counter.clone();
                 mioco::spawn(move || {
-                    let counter = counter.clone();
-                    loop {
-                        {
-                            let counter = counter.read().unwrap();
-                            if *counter != 0 {
-                                break;
-                            }
-                        }
-                        mioco::sleep(10)
-                    }
-                    let mut counter = counter.write().unwrap();
-                    *counter = *counter + 1;
+                    rwlock_wait_and_increment(&counter);
                 });
             }
-            mioco::sleep(200);
-            let mut counter = copy_counter.write().unwrap();
+            mioco::sleep_ms(200);
+            let mut counter = counter.write().unwrap();
             *counter = 1;
         })
             .unwrap();
 
+        assert_eq!(*counter_copy.native_lock().read().unwrap(), (threads * 4) + 1);
+    }
+}
 
-        assert_eq!(*counter.native_lock().read().unwrap(), (threads * 4) + 1);
+#[test]
+fn simple_rwlock_supports_inside_and_outside() {
+    for &threads in THREADS_N.iter() {
+        let counter = Arc::new(mioco::sync::RwLock::new(0usize));
+        let counter_copy = counter.clone();
+
+        for _ in 0..(threads * 4) {
+            let counter = counter.clone();
+            std::thread::spawn(move || {
+                rwlock_wait_and_increment(&*counter);
+            });
+        }
+
+        mioco::start_threads(threads, move || {
+            for _ in 0..(threads * 4) {
+                let counter = counter.clone();
+                mioco::spawn(move || {
+                    rwlock_wait_and_increment(&counter);
+                });
+            }
+            mioco::sleep_ms(200);
+            let mut counter = counter.write().unwrap();
+            *counter = 1;
+        })
+            .unwrap();
+
+        assert_eq!(*counter_copy.native_lock().read().unwrap(), (threads * 8) + 1);
     }
 }
 
@@ -878,33 +933,50 @@ fn simple_rwlock() {
 fn simple_mutex() {
     for &threads in THREADS_N.iter() {
         let counter = Arc::new(mioco::sync::Mutex::new(0usize));
-        let copy_counter = counter.clone();
+        let counter_copy = counter.clone();
         mioco::start_threads(threads, move || {
             for _ in 0..(threads * 4) {
-                let counter = copy_counter.clone();
+                let counter = counter.clone();
                 mioco::spawn(move || {
-                    let counter = counter.clone();
-                    loop {
-                        {
-                            let counter = counter.lock().unwrap();
-                            if *counter != 0 {
-                                break;
-                            }
-                        }
-                        mioco::sleep(10)
-                    }
-                    let mut counter = counter.lock().unwrap();
-                    *counter = *counter + 1;
+                    mutex_wait_and_increment(&counter);
                 });
             }
-            mioco::sleep(200);
-            let mut counter = copy_counter.lock().unwrap();
+            mioco::sleep_ms(200);
+            let mut counter = counter.lock().unwrap();
             *counter = 1;
         })
             .unwrap();
 
+        assert_eq!(*counter_copy.native_lock().lock().unwrap(), (threads * 4) + 1);
+    }
+}
 
-        assert_eq!(*counter.native_lock().lock().unwrap(), (threads * 4) + 1);
+#[test]
+fn simple_mutex_supports_inside_and_outside() {
+    for &threads in THREADS_N.iter() {
+        let counter = Arc::new(mioco::sync::Mutex::new(0usize));
+        let counter_copy = counter.clone();
+
+        for _ in 0..(threads * 4) {
+            let counter = counter.clone();
+            std::thread::spawn(move || {
+                mutex_wait_and_increment(&*counter);
+            });
+        }
+        mioco::start_threads(threads, move || {
+            for _ in 0..(threads * 4) {
+                let counter = counter.clone();
+                mioco::spawn(move || {
+                    mutex_wait_and_increment(&counter);
+                });
+            }
+            mioco::sleep_ms(200);
+            let mut counter = counter.lock().unwrap();
+            *counter = 1;
+        })
+            .unwrap();
+
+        assert_eq!(*counter_copy.native_lock().lock().unwrap(), (threads * 8) + 1);
     }
 }
 
