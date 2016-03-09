@@ -1018,16 +1018,22 @@ pub fn thread_num() -> usize {
     coroutine.handler_shared().thread_num()
 }
 
-/// Block coroutine for a given time.
+/// Sleep for a given time.
 ///
-/// Warning: The precision of this call (and other `timer()` like
-/// functionality) is limited by `mio` event loop settings. Any small
-/// value of `time_ms` will effectively be rounded up to
+/// Can be use outside and inside of mioco.
+///
+/// Warning: When sued inside of mioco, the precision of this call (and
+/// other `timer()` like functionality) is limited by `mio` event loop
+/// settings. Any small value of `time_ms` will effectively be rounded up to
 /// `mio_orig::EventLoop::timer_tick_ms()`.
-pub fn sleep(time_ms: i64) {
-    let mut timer = Timer::new();
-    timer.set_timeout(time_ms);
-    let _ = timer.read();
+pub fn sleep_ms(time_ms: u32) {
+    if in_coroutine() {
+        let mut timer = Timer::new();
+        timer.set_timeout(time_ms as i64);
+        let _ = timer.read();
+    } else {
+        std::thread::sleep_ms(time_ms);
+    }
 }
 
 /// Yield coroutine execution
