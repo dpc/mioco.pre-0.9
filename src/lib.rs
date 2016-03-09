@@ -1026,6 +1026,25 @@ pub fn thread_num() -> usize {
 /// other `timer()` like functionality) is limited by `mio` event loop
 /// settings. Any small value of `time_ms` will effectively be rounded up to
 /// `mio_orig::EventLoop::timer_tick_ms()`.
+pub fn sleep(duration: std::time::Duration) {
+    if in_coroutine() {
+        let mut timer = Timer::new();
+        let dur_ms : u64 = duration.as_secs() * 1000 + duration.subsec_nanos() as u64 / 1_000_000;
+        timer.set_timeout(dur_ms as i64);
+        let _ = timer.read();
+    } else {
+        std::thread::sleep(duration);
+    }
+}
+
+/// Sleep for a given time.
+///
+/// Can be use outside and inside of mioco.
+///
+/// Warning: When sued inside of mioco, the precision of this call (and
+/// other `timer()` like functionality) is limited by `mio` event loop
+/// settings. Any small value of `time_ms` will effectively be rounded up to
+/// `mio_orig::EventLoop::timer_tick_ms()`.
 pub fn sleep_ms(time_ms: u32) {
     if in_coroutine() {
         let mut timer = Timer::new();
