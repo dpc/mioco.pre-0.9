@@ -279,21 +279,21 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
 const EVENT_SOURCE_TOKEN_SHIFT: usize = 10;
 const EVENT_SOURCE_TOKEN_MASK: usize = (1 << EVENT_SOURCE_TOKEN_SHIFT) - 1;
 
-/// Convert token to ids
+/// Convert token to ids.
 fn token_to_ids(token: Token) -> (coroutine::Id, EventSourceId) {
     let val = token.as_usize();
     (coroutine::Id::new(val >> EVENT_SOURCE_TOKEN_SHIFT),
      EventSourceId(val & EVENT_SOURCE_TOKEN_MASK))
 }
 
-/// Convert ids to Token
+/// Convert ids to Token.
 fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
     // TODO: Add checks on wrap()
     debug_assert!(io_id.as_usize() <= EVENT_SOURCE_TOKEN_MASK);
     Token((co_id.as_usize() << EVENT_SOURCE_TOKEN_SHIFT) | io_id.as_usize())
 }
 
-/// Id of an event source used to enumerate them
+/// Id of an event source used to enumerate them.
 ///
 /// It's unique within coroutine of an event source, but not globally.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -466,7 +466,7 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 }
 
-/// Coroutine control block
+/// Coroutine control block.
 ///
 /// Through this interface Coroutine can be resumed and migrated in the
 /// scheduler.
@@ -495,9 +495,7 @@ impl CoroutineControl {
         }
     }
 
-    /// Resume Coroutine
-    ///
-    /// Panics if Coroutine is not in Ready state.
+    /// Resume Coroutine.
     pub fn resume(mut self, event_loop: &mut EventLoop<thread::Handler>) {
         self.was_handled = true;
         let co_rc = self.rc.clone();
@@ -507,7 +505,7 @@ impl CoroutineControl {
         self.after_resume(event_loop);
     }
 
-    /// After `resume()` (or ignored event()) we need to perform the following maintenance
+    /// After `resume()` (or ignored event()) we need to perform the following maintenance.
     fn after_resume(&self, event_loop: &mut EventLoop<thread::Handler>) {
 
         self.rc.borrow_mut().register_all(event_loop);
@@ -526,7 +524,7 @@ impl CoroutineControl {
         }
     }
 
-    /// Migrate to a different thread
+    /// Migrate to a different thread.
     ///
     /// Move this Coroutine to be executed on a `SchedulerThread` for a
     /// given `thread_id`.
@@ -551,7 +549,7 @@ impl CoroutineControl {
         sender_retry(&sender, Message::Migration(CoroutineControl::new(rc)));
     }
 
-    /// Finish migrating Coroutine by attaching it to a new thread
+    /// Finish migrating Coroutine by attaching it to a new thread.
     pub fn reattach_to(&mut self,
                        event_loop: &mut EventLoop<thread::Handler>,
                        handler: &mut thread::Handler) {
@@ -586,7 +584,7 @@ impl CoroutineControl {
     }
 }
 
-/// Mioco instance
+/// Mioco instance.
 ///
 /// Main mioco structure.
 pub struct Mioco {
@@ -595,12 +593,12 @@ pub struct Mioco {
 }
 
 impl Mioco {
-    /// Create new `Mioco` instance
+    /// Create new `Mioco` instance.
     pub fn new() -> Self {
         Mioco::new_configured(Config::new())
     }
 
-    /// Create new `Mioco` instance
+    /// Create new `Mioco` instance with custom configuration.
     pub fn new_configured(config: Config) -> Self {
         Mioco {
             join_handles: Vec::new(),
@@ -608,11 +606,13 @@ impl Mioco {
         }
     }
 
-    /// Start mioco instance
+    /// Start mioco instance.
     ///
     /// Takes a starting handler function that will be executed in `mioco` environment.
     ///
-    /// Will block until `mioco` is finished - there are no more handlers to run.
+    /// Will block until `mioco` is finished - there are no more coroutines to run.
+    ///
+    /// Returns the result of the `f`.
     ///
     /// See `MiocoHandle::start()`.
     pub fn start<F, T>(&mut self, f: F) -> std::thread::Result<T>
@@ -741,11 +741,11 @@ pub struct Config {
 }
 
 impl Config {
-    /// Create mioco `Config`
+    /// Create mioco `Config`.
     ///
-    /// Use it to configure mioco instance
+    /// Use it to configure mioco instance.
     ///
-    /// See `start` and `start_threads` for convenience wrappers.
+    /// See `start()` and `start_threads()` for convenience wrappers.
     pub fn new() -> Self {
         Config {
             thread_num: num_cpus::get(),
@@ -825,9 +825,9 @@ impl Config {
 }
 
 
-/// Start mioco instance.
+/// Start a new mioco instance.
 ///
-/// Creates a mioco instance with default configureation and calls
+/// Creates a mioco instance with default configuration and calls
 /// `Mioco::start(f)` on it.
 pub fn start<F, T>(f: F) -> std::thread::Result<T>
     where F: FnOnce() -> T,
@@ -837,7 +837,7 @@ pub fn start<F, T>(f: F) -> std::thread::Result<T>
     Mioco::new().start(f)
 }
 
-/// Start mioco instance using a given number of threads.
+/// Start a new mioco instance with a given number of threads.
 ///
 /// Returns after mioco instance exits.
 ///
@@ -882,9 +882,11 @@ impl<T> JoinHandle<T> where T: Send + 'static
 /// If called outside of existing mioco instance - spawn a new mioco instance
 /// in a separate thread or use existing mioco instance to run new mioco
 /// coroutine. The API intention is to guarantee:
+///
 /// * this call will not block
 /// * coroutine will be executing in some mioco instance
-/// the exact details might change.
+///
+/// the details on reusing existing mioco instances might change.
 pub fn spawn<F, T>(f: F) -> JoinHandle<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
@@ -905,11 +907,14 @@ pub fn spawn<F, T>(f: F) -> JoinHandle<T>
     JoinHandle { receiver: receiver }
 }
 
-/// Shutdown current mioco instance
+/// Shutdown current mioco instance.
 ///
 /// Call from inside of a mioco instance to shut it down.
 /// All existing coroutines will be forced in to panic, and
 /// their stack unwind.
+///
+/// To shutdown mioco instance from the outside, spawn a coroutine
+/// that shuts it down from the inside after receiving a chanel message.
 pub fn shutdown() -> ! {
     let coroutine = unsafe { tl_current_coroutine() };
     {
@@ -972,7 +977,8 @@ pub fn sync<'b, F, R>(f: F) -> R
     res
 }
 
-/// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+/// Get a reference to the user data set through `set_userdata`. Returns
+/// `None` if `T` does not match a userdata type or if no data was set.
 pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
     let coroutine = unsafe { tl_current_coroutine() };
     match coroutine.user_data {
@@ -985,13 +991,14 @@ pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
     }
 }
 
-/// Sets new user data for the current coroutine
+/// Set new user data for the current coroutine.
 pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.user_data = Some(Arc::new(Box::new(data)));
 }
 
-/// Sets new user data that will inherit to newly spawned coroutines. Use `None` to clear.
+/// Set new user data that will inherit to newly spawned coroutines. Use
+/// `None` to clear.
 pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.inherited_user_data = match data {
@@ -1003,7 +1010,7 @@ pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>
 /// Get number of threads of the Mioco instance that coroutine is
 /// running in.
 ///
-/// This is useful for load balancing: spawning as many coroutines as
+/// This is eg. useful for load balancing: spawning as many coroutines as
 /// there is handling threads that can run them.
 pub fn thread_num() -> usize {
     let coroutine = unsafe { tl_current_coroutine() };
@@ -1011,7 +1018,7 @@ pub fn thread_num() -> usize {
     coroutine.handler_shared().thread_num()
 }
 
-/// Block coroutine for a given time
+/// Block coroutine for a given time.
 ///
 /// Warning: The precision of this call (and other `timer()` like
 /// functionality) is limited by `mio` event loop settings. Any small
@@ -1028,11 +1035,6 @@ pub fn sleep(time_ms: i64) {
 /// Coroutine can yield execution without blocking on anything
 /// particular to allow scheduler to run other coroutines before
 /// resuming execution of the current one.
-///
-/// For this to be effective, custom scheduler must be implemented.
-/// See `trait Scheduler`.
-///
-/// Note: named `yield_now` as `yield` is reserved word.
 pub fn yield_now() {
     let coroutine = unsafe { tl_current_coroutine() };
     coroutine.state = coroutine::State::Yielding;
@@ -1040,13 +1042,13 @@ pub fn yield_now() {
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 }
 
-/// Wait till an event is ready
+/// Wait till an event is ready.
 ///
 /// Use `select!` macro instead.
 ///
 /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
 /// not block when actually attempting to `read` or `write`. You must
-/// use `try_read` and `try_write` instead.
+/// use `try_read` and `try_write` instead to handle spurious wakeups.
 ///
 /// The returned value contains event type and the id of the `EventSource`.
 /// See `EventSource::id()`.
@@ -1061,9 +1063,11 @@ pub fn select_wait() -> Event {
     coroutine.last_event
 }
 
+/// Select operation on multiple IO.
+///
 /// **Warning**: Mioco can't guarantee that the returned `EventSource` will
 /// not block when actually attempting to `read` or `write`. You must
-/// use `try_read` and `try_write` instead.
+/// use `try_read` and `try_write` instead to handle spurious wakeups.
 ///
 #[macro_export]
 macro_rules! select {
