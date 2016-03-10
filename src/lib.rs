@@ -942,7 +942,8 @@ pub fn in_coroutine() -> bool {
 /// TODO: find some wise people to confirm if this is sound
 /// TODO: use threadpool to prevent potential system starvation?
 pub fn sync<'b, F, R>(f: F) -> R
-    where F: FnOnce() -> R + 'b
+    where F: FnOnce() -> R + 'b,
+          F : Send
 {
 
     struct FakeSend<F>(F);
