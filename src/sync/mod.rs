@@ -1,9 +1,21 @@
 use std::sync as ssync;
 use std::fmt;
 
+use std;
+use std::sync::Arc;
+use std::sync::atomic;
+use std::sync::atomic::Ordering;
+
 mod mioco {
     pub use super::super::*;
 }
+
+use std::collections::VecDeque;
+
+use mio_orig::{Token, EventLoop, EventSet};
+use super::thread::{MioSender, Message, Handler};
+use super::evented::{RcEventSource, EventSourceTrait, EventedImpl, Evented};
+use super::{RW, sender_retry};
 
 /// MPSC channel modeled after `std::sync::mpsc`.
 pub mod mpsc;
@@ -90,7 +102,6 @@ impl<T: ?Sized> RwLock<T> {
         }
     }
 
-
     /// Attempts to lock this rwlock with exclusive write access.
     pub fn try_write(&self) -> ssync::TryLockResult<ssync::RwLockWriteGuard<T>> {
         self.lock.try_write()
@@ -164,3 +175,91 @@ impl<T: ?Sized> Mutex<T> {
         self.lock.try_lock()
     }
 }
+
+type CoroutineWakeup = (Token, MioSender);
+
+/// Shared between all clones on Condvar
+struct CondvarShared {
+    native : std::sync::Condvar,
+    sleeping_coroutines: VecDeque<CoroutineWakeup>,
+}
+
+pub struct Condvar(RcEventSource<CondvarCore>);
+
+impl EventedImpl for Condvar
+{
+    type Raw = CondvarCore;
+
+    fn shared(&self) -> &RcEventSource<Self::Raw> {
+        &self.0
+    }
+}
+
+struct CondvarCore {
+    shared : Arc<Mutex<CondvarShared>>,
+    shared_counter : Arc<atomic::AtomicUsize>,
+    last_counter : usize,
+}
+
+impl CondvarCore {
+    fn wake_one(&self) {
+        let mut lock = self.shared.lock().unwrap();
+        if let Some((token, sender)) = lock.sleeping_coroutines.pop_front() {
+            sender_retry(&sender, Message::ChannelMsg(token));
+        } else {
+            lock.native.notify_one();
+        }
+    }
+}
+
+struct MutexGuard<'a, T: ?Sized + 'a> {
+    __lock: &'a mut Mutex<T>,
+    __guard: std::sync::MutexGuard<'a, T>,
+}
+
+impl Condvar {
+    pub fn wait<'a, T>(&self, guard: MutexGuard<'a, T>)
+        -> std::sync::LockResult<MutexGuard<'a, T>> {
+        {
+            let core = self.0.io_ref();
+            let counter = core.shared_counter.load(Ordering::SeqCst);
+            core.last_counter = counter;
+        }
+        let lock = Mutex::from_native(unsafe { guard.__lock });
+        drop(guard);
+
+        self.block_on(RW::read());
+
+        lock.lock().map(|g| MutexGuard(g))
+    }
+}
+
+impl EventSourceTrait for CondvarCore {
+    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+        debug_assert!(interest.is_readable());
+        trace!("Condvar({}): register", token.as_usize());
+        {
+            let mut lock = self.shared.lock();
+
+            lock.sleeping_coroutines.push_back(
+                (token, event_loop.channel())
+                );
+        }
+
+        if self.shared_counter.fetch_add(1, Ordering::SeqCst) != self.last_counter {
+            trace!("Condvar({}): changed; self notify", token.as_usize());
+            self.wake_one();
+        }
+    }
+
+    fn reregister(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+        self.register(event_loop, token, interest);
+    }
+
+    fn deregister(&self, _event_loop: &mut EventLoop<Handler>, token: Token) {
+        trace!("Condvar({}): dereregister", token.as_usize());
+        // TODO: remove from sleepers?
+    }
+}
+
+
