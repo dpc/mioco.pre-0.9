@@ -942,14 +942,11 @@ pub fn in_coroutine() -> bool {
 /// TODO: find some wise people to confirm if this is sound
 /// TODO: use threadpool to prevent potential system starvation?
 pub fn sync<'b, F, R>(f: F) -> R
-    where F: FnOnce() -> R + 'b
+    where F: FnOnce() -> R + 'b,
+          F : Send,
+          R : Send,
 {
 
-    struct FakeSend<F>(F);
-
-    unsafe impl<F> Send for FakeSend<F> {};
-
-    let f = FakeSend(f);
 
     let coroutine = unsafe { tl_current_coroutine() };
 
@@ -963,17 +960,16 @@ pub fn sync<'b, F, R>(f: F) -> R
         thread_scoped::scoped({
             let sender = tx.clone();
             move || {
-                let FakeSend(f) = f;
                 let res = f();
                 sender.send(()).unwrap();
-                FakeSend(res)
+                res
             }
         })
     };
 
     rx.recv().unwrap();
 
-    let FakeSend(res) = join.join();
+    let res = join.join();
     res
 }
 
