@@ -1041,6 +1041,7 @@ pub fn sleep(duration: std::time::Duration) {
 /// other `timer()` like functionality) is limited by `mio` event loop
 /// settings. Any small value of `time_ms` will effectively be rounded up to
 /// `mio_orig::EventLoop::timer_tick_ms()`.
+#[allow(deprecated)]
 pub fn sleep_ms(time_ms: u32) {
     if in_coroutine() {
         let mut timer = Timer::new();
