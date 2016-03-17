@@ -41,10 +41,10 @@ impl UdpSocket {
         self.shared().io_ref().try_clone().map(MioAdapter::new)
     }
 
-    /// Block on read.
-    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
+    /// Block on recv.
+    pub fn recv(&mut self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         loop {
-            let res = self.try_read(buf);
+            let res = self.try_recv(buf);
 
             match res {
                 Ok(None) => self.block_on_prv(RW::read()),
@@ -59,14 +59,14 @@ impl UdpSocket {
     /// Try reading data into a buffer.
     ///
     /// This will not block.
-    pub fn try_read(&mut self, buf: &mut [u8]) -> io::Result<Option<(usize, SocketAddr)>> {
+    pub fn try_recv(&mut self, buf: &mut [u8]) -> io::Result<Option<(usize, SocketAddr)>> {
         self.shared().io_ref().recv_from(buf)
     }
 
-    /// Block on write.
-    pub fn write(&mut self, buf: &[u8], target: &SocketAddr) -> io::Result<usize> {
+    /// Block on send.
+    pub fn send(&mut self, buf: &[u8], target: &SocketAddr) -> io::Result<usize> {
         loop {
-            let res = self.try_write(buf, target);
+            let res = self.try_send(buf, target);
 
             match res {
                 Ok(None) => self.block_on_prv(RW::write()),
@@ -81,7 +81,7 @@ impl UdpSocket {
     /// Try writing a data from the buffer.
     ///
     /// This will not block.
-    pub fn try_write(&self, buf: &[u8], target: &SocketAddr) -> io::Result<Option<usize>> {
+    pub fn try_send(&self, buf: &[u8], target: &SocketAddr) -> io::Result<Option<usize>> {
         self.shared().io_ref().send_to(buf, target)
     }
 

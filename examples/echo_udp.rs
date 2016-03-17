@@ -23,8 +23,8 @@ fn main() {
                 sock.bind(&addr).unwrap();
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let (len, addr) = sock.read(&mut buf).unwrap();
-                    sock.write(&mut buf[0..len], &addr).unwrap();
+                    let (len, addr) = sock.recv(&mut buf).unwrap();
+                    sock.send(&mut buf[0..len], &addr).unwrap();
                 }
             });
         }

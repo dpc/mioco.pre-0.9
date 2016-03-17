@@ -106,7 +106,7 @@ impl<MT> EventedImpl for MioAdapter<MT> where MT: mio_orig::Evented + 'static
     }
 }
 
-impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryRead
+impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::TryRead + 'static
 {
     /// Try reading data into a buffer.
     ///
@@ -116,7 +116,7 @@ impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryRea
     }
 }
 
-impl<MT> io::Read for MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryRead
+impl<MT> io::Read for MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::TryRead + 'static
 {
     /// Block on read.
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
