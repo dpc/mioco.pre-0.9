@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1844' class='srclink' href='../src/mioco/src/lib.rs.html#1062-1108' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1814' class='srclink' href='../src/mioco/src/lib.rs.html#1095-1141' title='goto source code'>[src]</a></span></h1>
 <pre class='rust macro'>
 <span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>select</span> {
     (<span class='kw-2'>@</span><span class='ident'>wrap1</span> ) <span class='op'>=&gt;</span> { ... };
@@ -59,9 +59,11 @@
     (<span class='kw-2'>@</span><span class='ident'>wrap2</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>ret</span>:<span class='ident'>ident</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rx</span>:<span class='ident'>ident</span>:<span class='ident'>rw</span> <span class='op'>=&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>code</span>:<span class='ident'>expr</span>, $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>tail</span>:<span class='ident'>tt</span>)<span class='op'>*</span>) <span class='op'>=&gt;</span> { ... };
     ($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>tail</span>:<span class='ident'>tt</span>)<span class='op'>*</span>) <span class='op'>=&gt;</span> { ... };
 }</pre>
-<div class='docblock'><p><strong>Warning</strong>: Mioco can&#39;t guarantee that the returned <code>EventSource</code> will
+<div class='docblock'><p>Select operation on multiple IO.</p>
+
+<p><strong>Warning</strong>: Mioco can&#39;t guarantee that the returned <code>EventSource</code> will
 not block when actually attempting to <code>read</code> or <code>write</code>. You must
-use <code>try_read</code> and <code>try_write</code> instead.</p>
+use <code>try_read</code> and <code>try_write</code> instead to handle spurious wakeups.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

@@ -46,13 +46,11 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1755' class='srclink' href='../src/mioco/src/lib.rs.html#840-845' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn start&lt;F&gt;(f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></pre><div class='docblock'><p>Start mioco instance.</p>
+        </span><a id='src-1719' class='srclink' href='../src/mioco/src/lib.rs.html#832-838' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn start&lt;F, T&gt;(f: F) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/thread/type.Result.html' title='std::thread::Result'>Result</a>&lt;T&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; T, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></pre><div class='docblock'><p>Start a new mioco instance.</p>
 
-<p>Will start new mioco instance and return only after it&#39;s done.</p>
-
-<p>Shorthand for creating new <code>Mioco</code> instance with default settings and
-starting it right away.</p>
+<p>Creates a mioco instance with default configuration and calls
+<code>Mioco::start(f)</code> on it.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2365' class='srclink' href='https://doc.rust-lang.org/nightly/collections/fmt/index.html?gotosrc=2365' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2356' class='srclink' href='https://doc.rust-lang.org/nightly/collections/fmt/index.html?gotosrc=2356' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Utilities for formatting and printing strings</p>
 
 <p>This module contains the runtime support for the <code>format!</code> syntax extension.
@@ -440,20 +440,20 @@ to the <em>value</em> to print, and the <code>precision</code> must come in the 
 <p>For example, these:</p>
 
 <pre class='rust rust-example-rendered'>
-<span class='comment'>// Hello {arg 0 (x)} is {arg 1 (0.01} with precision specified inline (5)}</span>
+<span class='comment'>// Hello {arg 0 (x)} is {arg 1 (0.01) with precision specified inline (5)}</span>
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello {0} is {1:.5}&quot;</span>, <span class='string'>&quot;x&quot;</span>, <span class='number'>0.01</span>);
 
-<span class='comment'>// Hello {arg 1 (x)} is {arg 2 (0.01} with precision specified in arg 0 (5)}</span>
+<span class='comment'>// Hello {arg 1 (x)} is {arg 2 (0.01) with precision specified in arg 0 (5)}</span>
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello {1} is {2:.0$}&quot;</span>, <span class='number'>5</span>, <span class='string'>&quot;x&quot;</span>, <span class='number'>0.01</span>);
 
-<span class='comment'>// Hello {arg 0 (x)} is {arg 2 (0.01} with precision specified in arg 1 (5)}</span>
+<span class='comment'>// Hello {arg 0 (x)} is {arg 2 (0.01) with precision specified in arg 1 (5)}</span>
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello {0} is {2:.1$}&quot;</span>, <span class='string'>&quot;x&quot;</span>, <span class='number'>5</span>, <span class='number'>0.01</span>);
 
-<span class='comment'>// Hello {next arg (x)} is {second of next two args (0.01} with precision</span>
+<span class='comment'>// Hello {next arg (x)} is {second of next two args (0.01) with precision</span>
 <span class='comment'>//                          specified in first of next two args (5)}</span>
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello {} is {:.*}&quot;</span>,    <span class='string'>&quot;x&quot;</span>, <span class='number'>5</span>, <span class='number'>0.01</span>);
 
-<span class='comment'>// Hello {next arg (x)} is {arg 2 (0.01} with precision</span>
+<span class='comment'>// Hello {next arg (x)} is {arg 2 (0.01) with precision</span>
 <span class='comment'>//                          specified in its predecessor (5)}</span>
 <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello {} is {2:.*}&quot;</span>,   <span class='string'>&quot;x&quot;</span>, <span class='number'>5</span>, <span class='number'>0.01</span>);</pre>
 
@@ -546,22 +546,6 @@ to prevent modification.</p>
                              <p>A struct to represent both where to emit formatting strings to and how they
 should be formatted. A mutable version of this is passed to all formatting
 traits.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class='unstable deprecated module-item'>
-                        <td><a class='struct' href='struct.Radix.html'
-                               title='bitflags::__core::fmt::Radix'>Radix</a></td>
-                        <td class='docblock short'>
-                            [<em class='stab unstable deprecated'>Deprecated</em>] <p>A radix with in the range of <code>2..36</code>.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class='unstable deprecated module-item'>
-                        <td><a class='struct' href='struct.RadixFmt.html'
-                               title='bitflags::__core::fmt::RadixFmt'>RadixFmt</a></td>
-                        <td class='docblock short'>
-                            [<em class='stab unstable deprecated'>Deprecated</em>] <p>A helper type for formatting radixes.</p>
                         </td>
                     </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
@@ -663,14 +647,6 @@ arguments, to return the resulting formatted string.</p>
                              <p>The <code>write</code> function takes an output stream, a precompiled format string,
 and a list of arguments. The arguments will be formatted according to the
 specified format string into the output stream provided.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class='unstable deprecated module-item'>
-                        <td><a class='fn' href='fn.radix.html'
-                               title='bitflags::__core::fmt::radix'>radix</a></td>
-                        <td class='docblock short'>
-                            [<em class='stab unstable deprecated'>Deprecated</em>] <p>Constructs a radix formatter in the range of <code>2..36</code>.</p>
                         </td>
                     </tr>
                 </table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>

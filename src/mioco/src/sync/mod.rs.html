@@ -177,6 +177,36 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span> <span class='kw'>as</span> <span class='ident'>ssync</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
@@ -191,6 +221,8 @@
 <span class='doccomment'>/// A reader-writer lock</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Based on `std::sync::RwLock`. Calls `mioco::yield_now()` on contention.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Works both inside and outside of mioco.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>RwLock</span><span class='op'>&lt;</span><span class='ident'>T</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span> {
     <span class='ident'>lock</span>: <span class='ident'>ssync</span>::<span class='ident'>RwLock</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
@@ -214,6 +246,14 @@
     <span class='doccomment'>/// Locks this rwlock with shared read access, blocking the current</span>
     <span class='doccomment'>/// coroutine until it can be acquired.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>RwLockReadGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+        <span class='kw'>if</span> <span class='ident'>mioco</span>::<span class='ident'>in_coroutine</span>() {
+            <span class='self'>self</span>.<span class='ident'>read_in_mioco</span>()
+        } <span class='kw'>else</span> {
+            <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>read</span>()
+        }
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>read_in_mioco</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>RwLockReadGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>try_read</span>() {
                 <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>),
@@ -237,6 +277,14 @@
     <span class='doccomment'>/// Locks this rwlock with exclusive write access, blocking the current</span>
     <span class='doccomment'>/// coroutine until it can be acquired.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>RwLockWriteGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+        <span class='kw'>if</span> <span class='ident'>mioco</span>::<span class='ident'>in_coroutine</span>() {
+            <span class='self'>self</span>.<span class='ident'>write_in_mioco</span>()
+        } <span class='kw'>else</span> {
+            <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>write</span>()
+        }
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>write_in_mioco</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>RwLockWriteGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>try_write</span>() {
                 <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>),
@@ -266,7 +314,11 @@
 
 <span class='doccomment'>/// A Mutex</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Based on `std::sync::Mutex`. Calls `mioco::yield_now()` on contention.</span>
+<span class='doccomment'>/// Based on `std::sync::Mutex`.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Calls `mioco::yield_now()` on contention. (NOTE: Subject to potential change).</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Works both inside and outside of mioco.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>T</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span> {
     <span class='ident'>lock</span>: <span class='ident'>ssync</span>::<span class='ident'>Mutex</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
 }
@@ -294,6 +346,14 @@
 
     <span class='doccomment'>/// Acquire a mutex, blocking the current coroutine until it is able to do so.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>lock</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
+        <span class='kw'>if</span> <span class='ident'>mioco</span>::<span class='ident'>in_coroutine</span>() {
+            <span class='self'>self</span>.<span class='ident'>lock_in_mioco</span>()
+        } <span class='kw'>else</span> {
+            <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>lock</span>()
+        }
+    }
+
+    <span class='kw'>fn</span> <span class='ident'>lock_in_mioco</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>ssync</span>::<span class='ident'>LockResult</span><span class='op'>&lt;</span><span class='ident'>ssync</span>::<span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>match</span> <span class='self'>self</span>.<span class='ident'>try_lock</span>() {
                 <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>guard</span>),

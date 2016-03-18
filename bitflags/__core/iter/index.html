@@ -46,8 +46,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-28679' class='srclink' href='https://doc.rust-lang.org/nightly/core/iter/index.html?gotosrc=28679' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Composable external iteration</p>
+        </span><a id='src-28496' class='srclink' href='https://doc.rust-lang.org/nightly/core/iter/index.html?gotosrc=28496' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Composable external iteration.</p>
 
 <p>If you&#39;ve found yourself with a collection of some kind, and needed to
 perform an operation on the elements of said collection, you&#39;ll quickly run
@@ -83,7 +83,7 @@ see &#39;<a href="#implementing-iterator">Implementing Iterator</a>&#39;.</li>
 }</pre>
 
 <p>An iterator has a method, <a href="trait.Iterator.html#tymethod.next"><code>next()</code></a>, which when called, returns an
-<a href="../option/enum.Option.html"><code>Option</code></a><code>&lt;Item&gt;</code>. <a href="trait.Iterator.html#tymethod.next"><code>next()</code></a> will return <code>Some(Item)</code> as long as there
+<a href="../../std/option/enum.Option.html"><code>Option</code></a><code>&lt;Item&gt;</code>. <a href="trait.Iterator.html#tymethod.next"><code>next()</code></a> will return <code>Some(Item)</code> as long as there
 are elements, and once they&#39;ve all been exhausted, will return <code>None</code> to
 indicate that iteration is finished. Individual iterators may choose to
 resume iteration, and so calling <a href="trait.Iterator.html#tymethod.next"><code>next()</code></a> again may or may not eventually
@@ -474,14 +474,6 @@ element.</p>
                         </td>
                     </tr>
                 
-                    <tr class='unstable deprecated module-item'>
-                        <td><a class='struct' href='struct.RangeInclusive.html'
-                               title='bitflags::__core::iter::RangeInclusive'>RangeInclusive</a></td>
-                        <td class='docblock short'>
-                            [<em class='stab unstable deprecated'>Deprecated</em>] <p>An iterator over the range [start, stop]</p>
-                        </td>
-                    </tr>
-                
                     <tr class='unstable module-item'>
                         <td><a class='struct' href='struct.StepBy.html'
                                title='bitflags::__core::iter::StepBy'>StepBy</a></td>
@@ -569,14 +561,6 @@ element.</p>
                                title='bitflags::__core::iter::repeat'>repeat</a></td>
                         <td class='docblock short'>
                              <p>Creates a new iterator that endlessly repeats a single element.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class='unstable deprecated module-item'>
-                        <td><a class='fn' href='fn.range_inclusive.html'
-                               title='bitflags::__core::iter::range_inclusive'>range_inclusive</a></td>
-                        <td class='docblock short'>
-                            [<em class='stab unstable deprecated'>Deprecated</em>] <p>Returns an iterator over the range [start, stop].</p>
                         </td>
                     </tr>
                 </table></section>

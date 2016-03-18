@@ -416,10 +416,16 @@
 <span id="373">373</span>
 <span id="374">374</span>
 <span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::{<span class='ident'>RefCell</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::<span class='ident'>RefCell</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>rc</span>::<span class='ident'>Rc</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>panic</span>;
@@ -427,7 +433,8 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>VecDeque</span>;
 
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>coroutine</span>::{<span class='self'>self</span>, <span class='ident'>Coroutine</span>, <span class='ident'>CoroutineSlabHandle</span>, <span class='ident'>RcCoroutine</span>, <span class='ident'>STARTING_ID</span>, <span class='ident'>SPECIAL_ID</span>, <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>coroutine</span>::{<span class='self'>self</span>, <span class='ident'>Coroutine</span>, <span class='ident'>CoroutineSlabHandle</span>, <span class='ident'>RcCoroutine</span>, <span class='ident'>STARTING_ID</span>, <span class='ident'>SPECIAL_ID</span>,
+                       <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>SchedulerThread</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>token_from_ids</span>, <span class='ident'>CoroutineControl</span>, <span class='ident'>sender_retry</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>::{<span class='self'>self</span>, <span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
 
@@ -461,7 +468,7 @@
     <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='ident'>coroutine</span>
 }
 
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_save</span>(<span class='ident'>co_ptr</span> : <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_save</span>(<span class='ident'>co_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> {
     <span class='ident'>TL_CURRENT_COROUTINE</span>.<span class='ident'>with</span>(<span class='op'>|</span><span class='ident'>co</span><span class='op'>|</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>co</span>.<span class='ident'>borrow_mut</span>();
         <span class='kw'>let</span> <span class='ident'>prev</span> <span class='op'>=</span> <span class='op'>*</span><span class='ident'>co</span>;
@@ -470,7 +477,7 @@
     })
 }
 
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_restore</span>(<span class='ident'>co_ptr</span> : <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>tl_current_coroutine_ptr_restore</span>(<span class='ident'>co_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>) {
     <span class='ident'>TL_CURRENT_COROUTINE</span>.<span class='ident'>with</span>(<span class='op'>|</span><span class='ident'>co</span><span class='op'>|</span> {
         <span class='op'>*</span><span class='ident'>co</span>.<span class='ident'>borrow_mut</span>() <span class='op'>=</span> <span class='ident'>co_ptr</span>;
     })
@@ -531,10 +538,10 @@
 
 <span class='kw'>impl</span> <span class='ident'>HandlerShared</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>senders</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>MioSender</span><span class='op'>&gt;</span>,
-           <span class='ident'>thread_shared</span>: <span class='ident'>ArcHandlerThreadShared</span>,
-           <span class='ident'>coroutine_config</span>: <span class='ident'>coroutine</span>::<span class='ident'>Config</span>,
-           <span class='ident'>thread_id</span>: <span class='ident'>usize</span>)
-           <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+               <span class='ident'>thread_shared</span>: <span class='ident'>ArcHandlerThreadShared</span>,
+               <span class='ident'>coroutine_config</span>: <span class='ident'>coroutine</span>::<span class='ident'>Config</span>,
+               <span class='ident'>thread_id</span>: <span class='ident'>usize</span>)
+               <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>HandlerShared</span> {
             <span class='ident'>context</span>: <span class='prelude-val'>None</span>,
             <span class='ident'>coroutines</span>: <span class='ident'>slab</span>::<span class='ident'>Slab</span>::<span class='ident'>new_starting_at</span>(<span class='ident'>STARTING_ID</span>, <span class='number'>512</span>),
@@ -547,11 +554,11 @@
         }
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>coroutine_ctrl</span> : <span class='ident'>CoroutineControl</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_spawned</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>) {
         <span class='self'>self</span>.<span class='ident'>spawned</span>.<span class='ident'>push_back</span>(<span class='ident'>coroutine_ctrl</span>);
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>coroutine_ctrl</span> : <span class='ident'>CoroutineControl</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_ready</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>coroutine_ctrl</span>: <span class='ident'>CoroutineControl</span>) {
         <span class='self'>self</span>.<span class='ident'>ready</span>.<span class='ident'>push_back</span>(<span class='ident'>coroutine_ctrl</span>);
     }
 
@@ -559,7 +566,7 @@
         <span class='self'>self</span>.<span class='ident'>senders</span>[<span class='self'>self</span>.<span class='ident'>thread_id</span>].<span class='ident'>clone</span>()
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_sender_to_thread</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>thread_id</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>MioSender</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_sender_to_thread</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>thread_id</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>MioSender</span> {
         <span class='self'>self</span>.<span class='ident'>senders</span>[<span class='ident'>thread_id</span>].<span class='ident'>clone</span>()
     }
 
@@ -609,7 +616,7 @@
         <span class='self'>self</span>.<span class='ident'>thread_id</span>
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>attach</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>rc_coroutine</span> : <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>attach</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>rc_coroutine</span>: <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span> {
         <span class='kw'>let</span> <span class='ident'>co_slab_handle</span> <span class='op'>=</span> <span class='ident'>CoroutineSlabHandle</span>::<span class='ident'>new</span>(<span class='ident'>rc_coroutine</span>);
 
         <span class='kw'>if</span> <span class='op'>!</span><span class='self'>self</span>.<span class='ident'>coroutines</span>.<span class='ident'>has_remaining</span>() {
@@ -617,10 +624,10 @@
             <span class='self'>self</span>.<span class='ident'>coroutines</span>.<span class='ident'>grow</span>(<span class='ident'>count</span>);
         }
 
-        <span class='self'>self</span>.<span class='ident'>coroutines</span>.<span class='ident'>insert</span>(<span class='ident'>co_slab_handle</span>)
+        <span class='self'>self</span>.<span class='ident'>coroutines</span>
+            .<span class='ident'>insert</span>(<span class='ident'>co_slab_handle</span>)
             .<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span>_<span class='op'>|</span> <span class='macro'>panic</span><span class='macro'>!</span>())
     }
-
 }
 
 <span class='doccomment'>/// Mioco event loop `Handler`</span>
@@ -632,7 +639,7 @@
     <span class='ident'>scheduler</span>: <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>SchedulerThread</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Is this handler in the process of shutting down</span>
-    <span class='ident'>is_shutting_down</span> : <span class='ident'>bool</span>,
+    <span class='ident'>is_shutting_down</span>: <span class='ident'>bool</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Handler</span> {
@@ -686,14 +693,14 @@
         <span class='self'>self</span>.<span class='ident'>is_shutting_down</span> <span class='op'>=</span> <span class='boolval'>true</span>;
 
         <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>coroutines</span>.<span class='ident'>count</span>() <span class='op'>+</span>
-            <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>coroutines</span>.<span class='ident'>remaining</span>();
+                  <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>coroutines</span>.<span class='ident'>remaining</span>();
 
-        <span class='kw'>for</span> <span class='ident'>i</span> <span class='kw'>in</span> <span class='ident'>coroutine</span>::<span class='ident'>STARTING_ID</span>.<span class='ident'>as_usize</span>()..(<span class='ident'>coroutine</span>::<span class='ident'>STARTING_ID</span>.<span class='ident'>as_usize</span>()<span class='op'>+</span><span class='ident'>len</span>) {
+        <span class='kw'>for</span> <span class='ident'>i</span> <span class='kw'>in</span> <span class='ident'>coroutine</span>::<span class='ident'>STARTING_ID</span>.<span class='ident'>as_usize</span>()..(<span class='ident'>coroutine</span>::<span class='ident'>STARTING_ID</span>.<span class='ident'>as_usize</span>() <span class='op'>+</span> <span class='ident'>len</span>) {
             <span class='self'>self</span>.<span class='ident'>shutdown_one_coroutine</span>(<span class='ident'>coroutine</span>::<span class='ident'>Id</span>::<span class='ident'>new</span>(<span class='ident'>i</span>));
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>shutdown_one_coroutine</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>id</span> : <span class='ident'>coroutine</span>::<span class='ident'>Id</span>) {
+    <span class='kw'>fn</span> <span class='ident'>shutdown_one_coroutine</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>id</span>: <span class='ident'>coroutine</span>::<span class='ident'>Id</span>) {
         <span class='kw'>let</span> <span class='ident'>contains</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>coroutines</span>.<span class='ident'>contains</span>(<span class='ident'>id</span>);
 
         <span class='kw'>if</span> <span class='ident'>contains</span> {
@@ -731,9 +738,9 @@
             <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>tick</span>(<span class='ident'>event_loop</span>);
             <span class='self'>self</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='ident'>event_loop</span>);
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>timeout</span>) <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>timeout</span>() {
-                <span class='ident'>event_loop</span>.<span class='ident'>timeout_ms</span>(
-                    <span class='ident'>token_from_ids</span>(<span class='ident'>SPECIAL_ID</span>, <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>),
-                    <span class='ident'>timeout</span>).<span class='ident'>unwrap</span>();
+                <span class='ident'>event_loop</span>.<span class='ident'>timeout_ms</span>(<span class='ident'>token_from_ids</span>(<span class='ident'>SPECIAL_ID</span>, <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>),
+                                      <span class='ident'>timeout</span>)
+                          .<span class='ident'>unwrap</span>();
             }
         }
     }
@@ -770,17 +777,22 @@
             <span class='ident'>Message</span>::<span class='ident'>ChannelMsg</span>(<span class='ident'>token</span>) <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>()),
             <span class='ident'>Message</span>::<span class='ident'>Migration</span>(<span class='kw-2'>mut</span> <span class='ident'>co_ctrl</span>) <span class='op'>=&gt;</span> {
                 <span class='ident'>co_ctrl</span>.<span class='ident'>reattach_to</span>(<span class='ident'>event_loop</span>, <span class='self'>self</span>);
-                <span class='kw'>if</span> <span class='op'>!</span><span class='self'>self</span>.<span class='ident'>is_shutting_down</span> {
+                <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>is_shutting_down</span> {
+                    <span class='ident'>drop</span>(<span class='ident'>co_ctrl</span>);
+                } <span class='kw'>else</span> {
                     <span class='self'>self</span>.<span class='ident'>scheduler</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>co_ctrl</span>);
                     <span class='self'>self</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='ident'>event_loop</span>);
-                } <span class='kw'>else</span> {
-                    <span class='ident'>drop</span>(<span class='ident'>co_ctrl</span>);
                 }
             }
             <span class='ident'>Message</span>::<span class='ident'>PropagatePanic</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>cause</span>),
             <span class='ident'>Message</span>::<span class='ident'>Shutdown</span> <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>shutdown</span>(),
             <span class='ident'>Message</span>::<span class='ident'>Terminate</span> <span class='op'>=&gt;</span> {
-                <span class='macro'>debug_assert_eq</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>shared</span>.<span class='ident'>borrow</span>().<span class='ident'>thread_shared</span>.<span class='ident'>coroutines_num</span>.<span class='ident'>load</span>(<span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>), <span class='number'>0</span>);
+                <span class='macro'>debug_assert_eq</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>shared</span>
+                                     .<span class='ident'>borrow</span>()
+                                     .<span class='ident'>thread_shared</span>
+                                     .<span class='ident'>coroutines_num</span>
+                                     .<span class='ident'>load</span>(<span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>),
+                                 <span class='number'>0</span>);
                 <span class='ident'>event_loop</span>.<span class='ident'>shutdown</span>();
             }
         }

@@ -285,11 +285,6 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>RW</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>Handler</span>, <span class='ident'>Message</span>};
@@ -317,9 +312,9 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>ReceiverCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>);
 
 <span class='kw'>struct</span> <span class='ident'>ReceiverCore</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='ident'>receiver</span> : <span class='ident'>mpsc</span>::<span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
-    <span class='ident'>shared</span> : <span class='ident'>ArcChannelShared</span>,
-    <span class='ident'>counter</span> : <span class='ident'>ArcCounter</span>,
+    <span class='ident'>receiver</span>: <span class='ident'>mpsc</span>::<span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>,
+    <span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>,
+    <span class='ident'>counter</span>: <span class='ident'>ArcCounter</span>,
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventedImpl</span> <span class='kw'>for</span> <span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='lifetime'>&#39;static</span>
@@ -341,8 +336,7 @@
         <span class='ident'>lock</span>.<span class='ident'>sender</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>event_loop</span>.<span class='ident'>channel</span>());
 
         <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>counter</span>.<span class='ident'>load</span>(<span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>) <span class='op'>!=</span> <span class='number'>0</span> {
-            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Receiver({}): not empty; self notify&quot;</span>,
-                   <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
+            <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Receiver({}): not empty; self notify&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>());
             <span class='ident'>lock</span>.<span class='ident'>token</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
             <span class='kw'>let</span> <span class='ident'>sender</span> <span class='op'>=</span> <span class='ident'>lock</span>.<span class='ident'>sender</span>.<span class='ident'>clone</span>().<span class='ident'>unwrap</span>();
             <span class='comment'>// don&#39;t loop holding a lock</span>
@@ -377,7 +371,7 @@
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>, <span class='ident'>counter</span> : <span class='ident'>ArcCounter</span>, <span class='ident'>receiver</span> : <span class='ident'>mpsc</span>::<span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>, <span class='ident'>counter</span>: <span class='ident'>ArcCounter</span>, <span class='ident'>receiver</span>: <span class='ident'>mpsc</span>::<span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='kw'>let</span> <span class='ident'>core</span> <span class='op'>=</span> <span class='ident'>ReceiverCore</span> {
             <span class='ident'>shared</span>: <span class='ident'>shared</span>,
             <span class='ident'>counter</span>: <span class='ident'>counter</span>,
@@ -401,9 +395,7 @@
                 <span class='kw'>match</span> <span class='ident'>recv</span> {
                     <span class='prelude-val'>Err</span>(<span class='ident'>mpsc</span>::<span class='ident'>TryRecvError</span>::<span class='ident'>Empty</span>) <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>block_on</span>(<span class='ident'>RW</span>::<span class='ident'>read</span>()),
                     <span class='prelude-val'>Err</span>(<span class='ident'>mpsc</span>::<span class='ident'>TryRecvError</span>::<span class='ident'>Disconnected</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>mpsc</span>::<span class='ident'>RecvError</span>),
-                    <span class='prelude-val'>Ok</span>(<span class='ident'>t</span>) <span class='op'>=&gt;</span> {
-                        <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>t</span>)
-                    },
+                    <span class='prelude-val'>Ok</span>(<span class='ident'>t</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>t</span>),
                 }
                 <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>empty_shared_token</span>());
             }
@@ -436,8 +428,8 @@
 }
 
 <span class='kw'>struct</span> <span class='ident'>SenderShared</span> {
-    <span class='ident'>shared</span> : <span class='ident'>ArcChannelShared</span>,
-    <span class='ident'>counter</span> : <span class='ident'>ArcCounter</span>,
+    <span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>,
+    <span class='ident'>counter</span>: <span class='ident'>ArcCounter</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>Drop</span> <span class='kw'>for</span> <span class='ident'>SenderShared</span> {
@@ -471,8 +463,8 @@
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>, <span class='ident'>counter</span> : <span class='ident'>ArcCounter</span>, <span class='ident'>sender</span>: <span class='ident'>mpsc</span>::<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
-        <span class='ident'>Sender</span>{
+    <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>shared</span>: <span class='ident'>ArcChannelShared</span>, <span class='ident'>counter</span>: <span class='ident'>ArcCounter</span>, <span class='ident'>sender</span>: <span class='ident'>mpsc</span>::<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+        <span class='ident'>Sender</span> {
             <span class='ident'>shared</span>: <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>SenderShared</span> {
                 <span class='ident'>shared</span>: <span class='ident'>shared</span>,
                 <span class='ident'>counter</span>: <span class='ident'>counter</span>,
@@ -482,7 +474,7 @@
     }
 }
 
-<span class='kw'>fn</span> <span class='ident'>maybe_notify_receiver</span>(<span class='ident'>shared</span> : <span class='kw-2'>&amp;</span><span class='ident'>ArcChannelShared</span>) {
+<span class='kw'>fn</span> <span class='ident'>maybe_notify_receiver</span>(<span class='ident'>shared</span>: <span class='kw-2'>&amp;</span><span class='ident'>ArcChannelShared</span>) {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>lock</span>();
     <span class='kw'>let</span> <span class='ident'>ChannelShared</span> {
         <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>sender</span>,
@@ -522,7 +514,7 @@
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// When receiving end is outside of coroutine, channel will behave just</span>
 <span class='doccomment'>/// like `std::sync::mpsc::channel()`.</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>channel</span> <span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='op'>-&gt;</span> (<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>channel</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='op'>-&gt;</span> (<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>Receiver</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>) {
     <span class='kw'>let</span> <span class='ident'>shared</span> <span class='op'>=</span> <span class='ident'>ChannelShared</span> {
         <span class='ident'>token</span>: <span class='prelude-val'>None</span>,
         <span class='ident'>sender</span>: <span class='prelude-val'>None</span>,
@@ -532,10 +524,8 @@
 
     <span class='kw'>let</span> <span class='ident'>counter</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>AtomicUsize</span>::<span class='ident'>new</span>(<span class='number'>0</span>));
     <span class='kw'>let</span> (<span class='ident'>sender</span>, <span class='ident'>receiver</span>) <span class='op'>=</span> <span class='ident'>mpsc</span>::<span class='ident'>channel</span>();
-    (
-        <span class='ident'>Sender</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>(), <span class='ident'>counter</span>.<span class='ident'>clone</span>(), <span class='ident'>sender</span>),
-        <span class='ident'>Receiver</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>, <span class='ident'>counter</span>, <span class='ident'>receiver</span>),
-        )
+    (<span class='ident'>Sender</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>.<span class='ident'>clone</span>(), <span class='ident'>counter</span>.<span class='ident'>clone</span>(), <span class='ident'>sender</span>),
+     <span class='ident'>Receiver</span>::<span class='ident'>new</span>(<span class='ident'>shared</span>, <span class='ident'>counter</span>, <span class='ident'>receiver</span>))
 }
 
 

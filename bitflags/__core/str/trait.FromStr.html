@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-32276' class='srclink' href='https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html?gotosrc=32276' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-32136' class='srclink' href='https://doc.rust-lang.org/nightly/core/str/trait.FromStr.html?gotosrc=32136' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait FromStr {
     type Err;
     fn <a href='#tymethod.from_str' class='fnname'>from_str</a>(s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.str.html'>str</a>) -&gt; <a class='enum' href='../../../bitflags/__core/result/enum.Result.html' title='bitflags::__core::result::Result'>Result</a>&lt;Self, Self::<a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>Err</a>&gt;;
@@ -54,7 +54,7 @@
 string.</p>
 
 <p><code>FromStr</code>&#39;s <a href="#tymethod.from_str"><code>from_str()</code></a> method is often used implicitly, through
-<a href="../primitive.str.html"><code>str</code></a>&#39;s <a href="../primitive.str.html#method.parse"><code>parse()</code></a> method. See <a href="../primitive.str.html#method.parse"><code>parse()</code></a>&#39;s documentation for examples.</p>
+<a href="../../std/primitive.str.html"><code>str</code></a>&#39;s <a href="../../std/primitive.str.html#method.parse"><code>parse()</code></a> method. See <a href="../../std/primitive.str.html#method.parse"><code>parse()</code></a>&#39;s documentation for examples.</p>
 </div>
             <h2 id='associated-types'>Associated Types</h2>
             <div class='methods'>
@@ -69,7 +69,7 @@ when the string is ill-formatted return an error specific to the
 inside <code>Err</code>. The error type is specific to implementation of the trait.</p>
 
 <h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
-<p>Basic usage with <a href="../primitive.i32.html"><code>i32</code></a>, a type that implements <code>FromStr</code>:</p>
+<p>Basic usage with <a href="../../std/primitive.i32.html"><code>i32</code></a>, a type that implements <code>FromStr</code>:</p>
 
 <pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>::<span class='ident'>FromStr</span>;
@@ -81,24 +81,18 @@ inside <code>Err</code>. The error type is specific to implementation of the tra
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.isize.html'>isize</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i8.html'>i8</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i16.html'>i16</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i32.html'>i32</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i64.html'>i64</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u16.html'>u16</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u32.html'>u32</a></code></li>
+    <li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.bool.html'>bool</a></code></li>
 <li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u64.html'>u64</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.bool.html'>bool</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u32.html'>u32</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u16.html'>u16</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i64.html'>i64</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i32.html'>i32</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i16.html'>i16</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.i8.html'>i8</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.isize.html'>isize</a></code></li>
 <li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='struct' href='../../../bitflags/__core/string/struct.String.html' title='bitflags::__core::string::String'>String</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='enum' href='../../../bitflags/__core/net/enum.IpAddr.html' title='bitflags::__core::net::IpAddr'>IpAddr</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='struct' href='../../../bitflags/__core/net/struct.Ipv4Addr.html' title='bitflags::__core::net::Ipv4Addr'>Ipv4Addr</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='struct' href='../../../bitflags/__core/net/struct.Ipv6Addr.html' title='bitflags::__core::net::Ipv6Addr'>Ipv6Addr</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='struct' href='../../../bitflags/__core/net/struct.SocketAddrV4.html' title='bitflags::__core::net::SocketAddrV4'>SocketAddrV4</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='struct' href='../../../bitflags/__core/net/struct.SocketAddrV6.html' title='bitflags::__core::net::SocketAddrV6'>SocketAddrV6</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/str/trait.FromStr.html' title='bitflags::__core::str::FromStr'>FromStr</a> for <a class='enum' href='../../../bitflags/__core/net/enum.SocketAddr.html' title='bitflags::__core::net::SocketAddr'>SocketAddr</a></code></li>
 </ul><script type="text/javascript" async
                               src="../../../implementors/core/str/trait.FromStr.js">
                       </script></section>

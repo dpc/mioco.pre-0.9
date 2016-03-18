@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-609' class='srclink' href='../../src/mioco/mail.rs.html#26' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-397' class='srclink' href='../../src/mioco/mail.rs.html#26' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct MailboxInnerEnd&lt;T&gt;(_);</pre><div class='docblock'><p>Mailbox receiving end</p>
 
 <p>Use this only inside mioco coroutines, as an asynchronous event source.</p>
@@ -60,9 +60,7 @@
 <div class='docblock'><p>Try reading data from the queue.</p>
 
 <p>This will not block.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='../../mioco/trait.Evented.html' title='mioco::Evented'>Evented</a> for <a class='struct' href='../../mioco/mail/struct.MailboxInnerEnd.html' title='mioco::mail::MailboxInnerEnd'>MailboxInnerEnd</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></h3><div class='impl-items'><h4 id='method.id' class='method'><code>fn <a href='../../mioco/trait.Evented.html#method.id' class='fnname'>id</a>(&amp;self) -&gt; <a class='struct' href='../../mioco/struct.EventSourceId.html' title='mioco::EventSourceId'>EventSourceId</a></code></h4>
-<h4 id='method.select_add' class='method'><code>unsafe fn <a href='../../mioco/trait.Evented.html#method.select_add' class='fnname'>select_add</a>(&amp;self, rw: <a class='struct' href='../../mioco/struct.RW.html' title='mioco::RW'>RW</a>)</code></h4>
-</div><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/mail/struct.MailboxInnerEnd.html' title='mioco::mail::MailboxInnerEnd'>MailboxInnerEnd</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/mail/struct.MailboxInnerEnd.html' title='mioco::mail::MailboxInnerEnd'>MailboxInnerEnd</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -105,7 +103,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

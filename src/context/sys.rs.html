@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-0.1.4/src/sys.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.multirust/toolchains/nightly/cargo/registry/src/github.com-88ac128001ac3a9a/context-0.2.1/src/sys.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>sys.rs.html -- source</title>
@@ -269,6 +269,14 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><pre class='rust '>
 
 <span class='doccomment'>/// This module is copied from `libstd/sys/common/stack.rs`.</span>
@@ -292,16 +300,19 @@
 
         <span class='kw'>return</span> <span class='ident'>target_record_stack_bounds</span>(<span class='ident'>stack_lo</span>, <span class='ident'>stack_hi</span>);
 
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_stack_bounds</span>(<span class='ident'>_stack_lo</span>: <span class='ident'>usize</span>, <span class='ident'>_stack_hi</span>: <span class='ident'>usize</span>) {}
 
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>windows</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>windows</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_stack_bounds</span>(<span class='ident'>stack_lo</span>: <span class='ident'>usize</span>, <span class='ident'>stack_hi</span>: <span class='ident'>usize</span>) {
             <span class='comment'>// stack range is at TIB: %fs:0x04 (top) and %fs:0x08 (bottom)</span>
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;mov $0, %fs:0x04&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>stack_hi</span>) :: <span class='string'>&quot;volatile&quot;</span>);
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;mov $0, %fs:0x08&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>stack_lo</span>) :: <span class='string'>&quot;volatile&quot;</span>);
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>windows</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>windows</span>, <span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_stack_bounds</span>(<span class='ident'>stack_lo</span>: <span class='ident'>usize</span>, <span class='ident'>stack_hi</span>: <span class='ident'>usize</span>) {
             <span class='comment'>// stack range is at TIB: %gs:0x08 (top) and %gs:0x10 (bottom)</span>
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;mov $0, %gs:0x08&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>stack_hi</span>) :: <span class='string'>&quot;volatile&quot;</span>);
@@ -334,14 +345,16 @@
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq $$0x60+90*8, %rsi
                   movq $0, %gs:(%rsi)&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) : <span class='string'>&quot;rsi&quot;</span> : <span class='string'>&quot;volatile&quot;</span>)
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq $0, %fs:112&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;volatile&quot;</span>)
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
-        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {
-        }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {}
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq $0, %fs:24&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;volatile&quot;</span>)
         }
@@ -363,9 +376,9 @@
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movl $0, %gs:48&quot;</span> :: <span class='string'>&quot;r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;volatile&quot;</span>)
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
-        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {
-        }
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {}
 
         <span class='comment'>// mips, arm - The implementations are a bit big for inline asm!</span>
         <span class='comment'>//             They can be found in src/rt/arch/$target_arch/record_sp.S</span>
@@ -376,7 +389,7 @@
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(<span class='ident'>limit</span>: <span class='ident'>usize</span>) {
             <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
             <span class='kw'>return</span> <span class='ident'>record_sp_limit</span>(<span class='ident'>limit</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>);
-            <span class='kw'>extern</span> {
+            <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> {
                 <span class='kw'>fn</span> <span class='ident'>record_sp_limit</span>(<span class='ident'>limit</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>);
             }
         }
@@ -393,8 +406,7 @@
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;bitrig&quot;</span>,
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>,
                   <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>))]</span>
-        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {
-        }
+        <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_record_sp_limit</span>(_: <span class='ident'>usize</span>) {}
     }
 
     <span class='doccomment'>/// The counterpart of the function above, this function will fetch the current</span>
@@ -418,17 +430,20 @@
                   movq %gs:(%rsi), $0&quot;</span> : <span class='string'>&quot;=r&quot;</span>(<span class='ident'>limit</span>) :: <span class='string'>&quot;rsi&quot;</span> : <span class='string'>&quot;volatile&quot;</span>);
             <span class='kw'>return</span> <span class='ident'>limit</span>;
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>let</span> <span class='ident'>limit</span>;
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq %fs:112, $0&quot;</span> : <span class='string'>&quot;=r&quot;</span>(<span class='ident'>limit</span>) ::: <span class='string'>&quot;volatile&quot;</span>);
             <span class='kw'>return</span> <span class='ident'>limit</span>;
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>return</span> <span class='number'>1024</span>;
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86_64&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>let</span> <span class='ident'>limit</span>;
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movq %fs:24, $0&quot;</span> : <span class='string'>&quot;=r&quot;</span>(<span class='ident'>limit</span>) ::: <span class='string'>&quot;volatile&quot;</span>);
@@ -458,7 +473,8 @@
             <span class='macro'>asm</span><span class='macro'>!</span>(<span class='string'>&quot;movl %gs:48, $0&quot;</span> : <span class='string'>&quot;=r&quot;</span>(<span class='ident'>limit</span>) ::: <span class='string'>&quot;volatile&quot;</span>);
             <span class='kw'>return</span> <span class='ident'>limit</span>;
         }
-        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span> <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>all</span>(<span class='ident'>target_arch</span> <span class='op'>=</span> <span class='string'>&quot;x86&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;windows&quot;</span>))]</span>
+        <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>return</span> <span class='number'>1024</span>;
         }
@@ -472,7 +488,7 @@
         <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>target_get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
             <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>;
             <span class='kw'>return</span> <span class='ident'>get_sp_limit</span>() <span class='kw'>as</span> <span class='ident'>usize</span>;
-            <span class='kw'>extern</span> {
+            <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> {
                 <span class='kw'>fn</span> <span class='ident'>get_sp_limit</span>() <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>c_void</span>;
             }
         }
@@ -542,7 +558,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

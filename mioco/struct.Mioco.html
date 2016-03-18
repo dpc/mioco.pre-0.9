@@ -46,24 +46,26 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1655' class='srclink' href='../src/mioco/src/lib.rs.html#613-616' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1608' class='srclink' href='../src/mioco/src/lib.rs.html#590-593' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Mioco {
     // some fields omitted
-}</pre><div class='docblock'><p>Mioco instance</p>
+}</pre><div class='docblock'><p>Mioco instance.</p>
 
 <p>Main mioco structure.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
-<div class='docblock'><p>Create new <code>Mioco</code> instance</p>
+<div class='docblock'><p>Create new <code>Mioco</code> instance.</p>
 </div><h4 id='method.new_configured' class='method'><code>fn <a href='#method.new_configured' class='fnname'>new_configured</a>(config: <a class='struct' href='../mioco/struct.Config.html' title='mioco::Config'>Config</a>) -&gt; Self</code></h4>
-<div class='docblock'><p>Create new <code>Mioco</code> instance</p>
-</div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a></span></code></h4>
-<div class='docblock'><p>Start mioco handling</p>
+<div class='docblock'><p>Create new <code>Mioco</code> instance with custom configuration.</p>
+</div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F, T&gt;(&amp;mut self, f: F) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/thread/type.Result.html' title='std::thread::Result'>Result</a>&lt;T&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; T, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
+<div class='docblock'><p>Start mioco instance.</p>
 
 <p>Takes a starting handler function that will be executed in <code>mioco</code> environment.</p>
 
-<p>Will block until <code>mioco</code> is finished - there are no more handlers to run.</p>
+<p>Will block until <code>mioco</code> is finished - there are no more coroutines to run.</p>
 
-<p>See <code>MiocoHandle::spawn()</code>.</p>
+<p>Returns the result of the <code>f</code>.</p>
+
+<p>See <code>MiocoHandle::start()</code>.</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
 

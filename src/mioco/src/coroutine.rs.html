@@ -652,14 +652,11 @@
 <span id="609">609</span>
 <span id="610">610</span>
 <span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>CoroutineControl</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>CoroutineControl</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
+                    <span class='ident'>tl_current_coroutine</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
@@ -671,8 +668,8 @@
 <span class='kw'>use</span> <span class='ident'>context</span>::{<span class='self'>self</span>, <span class='ident'>stack</span>};
 <span class='kw'>use</span> <span class='ident'>slab</span>;
 
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::<span class='ident'>Deref</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
@@ -684,11 +681,11 @@
 
 <span class='doccomment'>/// Special Token used to signal scheduler timeout</span>
 <span class='doccomment'>/// See `SchedulerThread::timeout`</span>
-<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID</span> : <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>0</span>);
-<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span> : <span class='ident'>EventSourceId</span> <span class='op'>=</span> <span class='ident'>EventSourceId</span>(<span class='number'>0</span>);
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID</span>: <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>0</span>);
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>: <span class='ident'>EventSourceId</span> <span class='op'>=</span> <span class='ident'>EventSourceId</span>(<span class='number'>0</span>);
 
 <span class='doccomment'>/// Coroutines are number from this upwards</span>
-<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>STARTING_ID</span> : <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>1</span>);
+<span class='kw'>pub</span> <span class='kw'>static</span> <span class='ident'>STARTING_ID</span>: <span class='ident'>coroutine</span>::<span class='ident'>Id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span>(<span class='number'>1</span>);
 
 
 <span class='doccomment'>/// Id of a Coroutine used to enumerate them</span>
@@ -698,7 +695,7 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Id</span>(<span class='ident'>usize</span>);
 
 <span class='kw'>impl</span> <span class='ident'>Id</span> {
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>id</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>id</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>Id</span>(<span class='ident'>id</span>)
     }
 
@@ -716,29 +713,8 @@
     }
 }
 
-
-<span class='doccomment'>/// Coroutine exit status (value returned or panic)</span>
-<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Debug</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>ExitStatus</span> {
-    <span class='doccomment'>/// Coroutine panicked</span>
-    <span class='ident'>Panic</span>,
-    <span class='doccomment'>/// Killed externally</span>
-    <span class='ident'>Killed</span>,
-    <span class='doccomment'>/// Coroutine returned some value</span>
-    <span class='ident'>Exit</span>(<span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;&gt;</span>),
-}
-
-<span class='kw'>impl</span> <span class='ident'>ExitStatus</span> {
-    <span class='doccomment'>/// Is the `ExitStatus` a `Panic`?</span>
-    <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>unused</span>)]</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_panic</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
-        <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-            <span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span> <span class='op'>=&gt;</span> <span class='boolval'>true</span>,
-            _ <span class='op'>=&gt;</span> <span class='boolval'>false</span>,
-        }
-    }
-}
-
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ExitStatus</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>thread</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>;
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ExitSender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>mpsc</span>::<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>ExitStatus</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>;
 
 <span class='doccomment'>/// State of `mioco` coroutine</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>Debug</span>)]</span>
@@ -750,7 +726,7 @@
     <span class='doccomment'>/// Ready to be started</span>
     <span class='ident'>Ready</span>,
     <span class='doccomment'>/// Done</span>
-    <span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>),
+    <span class='ident'>Finished</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>State</span> {
@@ -815,6 +791,8 @@
     }
 }
 
+<span class='kw'>struct</span> <span class='ident'>Killed</span>;
+
 <span class='doccomment'>/// Mioco coroutine (a.k.a. *mioco handler*)</span>
 <span class='comment'>// TODO: Make everything private</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Coroutine</span> {
@@ -834,10 +812,6 @@
     <span class='doccomment'>/// `Handler` shared data that this `Coroutine` is running in</span>
     <span class='ident'>handler_shared</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>RcHandlerShared</span><span class='op'>&gt;</span>,
 
-    <span class='doccomment'>/// `Coroutine` will send exit status on it&#39;s finish</span>
-    <span class='doccomment'>/// through this list of Mailboxes</span>
-    <span class='kw'>pub</span> <span class='ident'>exit_notificators</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>mpsc</span>::<span class='ident'>Sender</span><span class='op'>&lt;</span><span class='ident'>ExitStatus</span><span class='op'>&gt;&gt;</span>,
-
     <span class='doccomment'>/// Current coroutine Id</span>
     <span class='kw'>pub</span> <span class='ident'>id</span>: <span class='ident'>Id</span>,
 
@@ -848,7 +822,7 @@
     <span class='kw'>pub</span> <span class='ident'>children_to_start</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>RcCoroutine</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Function to be run inside Coroutine</span>
-    <span class='ident'>coroutine_func</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>FnBox</span>() <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;&gt;</span>,
+    <span class='ident'>coroutine_func</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>FnBox</span>()<span class='op'>&gt;&gt;</span>,
 
     <span class='doccomment'>/// In case Rc to self is needed</span>
     <span class='kw'>pub</span> <span class='ident'>self_rc</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>RcCoroutine</span><span class='op'>&gt;</span>,
@@ -862,27 +836,107 @@
     <span class='kw'>pub</span> <span class='ident'>inherited_user_data</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Any</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='ident'>Sync</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Force exit</span>
-    <span class='ident'>killed</span> : <span class='ident'>bool</span>,
+    <span class='ident'>killed</span>: <span class='ident'>bool</span>,
 }
 
-<span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span> <span class='ident'>unwind_stack</span>(<span class='ident'>t</span> : <span class='ident'>context</span>::<span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='ident'>context</span>::<span class='ident'>Transfer</span> {
+<span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span> <span class='ident'>unwind_stack</span>(<span class='ident'>t</span>: <span class='ident'>context</span>::<span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='ident'>context</span>::<span class='ident'>Transfer</span> {
     {
         <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>t</span>.<span class='ident'>data</span>) };
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>o_c</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>out_context</span>();
         <span class='op'>*</span><span class='ident'>o_c</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>.<span class='ident'>context</span>);
     }
 
-    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='string'>&quot;Killed externally&quot;</span>))
+    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
 }
 
 <span class='kw'>impl</span> <span class='ident'>Coroutine</span> {
     <span class='doccomment'>/// Spawn a new Coroutine</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>spawn</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='ident'>handler_shared</span>: <span class='ident'>RcHandlerShared</span>,
-                <span class='ident'>inherited_user_data</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Any</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='ident'>Sync</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
-                <span class='ident'>f</span>: <span class='ident'>F</span>,
-                ) <span class='op'>-&gt;</span> <span class='ident'>RcCoroutine</span>
-        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>spawn</span><span class='op'>&lt;</span><span class='ident'>F</span>, <span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>handler_shared</span>: <span class='ident'>RcHandlerShared</span>,
+                       <span class='ident'>inherited_user_data</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Any</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='ident'>Sync</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
+                       <span class='ident'>coroutine_user_fn</span>: <span class='ident'>F</span>,
+                       <span class='ident'>exit_sender</span>: <span class='ident'>ExitSender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>)
+                       <span class='op'>-&gt;</span> <span class='ident'>RcCoroutine</span>
+        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>T</span>,
+              <span class='ident'>F</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
+              <span class='ident'>T</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
     {
+        <span class='doccomment'>/// C function that context-rs needs</span>
+        <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span> <span class='ident'>coroutine_context_start_fn</span>(<span class='ident'>t</span>: <span class='ident'>context</span>::<span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='op'>!</span> {
+            <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>t</span>.<span class='ident'>data</span>;
+
+            <span class='kw'>let</span> <span class='ident'>f</span> <span class='op'>=</span> {
+                <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
+                <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;started&quot;</span>);
+
+                <span class='op'>*</span><span class='ident'>coroutine</span>.<span class='ident'>out_context</span>() <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>.<span class='ident'>context</span>);
+
+                <span class='ident'>coroutine</span>.<span class='ident'>coroutine_func</span>.<span class='ident'>take</span>().<span class='ident'>unwrap</span>()
+            };
+
+            <span class='ident'>f</span>.<span class='ident'>call_box</span>(());
+
+            <span class='kw'>let</span> <span class='ident'>context</span> <span class='op'>=</span> {
+                <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
+                <span class='kw'>let</span> <span class='ident'>context</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>out_context</span>().<span class='ident'>take</span>().<span class='ident'>unwrap</span>();
+                <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;ended&quot;</span>);
+                <span class='ident'>context</span>
+            };
+
+            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>context</span>.<span class='ident'>resume</span>(<span class='number'>0</span>);
+            <span class='macro'>unreachable</span><span class='macro'>!</span>();
+        }
+
+        <span class='comment'>// Inner body of the coroutine, handling the user-provided</span>
+        <span class='comment'>// coroutine code (which can have different signatures),</span>
+        <span class='comment'>// and sending the notification back</span>
+        <span class='kw'>let</span> <span class='ident'>coroutine_main_fn</span> <span class='op'>=</span> <span class='kw'>move</span> <span class='op'>||</span> {
+            <span class='kw'>let</span> <span class='ident'>coroutine_user_fn</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>AssertRecoverSafe</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_user_fn</span>);
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+
+                <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>tl_current_coroutine</span>() };
+                <span class='kw'>if</span> <span class='ident'>coroutine</span>.<span class='ident'>killed</span> {
+                    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
+                }
+
+                <span class='ident'>coroutine_user_fn</span>.<span class='ident'>into_inner</span>()()
+            });
+
+            <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>tl_current_coroutine</span>() };
+            <span class='ident'>coroutine</span>.<span class='ident'>blocked_on</span>.<span class='ident'>clear</span>();
+            <span class='ident'>coroutine</span>.<span class='ident'>self_rc</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
+            <span class='ident'>coroutine</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>;
+
+            <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>id</span>;
+            {
+                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handler_shared</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>
+                                                  .<span class='ident'>as_ref</span>()
+                                                  .<span class='ident'>unwrap</span>()
+                                                  .<span class='ident'>borrow_mut</span>();
+                <span class='ident'>handler_shared</span>.<span class='ident'>coroutines</span>.<span class='ident'>remove</span>(<span class='ident'>id</span>).<span class='ident'>unwrap</span>();
+                <span class='ident'>handler_shared</span>.<span class='ident'>coroutines_dec</span>();
+            }
+
+            <span class='kw'>let</span> <span class='ident'>config</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>().<span class='ident'>coroutine_config</span>;
+            <span class='kw'>match</span> <span class='ident'>res</span> {
+                <span class='prelude-val'>Ok</span>(<span class='ident'>res</span>) <span class='op'>=&gt;</span> {
+                    <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;finished normally&quot;</span>);
+                    <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>exit_sender</span>.<span class='ident'>send</span>(<span class='prelude-val'>Ok</span>(<span class='ident'>res</span>));
+                }
+                <span class='prelude-val'>Err</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> {
+                    <span class='kw'>if</span> <span class='ident'>config</span>.<span class='ident'>catch_panics</span> {
+                        <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;finished by panick&quot;</span>);
+                        <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>exit_sender</span>.<span class='ident'>send</span>(<span class='prelude-val'>Err</span>(<span class='ident'>cause</span>));
+                    } <span class='kw'>else</span> {
+                        <span class='comment'>// send fail here instead with the internal reason, so the user may get a nice backtrace</span>
+                        <span class='kw'>let</span> <span class='ident'>handler</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow</span>();
+                        <span class='ident'>sender_retry</span>(<span class='kw-2'>&amp;</span><span class='ident'>handler</span>.<span class='ident'>get_sender_to_own_thread</span>(),
+                                     <span class='ident'>Message</span>::<span class='ident'>PropagatePanic</span>(<span class='ident'>cause</span>));
+                    }
+                }
+            }
+
+        };
+
         <span class='kw'>let</span> <span class='ident'>config</span> <span class='op'>=</span> <span class='ident'>handler_shared</span>.<span class='ident'>borrow</span>().<span class='ident'>coroutine_config</span>;
 
         <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> {
@@ -908,13 +962,13 @@
                                   <span class='ident'>rw</span>: <span class='ident'>RW</span>::<span class='ident'>read</span>(),
                                   <span class='ident'>id</span>: <span class='ident'>EventSourceId</span>(<span class='number'>0</span>),
                               },
-                              <span class='ident'>context</span>: <span class='prelude-val'>Some</span>(<span class='ident'>context</span>::<span class='ident'>Context</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>stack</span>, <span class='ident'>init_fn</span>)),
+                              <span class='ident'>context</span>: <span class='prelude-val'>Some</span>(<span class='ident'>context</span>::<span class='ident'>Context</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>stack</span>,
+                                                                  <span class='ident'>coroutine_context_start_fn</span>)),
                               <span class='ident'>stack</span>: <span class='ident'>stack</span>,
                               <span class='ident'>handler_shared</span>: <span class='prelude-val'>Some</span>(<span class='ident'>handler_shared</span>.<span class='ident'>clone</span>()),
-                              <span class='ident'>exit_notificators</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
                               <span class='ident'>blocked_on</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>4</span>),
                               <span class='ident'>children_to_start</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
-                              <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>f</span>)),
+                              <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_main_fn</span>)),
                               <span class='ident'>self_rc</span>: <span class='prelude-val'>None</span>,
                               <span class='ident'>sync_channel</span>: <span class='prelude-val'>None</span>,
                               <span class='ident'>user_data</span>: <span class='ident'>inherited_user_data</span>.<span class='ident'>clone</span>(),
@@ -922,8 +976,8 @@
                           };
 
                           <span class='ident'>CoroutineSlabHandle</span>::<span class='ident'>new</span>(<span class='ident'>Rc</span>::<span class='ident'>new</span>(<span class='ident'>RefCell</span>::<span class='ident'>new</span>(<span class='ident'>coroutine</span>)))
-            })
-            .<span class='ident'>expect</span>(<span class='string'>&quot;Run out of slab for coroutines&quot;</span>)
+                      })
+                      .<span class='ident'>expect</span>(<span class='string'>&quot;Run out of slab for coroutines&quot;</span>)
         };
         <span class='ident'>handler_shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>coroutines_inc</span>();
 
@@ -931,82 +985,7 @@
 
         <span class='ident'>coroutine_rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>self_rc</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>coroutine_rc</span>.<span class='ident'>clone</span>());
 
-        <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> <span class='kw'>fn</span> <span class='ident'>init_fn</span>(<span class='ident'>t</span> : <span class='ident'>context</span>::<span class='ident'>Transfer</span>) <span class='op'>-&gt;</span> <span class='op'>!</span> {
-            <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='ident'>t</span>.<span class='ident'>data</span>;
 
-            {
-                <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
-                <span class='op'>*</span><span class='ident'>coroutine</span>.<span class='ident'>out_context</span>() <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>.<span class='ident'>context</span>);
-            }
-
-            <span class='comment'>// never panic inside init_fn, that causes a SIGILL</span>
-            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='kw'>move</span> <span class='op'>||</span> {
-                <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
-                <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;started&quot;</span>);
-
-                <span class='kw'>let</span> <span class='ident'>f</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>coroutine_func</span>.<span class='ident'>take</span>().<span class='ident'>unwrap</span>();
-
-                <span class='kw'>if</span> <span class='ident'>coroutine</span>.<span class='ident'>killed</span> {
-                    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='string'>&quot;Killed externally&quot;</span>))
-                }
-
-                <span class='ident'>f</span>.<span class='ident'>call_box</span>(())
-            }
-            );
-
-            <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
-            <span class='ident'>coroutine</span>.<span class='ident'>blocked_on</span>.<span class='ident'>clear</span>();
-            <span class='ident'>coroutine</span>.<span class='ident'>self_rc</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
-
-            <span class='kw'>let</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>id</span>;
-            {
-                <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handler_shared</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>
-                    .<span class='ident'>as_ref</span>()
-                    .<span class='ident'>unwrap</span>()
-                    .<span class='ident'>borrow_mut</span>();
-                <span class='ident'>handler_shared</span>.<span class='ident'>coroutines</span>.<span class='ident'>remove</span>(<span class='ident'>id</span>).<span class='ident'>unwrap</span>();
-                <span class='ident'>handler_shared</span>.<span class='ident'>coroutines_dec</span>();
-            }
-
-            <span class='kw'>let</span> <span class='ident'>config</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>().<span class='ident'>coroutine_config</span>;
-            <span class='kw'>match</span> <span class='ident'>res</span> {
-                <span class='prelude-val'>Ok</span>(<span class='ident'>res</span>) <span class='op'>=&gt;</span> {
-                    <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;finished with ret={:?}&quot;</span>, <span class='ident'>res</span>);
-                    <span class='kw'>let</span> <span class='ident'>arc_res</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>res</span>);
-                    <span class='ident'>coroutine</span>.<span class='ident'>exit_notificators</span>
-                        .<span class='ident'>iter</span>()
-                        .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Exit</span>(<span class='ident'>arc_res</span>.<span class='ident'>clone</span>())))
-                        .<span class='ident'>count</span>();
-                    <span class='ident'>coroutine</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Exit</span>(<span class='ident'>arc_res</span>));
-                }
-                <span class='prelude-val'>Err</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> {
-                    <span class='kw'>if</span> <span class='ident'>config</span>.<span class='ident'>catch_panics</span> {
-                        <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='ident'>coroutine</span>, <span class='string'>&quot;panicked: {:?}&quot;</span>, <span class='ident'>cause</span>.<span class='ident'>downcast</span>::<span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='ident'>str</span><span class='op'>&gt;</span>());
-                        <span class='kw'>if</span> <span class='ident'>coroutine</span>.<span class='ident'>killed</span> {
-                            <span class='ident'>coroutine</span>.<span class='ident'>exit_notificators</span>
-                                .<span class='ident'>iter</span>()
-                                .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>))
-                                .<span class='ident'>count</span>();
-                            <span class='ident'>coroutine</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Killed</span>);
-                        } <span class='kw'>else</span> {
-                            <span class='ident'>coroutine</span>.<span class='ident'>exit_notificators</span>
-                                .<span class='ident'>iter</span>()
-                                .<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>end</span><span class='op'>|</span> <span class='ident'>end</span>.<span class='ident'>send</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>))
-                                .<span class='ident'>count</span>();
-                            <span class='ident'>coroutine</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>State</span>::<span class='ident'>Finished</span>(<span class='ident'>ExitStatus</span>::<span class='ident'>Panic</span>);
-                        }
-                    } <span class='kw'>else</span> {
-                        <span class='comment'>//send fail here instead with the internal reason, so the user may get a nice backtrace</span>
-                        <span class='kw'>let</span> <span class='ident'>handler</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow</span>();
-                        <span class='ident'>sender_retry</span>(<span class='kw-2'>&amp;</span><span class='ident'>handler</span>.<span class='ident'>get_sender_to_own_thread</span>(), <span class='ident'>Message</span>::<span class='ident'>PropagatePanic</span>(<span class='ident'>cause</span>));
-                    }
-                }
-            }
-
-            <span class='kw'>let</span> <span class='ident'>context</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>out_context</span>().<span class='ident'>take</span>().<span class='ident'>unwrap</span>();
-            <span class='kw'>let</span> _ <span class='op'>=</span> <span class='ident'>context</span>.<span class='ident'>resume</span>(<span class='number'>0</span>);
-            <span class='macro'>unreachable</span><span class='macro'>!</span>();
-        }
 
         {
             <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine_rc</span>.<span class='ident'>borrow</span>();
@@ -1015,17 +994,19 @@
         <span class='ident'>coroutine_rc</span>
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>spawn_child</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>f</span>: <span class='ident'>F</span>) <span class='op'>-&gt;</span> <span class='ident'>RcCoroutine</span>
-        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>spawn_child</span><span class='op'>&lt;</span><span class='ident'>F</span>, <span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>f</span>: <span class='ident'>F</span>, <span class='ident'>exit_sender</span>: <span class='ident'>ExitSender</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>)
+        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>T</span>,
+              <span class='ident'>F</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
+              <span class='ident'>T</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+    {
 
         <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='self'>self</span>, <span class='string'>&quot;spawning child&quot;</span>);
-            <span class='kw'>let</span> <span class='ident'>child</span> <span class='op'>=</span> <span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(
-                <span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>clone</span>(),
-                <span class='self'>self</span>.<span class='ident'>inherited_user_data</span>.<span class='ident'>clone</span>(),
-                <span class='ident'>f</span>);
-            <span class='self'>self</span>.<span class='ident'>children_to_start</span>.<span class='ident'>push</span>(<span class='ident'>child</span>.<span class='ident'>clone</span>());
-            <span class='ident'>child</span>
-        }
+        <span class='kw'>let</span> <span class='ident'>child</span> <span class='op'>=</span> <span class='ident'>Coroutine</span>::<span class='ident'>spawn</span>(<span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>clone</span>(),
+                                     <span class='self'>self</span>.<span class='ident'>inherited_user_data</span>.<span class='ident'>clone</span>(),
+                                     <span class='ident'>f</span>,
+                                     <span class='ident'>exit_sender</span>);
+        <span class='self'>self</span>.<span class='ident'>children_to_start</span>.<span class='ident'>push</span>(<span class='ident'>child</span>);
+    }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>handler_shared</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>cell</span>::<span class='ident'>Ref</span><span class='op'>&lt;</span><span class='ident'>HandlerShared</span><span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow</span>()
@@ -1035,7 +1016,7 @@
         <span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow_mut</span>()
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>block_on</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_source</span> : <span class='kw-2'>&amp;</span><span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>rw</span>: <span class='ident'>RW</span>)
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>block_on</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_source</span>: <span class='kw-2'>&amp;</span><span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>rw</span>: <span class='ident'>RW</span>)
         <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
     {
 
@@ -1051,7 +1032,7 @@
         <span class='self'>self</span>.<span class='ident'>blocked_on</span>.<span class='ident'>push</span>(<span class='ident'>event_source</span>.<span class='ident'>to_trait</span>());
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>unblock</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>event</span> : <span class='ident'>Event</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>unblock</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>event</span>: <span class='ident'>Event</span>) {
         <span class='self'>self</span>.<span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>coroutine</span>::<span class='ident'>State</span>::<span class='ident'>Ready</span>;
         <span class='self'>self</span>.<span class='ident'>last_event</span> <span class='op'>=</span> <span class='ident'>event</span>;
 
@@ -1076,7 +1057,7 @@
 
     <span class='comment'>// TODO: Make priv.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>register_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>) {
-        <span class='kw'>for</span> <span class='ident'>io</span> <span class='kw'>in</span> <span class='self'>self</span>.<span class='ident'>blocked_on</span>.<span class='ident'>iter_mut</span>() {
+        <span class='kw'>for</span> <span class='ident'>io</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>blocked_on</span> {
             <span class='ident'>io</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='self'>self</span>.<span class='ident'>id</span>);
         }
     }
@@ -1096,7 +1077,10 @@
         }
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>detach_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>to_thread_id</span> : <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='ident'>RcHandlerShared</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>detach_from</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                       <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                       <span class='ident'>to_thread_id</span>: <span class='ident'>usize</span>)
+                       <span class='op'>-&gt;</span> <span class='ident'>RcHandlerShared</span> {
         <span class='comment'>// for better formatting print here instead of calling function</span>
         <span class='macro'>co_debug</span><span class='macro'>!</span>(<span class='self'>self</span>, <span class='string'>&quot;migrating to thread {}&quot;</span>, <span class='ident'>to_thread_id</span>);
 
@@ -1114,7 +1098,10 @@
         <span class='ident'>handler_shared</span>.<span class='ident'>unwrap</span>()
     }
 
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>attach_to</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span> : <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>handler_shared</span> : <span class='ident'>RcHandlerShared</span>, <span class='ident'>id</span> : <span class='ident'>Id</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>attach_to</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                     <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                     <span class='ident'>handler_shared</span>: <span class='ident'>RcHandlerShared</span>,
+                     <span class='ident'>id</span>: <span class='ident'>Id</span>) {
         <span class='self'>self</span>.<span class='ident'>id</span> <span class='op'>=</span> <span class='ident'>id</span>;
         <span class='self'>self</span>.<span class='ident'>handler_shared</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>handler_shared</span>);
 
@@ -1123,7 +1110,8 @@
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>out_context</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RefMut</span><span class='op'>&lt;</span><span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>context</span>::<span class='ident'>Context</span><span class='op'>&gt;&gt;</span> {
-        <span class='ident'>RefMut</span>::<span class='ident'>map</span>(<span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow_mut</span>(), <span class='op'>|</span><span class='ident'>h</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>h</span>.<span class='ident'>context</span>)
+        <span class='ident'>RefMut</span>::<span class='ident'>map</span>(<span class='self'>self</span>.<span class='ident'>handler_shared</span>.<span class='ident'>as_ref</span>().<span class='ident'>unwrap</span>().<span class='ident'>borrow_mut</span>(),
+                    <span class='op'>|</span><span class='ident'>h</span><span class='op'>|</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>h</span>.<span class='ident'>context</span>)
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>was_running_before</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
@@ -1161,7 +1149,11 @@
     }
 
     <span class='doccomment'>/// Deliver an event to a Coroutine</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>event</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>events</span>: <span class='ident'>EventSet</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>event</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
+                 <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                 <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                 <span class='ident'>events</span>: <span class='ident'>EventSet</span>)
+                 <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
 
         <span class='kw'>let</span> (_, <span class='ident'>io_id</span>) <span class='op'>=</span> <span class='ident'>token_to_ids</span>(<span class='ident'>token</span>);
 
@@ -1194,7 +1186,7 @@
                        <span class='ident'>rw</span>: <span class='ident'>event</span>,
                        <span class='ident'>id</span>: <span class='ident'>io_id</span>,
                    });
-        <span class='kw'>return</span> <span class='boolval'>true</span>
+        <span class='boolval'>true</span>
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>id</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span> {
@@ -1210,16 +1202,18 @@
     {
         <span class='kw'>let</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>coroutine</span>.<span class='ident'>borrow</span>();
         <span class='kw'>match</span> <span class='ident'>co</span>.<span class='ident'>state</span> {
-            <span class='ident'>State</span>::<span class='ident'>Ready</span> <span class='op'>=&gt;</span> {},
-            <span class='ident'>State</span>::<span class='ident'>Finished</span>(_) <span class='op'>=&gt;</span> <span class='kw'>return</span>,
+            <span class='ident'>State</span>::<span class='ident'>Ready</span> <span class='op'>=&gt;</span> {}
+            <span class='ident'>State</span>::<span class='ident'>Finished</span> <span class='op'>=&gt;</span> <span class='kw'>return</span>,
             _ <span class='op'>=&gt;</span> <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>co</span>.<span class='ident'>killed</span>),
         }
     }
 
     <span class='kw'>let</span> (<span class='ident'>prev</span>, <span class='ident'>co_ptr</span>) <span class='op'>=</span> {
-        <span class='kw'>let</span> <span class='ident'>co_ptr</span> <span class='op'>=</span> { <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> };
+        <span class='kw'>let</span> <span class='ident'>co_ptr</span> <span class='op'>=</span> {
+            <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span>
+        };
         <span class='kw'>let</span> <span class='ident'>prev</span> <span class='op'>=</span> <span class='ident'>tl_current_coroutine_ptr_save</span>(<span class='ident'>co_ptr</span>);
-        <span class='kw'>let</span> <span class='ident'>co_ptr</span> : <span class='ident'>usize</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>co_ptr</span>) };
+        <span class='kw'>let</span> <span class='ident'>co_ptr</span>: <span class='ident'>usize</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>co_ptr</span>) };
         (<span class='ident'>prev</span>, <span class='ident'>co_ptr</span>)
     };
 
@@ -1230,11 +1224,9 @@
 
     <span class='kw'>let</span> (<span class='ident'>context</span>, <span class='ident'>was_running_before</span>, <span class='ident'>killed</span>) <span class='op'>=</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='ident'>coroutine</span>.<span class='ident'>borrow_mut</span>();
-        (
-            <span class='ident'>co</span>.<span class='ident'>context</span>.<span class='ident'>take</span>().<span class='ident'>unwrap</span>(),
-            <span class='ident'>co</span>.<span class='ident'>was_running_before</span>(),
-            <span class='ident'>co</span>.<span class='ident'>killed</span>,
-        )
+        (<span class='ident'>co</span>.<span class='ident'>context</span>.<span class='ident'>take</span>().<span class='ident'>unwrap</span>(),
+         <span class='ident'>co</span>.<span class='ident'>was_running_before</span>(),
+         <span class='ident'>co</span>.<span class='ident'>killed</span>)
     };
 
     <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>killed</span> <span class='op'>&amp;&amp;</span> <span class='ident'>was_running_before</span> {

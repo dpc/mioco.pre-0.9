@@ -173,15 +173,13 @@ but without allocating and copying temporary strings.</p>
 </div></div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.into_ascii_uppercase' class='method stab unstable'><code>fn <a href='#method.into_ascii_uppercase' class='fnname'>into_ascii_uppercase</a>(self) -&gt; Self::<a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>Owned</a></code></h3><div class='stability'><em class='stab unstable'>Unstable (<code>ascii</code>)</em></div><div class='docblock'><p>Converts this type to its ASCII upper case,
+        <h3 id='method.into_ascii_uppercase' class='method stab '><code>fn <a href='#method.into_ascii_uppercase' class='fnname'>into_ascii_uppercase</a>(self) -&gt; Self::<a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>Owned</a></code><span class="since">1.8.0</span></h3><div class='docblock'><p>Converts this type to its ASCII upper case,
 consuming the value to avoid allocating memory where <code>to_ascii_uppercase</code> would.</p>
 
 <p>See <code>to_ascii_uppercase</code> for more information.</p>
 
 <h1 id='examples-6' class='section-header'><a href='#examples-6'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>ascii</span>)]</span>
-
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ascii</span>::<span class='ident'>AsciiExt</span>;
 
 <span class='kw'>let</span> <span class='ident'>ascii</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='string'>&quot;a&quot;</span>.<span class='ident'>to_owned</span>();
@@ -189,15 +187,13 @@ consuming the value to avoid allocating memory where <code>to_ascii_uppercase</c
 <span class='kw'>let</span> <span class='ident'>upper</span> <span class='op'>=</span> <span class='ident'>ascii</span>.<span class='ident'>into_ascii_uppercase</span>();
 
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>upper</span>, <span class='string'>&quot;A&quot;</span>);</pre>
-</div><h3 id='method.into_ascii_lowercase' class='method stab unstable'><code>fn <a href='#method.into_ascii_lowercase' class='fnname'>into_ascii_lowercase</a>(self) -&gt; Self::<a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>Owned</a></code></h3><div class='stability'><em class='stab unstable'>Unstable (<code>ascii</code>)</em></div><div class='docblock'><p>Converts this type to its ASCII lower case,
+</div><h3 id='method.into_ascii_lowercase' class='method stab '><code>fn <a href='#method.into_ascii_lowercase' class='fnname'>into_ascii_lowercase</a>(self) -&gt; Self::<a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>Owned</a></code><span class="since">1.8.0</span></h3><div class='docblock'><p>Converts this type to its ASCII lower case,
 consuming the value to avoid allocating memory where <code>to_ascii_lowercase</code> would.</p>
 
 <p>See <code>to_ascii_lowercase</code> for more information.</p>
 
 <h1 id='examples-7' class='section-header'><a href='#examples-7'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>ascii</span>)]</span>
-
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ascii</span>::<span class='ident'>AsciiExt</span>;
 
 <span class='kw'>let</span> <span class='ident'>ascii</span>: <span class='ident'>String</span> <span class='op'>=</span> <span class='string'>&quot;A&quot;</span>.<span class='ident'>to_owned</span>();
@@ -208,13 +204,10 @@ consuming the value to avoid allocating memory where <code>to_ascii_lowercase</c
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='struct' href='../../../bitflags/__core/string/struct.String.html' title='bitflags::__core::string::String'>String</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='struct' href='../../../bitflags/__core/vec/struct.Vec.html' title='bitflags::__core::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a>&gt;</code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.str.html'>str</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.slice.html'>[</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.slice.html'>]</a></code></li>
+    <li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.char.html'>char</a></code></li>
 <li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.char.html'>char</a></code></li>
-<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/std/sys_common/wtf8/struct.Wtf8.html' title='std::sys_common::wtf8::Wtf8'>Wtf8</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.slice.html'>[</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.slice.html'>]</a></code></li>
+<li><code>impl <a class='trait' href='../../../bitflags/__core/ascii/trait.AsciiExt.html' title='bitflags::__core::ascii::AsciiExt'>AsciiExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.str.html'>str</a></code></li>
 </ul><script type="text/javascript" async
                               src="../../../implementors/std/ascii/trait.AsciiExt.js">
                       </script></section>
