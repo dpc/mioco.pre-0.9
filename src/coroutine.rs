@@ -235,7 +235,7 @@ impl Coroutine {
         // coroutine code (which can have different signatures),
         // and sending the notification back
         let coroutine_main_fn = move || {
-            let coroutine_user_fn = panic::AssertRecoverSafe::new(coroutine_user_fn);
+            let coroutine_user_fn = panic::AssertRecoverSafe(coroutine_user_fn);
             let res = panic::recover(move || {
 
                 let coroutine = unsafe { tl_current_coroutine() };
@@ -243,7 +243,7 @@ impl Coroutine {
                     panic::propagate(Box::new(Killed))
                 }
 
-                coroutine_user_fn.into_inner()()
+                coroutine_user_fn()
             });
 
             let coroutine = unsafe { tl_current_coroutine() };

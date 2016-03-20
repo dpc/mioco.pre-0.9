@@ -53,6 +53,7 @@ $(EXAMPLES):
 	cargo build --example $@ $(CARGO_FLAGS)
 
 doc: FORCE
+	rm -rf target/doc
 	cargo doc
 
 publishdoc: doc
