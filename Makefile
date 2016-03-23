@@ -1,5 +1,5 @@
-PKG_NAME=mioco
-DOCS_DEFAULT_MODULE=mioco
+PKG_NAME=$(shell grep name Cargo.toml | head -n 1 | awk -F\" '{print $2}')
+DOCS_DEFAULT_MODULE=$(PKG_NAME)
 ifeq (, $(shell which cargo-check 2> /dev/null))
 DEFAULT_TARGET=build
 else
@@ -7,8 +7,6 @@ DEFAULT_TARGET=check
 endif
 
 default: $(DEFAULT_TARGET)
-
-# Mostly generic part goes below
 
 ALL_TARGETS += build $(EXAMPLES) test doc
 ifneq ($(RELEASE),)
@@ -44,7 +42,7 @@ travistest:
 
 .PHONY: longtest
 longtest:
-	@echo "Running mioco longtest. Press Ctrl+C to stop at any time"
+	@echo "Running longtest. Press Ctrl+C to stop at any time"
 	@sleep 2
 	@i=0; while i=$$((i + 1)) && echo "Iteration $$i" && cargo test $(CARGO_FLAGS) ; do :; done
 
@@ -52,10 +50,12 @@ longtest:
 $(EXAMPLES):
 	cargo build --example $@ $(CARGO_FLAGS)
 
+.PHONY: doc
 doc: FORCE
 	rm -rf target/doc
 	cargo doc
 
+.PHONY: publishdoc
 publishdoc: doc
 	echo '<meta http-equiv="refresh" content="0;url='${DOCS_DEFAULT_MODULE}'/index.html">' > target/doc/index.html
 	ghp-import -n target/doc
