@@ -2,6 +2,7 @@ extern crate mioco;
 extern crate env_logger;
 
 use std::net::{SocketAddr, SocketAddrV4};
+use std::io;
 use mioco::udp::{UdpSocket};
 use mioco::mio::Ipv4Addr;
 
@@ -15,7 +16,7 @@ fn main() {
         println!("Starting udp echo server on ports: {}-{}", START_PORT, END_PORT);
 
         for port in START_PORT..END_PORT {
-            mioco::spawn(move || {
+            mioco::spawn(move || -> io::Result<()> {
                 let ip = Ipv4Addr::new(0, 0, 0, 0);
                 let addr = SocketAddr::V4(SocketAddrV4::new(ip, port));
 
@@ -23,8 +24,8 @@ fn main() {
                 sock.bind(&addr).unwrap();
                 let mut buf = [0u8; 1024 * 16];
                 loop {
-                    let (len, addr) = sock.recv(&mut buf).unwrap();
-                    sock.send(&mut buf[0..len], &addr).unwrap();
+                    let (len, addr) = try!(sock.recv(&mut buf));
+                    try!(sock.send(&mut buf[0..len], &addr));
                 }
             });
         }

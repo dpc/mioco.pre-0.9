@@ -4,7 +4,7 @@ extern crate httparse;
 
 use std::net::SocketAddr;
 use std::str::FromStr;
-use std::io::{Write, Read};
+use std::io::{self, Write, Read};
 use mioco::tcp::TcpListener;
 
 const DEFAULT_LISTEN_ADDR : &'static str = "127.0.0.1:5555";
@@ -40,16 +40,16 @@ fn main() {
             mioco::spawn(move || {
                 loop {
                     let mut conn = listener.accept().unwrap();
-                    mioco::spawn(move || {
+                    mioco::spawn(move || -> io::Result<()> {
                         let mut buf_i = 0;
                         let mut buf = [0u8; 1024];
 
                         let mut headers = [httparse::EMPTY_HEADER; 16];
                         loop {
-                            let len = conn.read(&mut buf[buf_i..]).unwrap();
+                            let len = try!(conn.read(&mut buf[buf_i..]));
 
                             if len == 0 {
-                                return;
+                                return Ok(());
                             }
 
                             buf_i += len;
@@ -61,15 +61,15 @@ fn main() {
                                 let req_len = res.unwrap();
                                 match req.path {
                                     Some(ref _path) => {
-                                        let _ = conn.write_all(&RESPONSE.as_bytes()).unwrap();
+                                        let _ = try!(conn.write_all(&RESPONSE.as_bytes()));
                                         if req_len != buf_i {
                                             // request has a body; TODO: handle it
                                         }
                                         buf_i = 0;
                                     },
                                     None => {
-                                        let _ = conn.write_all(&RESPONSE_404.as_bytes()).unwrap();
-                                        return;
+                                        let _ = try!(conn.write_all(&RESPONSE_404.as_bytes()));
+                                        return Ok(());
                                     }
                                 }
                             }
