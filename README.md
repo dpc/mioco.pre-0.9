@@ -30,22 +30,24 @@ fn main() {
         println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
 
         loop {
-            let mut conn = try!(listener.accept());
+            let mut conn = listener.accept().unwrap();
 
-            mioco::spawn(move || {
+            mioco::spawn(move || -> io::Result<()> {
                 let mut buf = [0u8; 1024 * 16];
                 loop {
                     let size = try!(conn.read(&mut buf));
                     if size == 0 {/* eof */ break; }
-                    try!(conn.write_all(&mut buf[0..size]))
+                    let _ = try!(conn.write_all(&mut buf[0..size]));
                 }
 
                 Ok(())
             });
         }
-    });
+    }).unwrap();
 }
 ```
+
+This trivial code scales very well. See [benchmarks](BENCHMARKS.md).
 
 ## Contributors welcome!
 
@@ -117,7 +119,3 @@ extern crate mioco;
 * [colerr][colerr] - colorize stderr;
 
 Send PR or drop a link on gitter.
-
-## Other
-
-* See some [benchmarks](BENCHMARKS.md)
