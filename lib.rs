@@ -11,25 +11,29 @@
 //! can think of `mioco` as of *Node.js for Rust* or Rust *[green
 //! threads][green threads] on top of [`mio`][mio]*.
 //!
-//! Mioco coroutines should not use any native blocking-IO operations.
-//! Instead mioco provides it's own IO. Any long-running operations, or
-//! blocking IO should be executed in `mioco::sync()` blocks.
+//! Mioco API mimics Rust standard library threading API, so it's easy
+//! convert existing code to Mioco.
+//!
+//! Mioco coroutines should not use any native blocking-IO operations.  Any
+//! long-running operations, or blocking IO should be executed in
+//! `mioco::sync()` blocks.
 //!
 //! # <a name="features"></a> Features:
 //!
 //! ```norust
 //! * multithreading support; (see `Config::set_thread_num()`)
-//! * user-provided scheduling; (see `Config::set_scheduler()`);
-//! * timers (see `MiocoHandle::timer()`);
-//! * channels (see `sync::mpsc::channel()`);
-//! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
+//! * timers (see `timer` module);
+//! * coroutine exit notification (see `JoinHandle`).
 //! * synchronous operations support (see `MiocoHandle::sync()`).
-//! * synchronization primitives (see `RwLock`).
+//! * synchronization primitives (see `sync` module):
+//!   * channels (see `sync::mpsc::channel()`);
+//!   * support for synchronization with native environment (outside of Mioco instance)
+//! * user-provided scheduling; (see `Config::set_scheduler()`);
 //! ```
 //!
 //! # <a name="example"/></a> Example:
 //!
-//! See `examples/echo.rs` for an example TCP echo server:
+//! See `examples/echo.rs` for an example TCP echo server
 //!
 
 
@@ -69,7 +73,7 @@ extern crate slab;
 #[macro_use]
 mod src;
 
-/// Some mio types, re-exported
+/// Some mio types that are part of mioco-API, re-exported
 pub mod mio {
     pub use super::mio_orig::{EventLoop, Handler, Ipv4Addr};
 }
@@ -81,11 +85,6 @@ pub mod sched {
 }
 
 pub use src::{timer, tcp, udp, sync, unix};
-
-/*
-pub mod sync {
-    pub use super::src::sync;
-}*/
 
 pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented};
 pub use src::{get_userdata, set_userdata, set_children_userdata};

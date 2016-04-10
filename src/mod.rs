@@ -80,9 +80,9 @@ pub mod timer;
 /// Unix sockets IO
 #[cfg(not(windows))]
 pub mod unix;
-/// TCP IO
+/// TCP
 pub mod tcp;
-/// UDP IO
+/// UDP
 pub mod udp;
 
 pub use self::evented::{Evented, MioAdapter};
@@ -227,7 +227,8 @@ fn token_from_ids(co_id: coroutine::Id, io_id: EventSourceId) -> Token {
 
 /// Id of an event source used to enumerate them.
 ///
-/// It's unique within coroutine of an event source, but not globally.
+/// This is a temporary ID, used to distinguish event source
+/// returned by `select!` operation.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct EventSourceId(usize);
 
@@ -260,7 +261,7 @@ pub trait Scheduler : Sync+Send {
 }
 
 
-/// Per-thread Scheduler
+/// Scheduler thread
 pub trait SchedulerThread {
     /// New coroutine was spawned.
     ///
@@ -398,10 +399,9 @@ impl SchedulerThread for FifoSchedulerThread {
     }
 }
 
-/// Coroutine control block.
+/// Coroutine scheduling handle.
 ///
-/// Through this interface Coroutine can be resumed and migrated in the
-/// scheduler.
+/// Through this interface schedulers can operate on coroutines.
 pub struct CoroutineControl {
     /// In case `CoroutineControl` gets dropped in `SchedulerThread` Drop
     /// trait will kill the Coroutine
@@ -501,7 +501,7 @@ impl CoroutineControl {
         self.is_yielding
     }
 
-    /// Gets a reference to the user data set through `set_userdata`. Returns `None` if `T` does not match or if no data was set
+    /// Get coroutine user-provided data.
     pub fn get_userdata<T: Any>(&self) -> Option<&T> {
         let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
 
@@ -517,8 +517,6 @@ impl CoroutineControl {
 }
 
 /// Mioco instance.
-///
-/// Main mioco structure.
 pub struct Mioco {
     join_handles: Vec<std::thread::JoinHandle<()>>,
     config: Config,
@@ -712,7 +710,7 @@ impl Config {
 
     /// Set stack size in bytes.
     ///
-    /// Default is 2MB.
+    /// Default is 2MiB.
     ///
     /// Should be a power of 2.
     ///
@@ -725,9 +723,9 @@ impl Config {
         self
     }
 
-    /// Set the user data of the first spawned coroutine
+    /// Set user-provided data for the first coroutine
     ///
-    /// Default is no Userdata
+    /// See `set_userdata`.
     pub fn set_userdata<T: Reflect + Send + Sync + 'static>(&mut self, data: T) -> &mut Self {
         self.user_data = Some(Arc::new(Box::new(data)));
         self
@@ -738,13 +736,18 @@ impl Config {
         &mut self.event_loop_config
     }
 
-    /// Set if this Instance will be catching panics, that occure within the coroutines
+    /// Set if this instance will be catching panics, that occur within the coroutines
+    ///
+    /// * If true mioco will gracefully handle panics inside coroutines.
+    /// (default)
+    /// * If false any panic inside coroutine will panic the whole mioco
+    /// instance.
     pub fn set_catch_panics(&mut self, catch_panics: bool) -> &mut Self {
         self.coroutine_config.catch_panics = catch_panics;
         self
     }
 
-    /// Set if this Instance should use protected stacks (default).
+    /// Set if this instance should use protected stacks (default).
     ///
     /// Unprotected stacks can be used to skip creation of stack guard page.
     /// This is useful when hitting OS limits regarding process mappings.
@@ -761,6 +764,10 @@ impl Config {
 ///
 /// Creates a mioco instance with default configuration and calls
 /// `Mioco::start(f)` on it.
+///
+/// This will block until mioco instance exits, which can be caused by:
+/// * no more runnable coroutines,
+/// * `shutdown()`.
 pub fn start<F, T>(f: F) -> std::thread::Result<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
@@ -858,18 +865,20 @@ pub fn shutdown() -> ! {
     }
 }
 
+/// Check if running inside a mioco coroutine.
+///
 /// Returns true when executing inside a mioco coroutine, false otherwise.
 pub fn in_coroutine() -> bool {
     let coroutine = tl_current_coroutine_ptr();
     coroutine != ptr::null_mut()
 }
 
-/// Execute a block of synchronous operations
+/// Execute a block of synchronous operations.
 ///
 /// This will execute a block of synchronous operations without blocking
 /// cooperative coroutine scheduling. This is done by offloading the
-/// synchronous operations to a separate thread, a notifying the
-/// coroutine when the result is available.
+/// synchronous operations to a separate thread, and blocking current
+/// coroutine when operation is completed.
 ///
 /// TODO: find some wise people to confirm if this is sound
 /// TODO: use threadpool to prevent potential system starvation?
@@ -878,8 +887,6 @@ pub fn sync<'b, F, R>(f: F) -> R
           F : Send,
           R : Send,
 {
-
-
     let coroutine = unsafe { tl_current_coroutine() };
 
     if coroutine.sync_channel.is_none() {
@@ -905,8 +912,12 @@ pub fn sync<'b, F, R>(f: F) -> R
     res
 }
 
-/// Get a reference to the user data set through `set_userdata`. Returns
-/// `None` if `T` does not match a userdata type or if no data was set.
+/// Get user-provided data of the current coroutine.
+///
+/// Gets a reference to the user data, that was set through `set_userdata`.
+/// Returns `None` if `T` does not match or if no data was set.
+///
+/// See `set_userdata`.
 pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
     let coroutine = unsafe { tl_current_coroutine() };
     match coroutine.user_data {
@@ -919,14 +930,20 @@ pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
     }
 }
 
-/// Set new user data for the current coroutine.
+/// Set user-provided data for the current coroutine.
+///
+/// Every coroutine can carry an additional piece of data.
 pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.user_data = Some(Arc::new(Box::new(data)));
 }
 
-/// Set new user data that will inherit to newly spawned coroutines. Use
+/// Set user-provided data for future child coroutines.
+///
+/// Set new user data that newly spawned coroutines will start with. Use
 /// `None` to clear.
+///
+/// See `set_userdata`.
 pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.inherited_user_data = match data {
@@ -935,10 +952,12 @@ pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>
     }
 }
 
-/// Get number of threads of the Mioco instance that coroutine is
-/// running in.
+/// Get number of threads of current mioco instance.
 ///
-/// This is eg. useful for load balancing: spawning as many coroutines as
+/// Get number of threads of the Mioco instance that the current coroutine
+/// is running in.
+///
+/// This is useful eg. for load balancing: spawning as many coroutines as
 /// there is handling threads that can run them.
 pub fn thread_num() -> usize {
     let coroutine = unsafe { tl_current_coroutine() };
@@ -946,12 +965,15 @@ pub fn thread_num() -> usize {
     coroutine.handler_shared().thread_num()
 }
 
-/// Sleep for a given time.
+/// Block execution for a given time.
 ///
-/// Can be use outside and inside of mioco.
+/// Inside mioco coroutine, this will yield execution and block coroutine
+/// for a given period of time.
 ///
-/// Warning: When sued inside of mioco, the precision of this call (and
-/// other `timer()` like functionality) is limited by `mio` event loop
+/// Out of mioco instance, this will act just like `std::thread::sleep`.
+///
+/// Warning: When issued inside of mioco, the precision of this call (and
+/// other time based functionality) is limited by `mio` event loop
 /// settings. Any small value of `time_ms` will effectively be rounded up to
 /// `mio_orig::EventLoop::timer_tick_ms()`.
 pub fn sleep(duration: std::time::Duration) {
@@ -965,14 +987,9 @@ pub fn sleep(duration: std::time::Duration) {
     }
 }
 
-/// Sleep for a given time.
+/// Block execution for a given time.
 ///
-/// Can be use outside and inside of mioco.
-///
-/// Warning: When sued inside of mioco, the precision of this call (and
-/// other `timer()` like functionality) is limited by `mio` event loop
-/// settings. Any small value of `time_ms` will effectively be rounded up to
-/// `mio_orig::EventLoop::timer_tick_ms()`.
+/// See `sleep`.
 #[allow(deprecated)]
 pub fn sleep_ms(time_ms: u32) {
     if in_coroutine() {
@@ -984,7 +1001,7 @@ pub fn sleep_ms(time_ms: u32) {
     }
 }
 
-/// Yield coroutine execution
+/// Yield execution of the current coroutine.
 ///
 /// Coroutine can yield execution without blocking on anything
 /// particular to allow scheduler to run other coroutines before
@@ -996,7 +1013,7 @@ pub fn yield_now() {
     coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
 }
 
-/// Wait till an event is ready.
+/// Block the current coroutine waiting for an event.
 ///
 /// Use `select!` macro instead.
 ///
@@ -1005,7 +1022,7 @@ pub fn yield_now() {
 /// use `try_read` and `try_write` instead to handle spurious wakeups.
 ///
 /// The returned value contains event type and the id of the `EventSource`.
-/// See `EventSource::id()`.
+/// See `EventSourceId`.
 pub fn select_wait() -> Event {
     let coroutine = unsafe { tl_current_coroutine() };
     coroutine.state = coroutine::State::Blocked;
