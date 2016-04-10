@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
+    
 
     
     
@@ -43,16 +44,19 @@
 
     <section id='main' class="content fn">
 <h1 class='fqn'><span class='in-band'>Function <a href='index.html'>mioco</a>::<wbr><a class='fn' href=''>sleep</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-1787' class='srclink' href='../src/mioco/src/lib.rs.html#1025-1034' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn sleep(duration: <a class='struct' href='https://doc.rust-lang.org/nightly/std/time/duration/struct.Duration.html' title='std::time::duration::Duration'>Duration</a>)</pre><div class='docblock'><p>Sleep for a given time.</p>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-1789' class='srclink' href='../src/mioco/src/mod.rs.html#979-988' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn sleep(duration: <a class='struct' href='https://doc.rust-lang.org/nightly/std/time/duration/struct.Duration.html' title='std::time::duration::Duration'>Duration</a>)</pre><div class='docblock'><p>Block execution for a given time.</p>
 
-<p>Can be use outside and inside of mioco.</p>
+<p>Inside mioco coroutine, this will yield execution and block coroutine
+for a given period of time.</p>
 
-<p>Warning: When sued inside of mioco, the precision of this call (and
-other <code>timer()</code> like functionality) is limited by <code>mio</code> event loop
+<p>Out of mioco instance, this will act just like <code>std::thread::sleep</code>.</p>
+
+<p>Warning: When issued inside of mioco, the precision of this call (and
+other time based functionality) is limited by <code>mio</code> event loop
 settings. Any small value of <code>time_ms</code> will effectively be rounded up to
 <code>mio_orig::EventLoop::timer_tick_ms()</code>.</p>
 </div></section>

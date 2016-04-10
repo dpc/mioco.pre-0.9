@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -43,10 +44,10 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>mioco</a>::<wbr><a href='../index.html'>sync</a>::<wbr><a href='index.html'>mpsc</a>::<wbr><a class='struct' href=''>Receiver</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-54' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#24' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-57' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Receiver&lt;T&gt;(_);</pre><div class='docblock'><p>Channel receiving end</p>
 
 <p>Create with <code>channel()</code></p>
@@ -58,7 +59,15 @@
 <div class='docblock'><p>Try reading data from the queue.</p>
 
 <p>This will not block.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
+</div></div><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></h3><div class='impl-items'><h4 id='method.recv-1' class='method'><code>fn <a href='#method.recv' class='fnname'>recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='struct' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/struct.RecvError.html' title='std::sync::mpsc::RecvError'>RecvError</a>&gt;</code></h4>
+<div class='docblock'><p>Receive <code>T</code> sent using corresponding <code>Sender::send()</code>.</p>
+
+<p>Will block coroutine if no elements are available.</p>
+</div><h4 id='method.try_recv-1' class='method'><code>fn <a href='#method.try_recv' class='fnname'>try_recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='enum' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/enum.TryRecvError.html' title='std::sync::mpsc::TryRecvError'>TryRecvError</a>&gt;</code></h4>
+<div class='docblock'><p>Try reading data from the queue.</p>
+
+<p>This will not block.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

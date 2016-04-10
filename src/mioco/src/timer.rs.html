@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -165,11 +166,12 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
+<span id="125">125</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>RW</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
+<span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
 <span class='kw'>use</span> <span class='ident'>time</span>::{<span class='ident'>SteadyTime</span>, <span class='ident'>Duration</span>};
 
 <span class='doccomment'>/// A Timer generating event after a given time</span>
@@ -255,6 +257,7 @@
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_ref</span>().<span class='ident'>timeout</span>
     }
 }
+
 <span class='kw'>impl</span> <span class='ident'>TimerCore</span> {
     <span class='kw'>fn</span> <span class='ident'>should_resume</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Timer: should_resume? {}&quot;</span>,

@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -43,11 +44,11 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>panic</a>::<wbr><a class='struct' href=''>AssertRecoverSafe</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-6683' class='srclink' href='https://doc.rust-lang.org/nightly/std/panic/struct.AssertRecoverSafe.html?gotosrc=6683' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct AssertRecoverSafe&lt;T&gt;(_);</pre><div class='stability'><em class='stab unstable'>Unstable (<code>recover</code>)<p>: awaiting feedback</p>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-6718' class='srclink' href='https://doc.rust-lang.org/nightly/std/panic/struct.AssertRecoverSafe.html?gotosrc=6718' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct AssertRecoverSafe&lt;T&gt;(pub T);</pre><div class='stability'><em class='stab unstable'>Unstable (<code>recover</code>)<p>: awaiting feedback</p>
 </em></div><div class='docblock'><p>A simple wrapper around a type to assert that it is panic safe.</p>
 
 <p>When using <code>recover</code> it may be the case that some of the closed over
@@ -77,7 +78,7 @@ itself is recover safe, bypassing all checks for all variables:</p>
 <span class='comment'>// });</span>
 
 <span class='comment'>// This, however, will compile due to the `AssertRecoverSafe` wrapper</span>
-<span class='kw'>let</span> <span class='ident'>result</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='ident'>AssertRecoverSafe</span>::<span class='ident'>new</span>(<span class='op'>||</span> {
+<span class='kw'>let</span> <span class='ident'>result</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='ident'>AssertRecoverSafe</span>(<span class='op'>||</span> {
     <span class='ident'>variable</span> <span class='op'>+=</span> <span class='number'>3</span>;
 }));
 <span class='comment'>// ...</span></pre>
@@ -100,7 +101,7 @@ not.</p>
 <span class='kw'>let</span> <span class='ident'>other_capture</span> <span class='op'>=</span> <span class='number'>3</span>;
 
 <span class='kw'>let</span> <span class='ident'>result</span> <span class='op'>=</span> {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>wrapper</span> <span class='op'>=</span> <span class='ident'>AssertRecoverSafe</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>variable</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>wrapper</span> <span class='op'>=</span> <span class='ident'>AssertRecoverSafe</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>variable</span>);
     <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='kw'>move</span> <span class='op'>||</span> {
         <span class='op'>*</span><span class='op'>*</span><span class='ident'>wrapper</span> <span class='op'>+=</span> <span class='ident'>other_capture</span>;
     })

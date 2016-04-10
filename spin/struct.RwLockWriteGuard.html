@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
+    
 
     
     
@@ -43,19 +44,19 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>spin</a>::<wbr><a class='struct' href=''>RwLockWriteGuard</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-84' class='srclink' href='../src/spin/rw_lock.rs.html#42-46' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-84' class='srclink' href='../src/spin/rw_lock.rs.html#42-46' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct RwLockWriteGuard&lt;'a, T: 'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A guard to which the protected data can be written</p>
 
 <p>When the guard falls out of scope it will release the lock.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='associatedtype.Target' class='type'><code>type Target = T</code></h4>
-<h4 id='method.deref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#method.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;T</code></h4>
-</div><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#method.deref_mut' class='fnname'>deref_mut</a>(&amp;mut self) -&gt; &amp;mut T</code></h4>
-</div><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#method.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='associatedtype.Target' class='type'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target' class='type'>Target</a> = T</code></h4>
+<h4 id='method.deref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;T</code></h4>
+</div><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#tymethod.deref_mut' class='fnname'>deref_mut</a>(&amp;mut self) -&gt; &amp;mut T</code></h4>
+</div><h3 class='impl'><code>impl&lt;'rwlock, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'rwlock, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -43,18 +44,18 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>io</a>::<wbr><a class='struct' href=''>Stdin</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-4726' class='srclink' href='https://doc.rust-lang.org/nightly/std/io/stdio/struct.Stdin.html?gotosrc=4726' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-4744' class='srclink' href='https://doc.rust-lang.org/nightly/std/io/stdio/struct.Stdin.html?gotosrc=4744' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Stdin {
     // some fields omitted
 }</pre><span class="since">1.0.0</span><div class='docblock'><p>A handle to the standard input stream of a process.</p>
 
 <p>Each handle is a shared reference to a global buffer of input data to this
 process. A handle can be <code>lock</code>&#39;d to gain full access to <a href="trait.BufRead.html"><code>BufRead</code></a> methods
-(e.g. <code>.lines()</code>). Writes to this handle are otherwise locked with respect
-to other writes.</p>
+(e.g. <code>.lines()</code>). Reads to this handle are otherwise locked with respect
+to other reads.</p>
 
 <p>This handle implements the <code>Read</code> trait, but beware that concurrent reads
 of <code>Stdin</code> must be executed with care.</p>

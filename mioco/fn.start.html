@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
+    
 
     
     
@@ -43,14 +44,18 @@
 
     <section id='main' class="content fn">
 <h1 class='fqn'><span class='in-band'>Function <a href='index.html'>mioco</a>::<wbr><a class='fn' href=''>start</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-1719' class='srclink' href='../src/mioco/src/lib.rs.html#832-838' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-1721' class='srclink' href='../src/mioco/src/mod.rs.html#771-777' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn start&lt;F, T&gt;(f: F) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/thread/type.Result.html' title='std::thread::Result'>Result</a>&lt;T&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; T, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></pre><div class='docblock'><p>Start a new mioco instance.</p>
 
 <p>Creates a mioco instance with default configuration and calls
 <code>Mioco::start(f)</code> on it.</p>
+
+<p>This will block until mioco instance exits, which can be caused by:
+* no more runnable coroutines,
+* <code>shutdown()</code>.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

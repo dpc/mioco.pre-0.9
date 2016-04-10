@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
+    
 
     
     
@@ -43,10 +44,10 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>mioco</a>::<wbr><a href='index.html'>timer</a>::<wbr><a class='struct' href=''>Timer</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-253' class='srclink' href='../../src/mioco/src/timer.rs.html#15-17' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-256' class='srclink' href='../../src/mioco/src/timer.rs.html#15-17' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Timer {
     // some fields omitted
 }</pre><div class='docblock'><p>A Timer generating event after a given time</p>
@@ -77,7 +78,27 @@ done.</p>
 <div class='docblock'><p>Set timeout for the timer using absolute time.</p>
 </div><h4 id='method.get_timeout_absolute' class='method'><code>fn <a href='#method.get_timeout_absolute' class='fnname'>get_timeout_absolute</a>(&amp;mut self) -&gt; <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a></code></h4>
 <div class='docblock'><p>Get absolute value of the timer timeout.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'></div></section>
+</div></div><h3 class='impl'><code>impl <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'><h4 id='method.new-1' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h4>
+<div class='docblock'><p>Create a new timer</p>
+</div></div><h3 class='impl'><code>impl <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'><h4 id='method.read-1' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>(&amp;mut self) -&gt; <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a></code></h4>
+<div class='docblock'><p>Read a timer to block on it until it is done.</p>
+
+<p>Returns current time</p>
+
+<p>TODO: Return wakeup time instead</p>
+</div><h4 id='method.try_read-1' class='method'><code>fn <a href='#method.try_read' class='fnname'>try_read</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a>&gt;</code></h4>
+<div class='docblock'><p>Try reading current time (if the timer is done)</p>
+
+<p>TODO: Return wakeup time instead</p>
+</div><h4 id='method.set_timeout-1' class='method'><code>fn <a href='#method.set_timeout' class='fnname'>set_timeout</a>(&amp;mut self, delay_ms: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>)</code></h4>
+<div class='docblock'><p>Set timeout for the timer</p>
+
+<p>The timeout counts from the time <code>set_timeout</code> is called.</p>
+</div><h4 id='method.set_timeout_absolute-1' class='method'><code>fn <a href='#method.set_timeout_absolute' class='fnname'>set_timeout_absolute</a>(&amp;mut self, timeout: <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a>)</code></h4>
+<div class='docblock'><p>Set timeout for the timer using absolute time.</p>
+</div><h4 id='method.get_timeout_absolute-1' class='method'><code>fn <a href='#method.get_timeout_absolute' class='fnname'>get_timeout_absolute</a>(&amp;mut self) -&gt; <a class='struct' href='../../time/struct.SteadyTime.html' title='time::SteadyTime'>SteadyTime</a></code></h4>
+<div class='docblock'><p>Get absolute value of the timer timeout.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../mioco/timer/struct.Timer.html' title='mioco::timer::Timer'>Timer</a></code></h3><div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

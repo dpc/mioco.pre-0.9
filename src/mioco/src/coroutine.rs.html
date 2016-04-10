@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -651,7 +652,6 @@
 <span id="608">608</span>
 <span id="609">609</span>
 <span id="610">610</span>
-<span id="611">611</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>CoroutineControl</span>;
@@ -662,8 +662,7 @@
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
 <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio</span>::<span class='ident'>EventLoop</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>::{<span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
+<span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>Token</span>, <span class='ident'>EventSet</span>, <span class='ident'>EventLoop</span>};
 
 <span class='kw'>use</span> <span class='ident'>context</span>::{<span class='self'>self</span>, <span class='ident'>stack</span>};
 <span class='kw'>use</span> <span class='ident'>slab</span>;
@@ -890,7 +889,7 @@
         <span class='comment'>// coroutine code (which can have different signatures),</span>
         <span class='comment'>// and sending the notification back</span>
         <span class='kw'>let</span> <span class='ident'>coroutine_main_fn</span> <span class='op'>=</span> <span class='kw'>move</span> <span class='op'>||</span> {
-            <span class='kw'>let</span> <span class='ident'>coroutine_user_fn</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>AssertRecoverSafe</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_user_fn</span>);
+            <span class='kw'>let</span> <span class='ident'>coroutine_user_fn</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>AssertRecoverSafe</span>(<span class='ident'>coroutine_user_fn</span>);
             <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='kw'>move</span> <span class='op'>||</span> {
 
                 <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>tl_current_coroutine</span>() };
@@ -898,7 +897,7 @@
                     <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
                 }
 
-                <span class='ident'>coroutine_user_fn</span>.<span class='ident'>into_inner</span>()()
+                <span class='ident'>coroutine_user_fn</span>()
             });
 
             <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>tl_current_coroutine</span>() };

@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -43,10 +44,10 @@
 
     <section id='main' class="content struct">
 <h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>sync</a>::<wbr><a class='struct' href=''>Barrier</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-10004' class='srclink' href='https://doc.rust-lang.org/nightly/std/sync/barrier/struct.Barrier.html?gotosrc=10004' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-10001' class='srclink' href='https://doc.rust-lang.org/nightly/std/sync/barrier/struct.Barrier.html?gotosrc=10001' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Barrier {
     // some fields omitted
 }</pre><span class="since">1.0.0</span><div class='docblock'><p>A barrier enables multiple threads to synchronize the beginning
@@ -56,16 +57,21 @@ of some computation.</p>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::{<span class='ident'>Arc</span>, <span class='ident'>Barrier</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>handles</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>10</span>);
 <span class='kw'>let</span> <span class='ident'>barrier</span> <span class='op'>=</span> <span class='ident'>Arc</span>::<span class='ident'>new</span>(<span class='ident'>Barrier</span>::<span class='ident'>new</span>(<span class='number'>10</span>));
 <span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='number'>10</span> {
     <span class='kw'>let</span> <span class='ident'>c</span> <span class='op'>=</span> <span class='ident'>barrier</span>.<span class='ident'>clone</span>();
     <span class='comment'>// The same messages will be printed together.</span>
     <span class='comment'>// You will NOT see any interleaving.</span>
-    <span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span><span class='op'>||</span> {
+    <span class='ident'>handles</span>.<span class='ident'>push</span>(<span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span><span class='op'>||</span> {
         <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;before wait&quot;</span>);
         <span class='ident'>c</span>.<span class='ident'>wait</span>();
         <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;after wait&quot;</span>);
-    });
+    }));
+}
+<span class='comment'>// Wait for other threads to finish.</span>
+<span class='kw'>for</span> <span class='ident'>handle</span> <span class='kw'>in</span> <span class='ident'>handles</span> {
+    <span class='ident'>handle</span>.<span class='ident'>join</span>().<span class='ident'>unwrap</span>();
 }</pre>
 </div></section>
     <section id='search' class="content hidden"></section>
