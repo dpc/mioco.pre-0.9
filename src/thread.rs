@@ -11,7 +11,7 @@ use std::collections::VecDeque;
 use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine, STARTING_ID, SPECIAL_ID,
                        SPECIAL_ID_SCHED_TIMEOUT};
 use super::{SchedulerThread, token_to_ids, token_from_ids, CoroutineControl, sender_retry};
-use super::mio_orig::{self, EventLoop, Token, EventSet};
+use mio_orig::{self, EventLoop, Token, EventSet};
 
 use slab;
 use context;

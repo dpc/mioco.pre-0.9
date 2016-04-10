@@ -1,9 +1,9 @@
 use super::RW;
 use super::evented::{RcEventSource, Evented, EventedImpl, MioAdapter};
 use std::io;
-use super::mio_orig;
 use std::path::Path;
 use std::os::unix::io::RawFd;
+use mio_orig;
 
 /// Unix pipe reader
 pub type PipeReader = MioAdapter<mio_orig::unix::PipeReader>;

@@ -642,22 +642,22 @@ fn scheduler_kill_on_initial_drop() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
+    impl mioco::sched::Scheduler for TestScheduler {
+        fn spawn_thread(&self) -> Box<mioco::sched::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl mioco::SchedulerThread for TestSchedulerThread {
+    impl mioco::sched::SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self,
                    _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                   _coroutine_ctrl: mioco::CoroutineControl) {
+                   _coroutine_ctrl: mioco::sched::Coroutine) {
             // drop
         }
 
         fn ready(&mut self,
                  _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                 _coroutine_ctrl: mioco::CoroutineControl) {
+                 _coroutine_ctrl: mioco::sched::Coroutine) {
             // drop
         }
     }
@@ -684,22 +684,22 @@ fn scheduler_kill_on_drop() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
+    impl mioco::sched::Scheduler for TestScheduler {
+        fn spawn_thread(&self) -> Box<mioco::sched::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl mioco::SchedulerThread for TestSchedulerThread {
+    impl mioco::sched::SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self,
                    event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                   coroutine_ctrl: mioco::CoroutineControl) {
+                   coroutine_ctrl: mioco::sched::Coroutine) {
             coroutine_ctrl.resume(event_loop);
         }
 
         fn ready(&mut self,
                  _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                 _coroutine_ctrl: mioco::CoroutineControl) {
+                 _coroutine_ctrl: mioco::sched::Coroutine) {
             // drop
         }
     }
@@ -735,23 +735,23 @@ fn simple_yield() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
+    impl mioco::sched::Scheduler for TestScheduler {
+        fn spawn_thread(&self) -> Box<mioco::sched::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl mioco::SchedulerThread for TestSchedulerThread {
+    impl mioco::sched::SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self,
                    event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                   coroutine_ctrl: mioco::CoroutineControl) {
+                   coroutine_ctrl: mioco::sched::Coroutine) {
             assert!(!coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
 
         fn ready(&mut self,
                  event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                 coroutine_ctrl: mioco::CoroutineControl) {
+                 coroutine_ctrl: mioco::sched::Coroutine) {
             assert!(coroutine_ctrl.is_yielding());
             coroutine_ctrl.resume(event_loop);
         }
@@ -1059,23 +1059,23 @@ fn userdata_scheduler() {
     struct TestScheduler;
     struct TestSchedulerThread;
 
-    impl mioco::Scheduler for TestScheduler {
-        fn spawn_thread(&self) -> Box<mioco::SchedulerThread> {
+    impl mioco::sched::Scheduler for TestScheduler {
+        fn spawn_thread(&self) -> Box<mioco::sched::SchedulerThread> {
             Box::new(TestSchedulerThread)
         }
     }
 
-    impl mioco::SchedulerThread for TestSchedulerThread {
+    impl mioco::sched::SchedulerThread for TestSchedulerThread {
         fn spawned(&mut self,
                    _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                   _coroutine_ctrl: mioco::CoroutineControl) {
+                   _coroutine_ctrl: mioco::sched::Coroutine) {
             assert_eq!(*_coroutine_ctrl.get_userdata::<u32>().unwrap(), 42)
             // drop
         }
 
         fn ready(&mut self,
                  _event_loop: &mut mioco::mio::EventLoop<mioco::Handler>,
-                 _coroutine_ctrl: mioco::CoroutineControl) {
+                 _coroutine_ctrl: mioco::sched::Coroutine) {
             // drop
         }
     }

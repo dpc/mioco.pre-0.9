@@ -1,6 +1,6 @@
 use super::RW;
 use super::evented::{EventedImpl, MioAdapter};
-use super::mio_orig;
+use mio_orig;
 use std::io;
 use std::net::SocketAddr;
 

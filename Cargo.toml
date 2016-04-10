@@ -18,7 +18,7 @@ debug-assertions = false
 
 [lib]
 name = "mioco"
-path = "src/lib.rs"
+path = "lib.rs"
 
 [features]
 default=[]

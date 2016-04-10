@@ -2,9 +2,9 @@ use super::{RW, EventSourceId, coroutine};
 use super::thread::Handler;
 use super::thread::tl_current_coroutine;
 use super::token_from_ids;
-use super::mio_orig;
+use mio_orig;
 
-use super::mio_orig::{EventLoop, Token, EventSet};
+use mio_orig::{EventLoop, Token, EventSet};
 
 use std::io;
 use std::rc::Rc;

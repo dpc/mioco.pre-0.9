@@ -1,7 +1,7 @@
 use super::super::RW;
 use super::super::thread::{Handler, Message};
 use super::super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
-use super::super::mio_orig::{EventLoop, Token, EventSet};
+use mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
 use super::super::thread::MioSender;

@@ -7,8 +7,7 @@ use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
 use super::thread::RcHandlerShared;
 use super::sync::mpsc;
-use super::mio::EventLoop;
-use super::mio_orig::{Token, EventSet};
+use mio_orig::{Token, EventSet, EventLoop};
 
 use context::{self, stack};
 use slab;

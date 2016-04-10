@@ -2,7 +2,7 @@ use super::RW;
 use super::evented::{Evented, EventedImpl, MioAdapter};
 use std::io;
 use std::net::SocketAddr;
-use super::mio_orig;
+use mio_orig;
 use std;
 
 pub use mio_orig::tcp::Shutdown;

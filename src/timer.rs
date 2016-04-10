@@ -1,7 +1,7 @@
 use super::RW;
 use super::thread::Handler;
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
-use super::mio_orig::{EventLoop, Token, EventSet};
+use mio_orig::{EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
 
 /// A Timer generating event after a given time
@@ -87,6 +87,7 @@ impl Timer {
         self.rc.io_ref().timeout
     }
 }
+
 impl TimerCore {
     fn should_resume(&self) -> bool {
         trace!("Timer: should_resume? {}",

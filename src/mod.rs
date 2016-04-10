@@ -1,94 +1,26 @@
-// Copyright 2015-2016 Dawid Ciężarkiewicz <dpc@dpc.pw>
-// See LICENSE-MPL2 file for more information.
-
-//! # Mioco
-//!
-//! Scalable, coroutine-based, asynchronous IO handling library for Rust
-//! programming language.
-//!
-//! Mioco uses asynchronous event loop, to cooperatively switch between
-//! coroutines (aka. green threads), depending on data availability. You
-//! can think of `mioco` as of *Node.js for Rust* or Rust *[green
-//! threads][green threads] on top of [`mio`][mio]*.
-//!
-//! Mioco coroutines should not use any native blocking-IO operations.
-//! Instead mioco provides it's own IO. Any long-running operations, or
-//! blocking IO should be executed in `mioco::sync()` blocks.
-//!
-//! # <a name="features"></a> Features:
-//!
-//! ```norust
-//! * multithreading support; (see `Config::set_thread_num()`)
-//! * user-provided scheduling; (see `Config::set_scheduler()`);
-//! * timers (see `MiocoHandle::timer()`);
-//! * channels (see `sync::mpsc::channel()`);
-//! * coroutine exit notification (see `CoroutineHandle::exit_notificator()`).
-//! * synchronous operations support (see `MiocoHandle::sync()`).
-//! * synchronization primitives (see `RwLock`).
-//! ```
-//!
-//! # <a name="example"/></a> Example:
-//!
-//! See `examples/echo.rs` for an example TCP echo server:
-//!
-
-
-//! [green threads]: https://en.wikipedia.org/wiki/Green_threads
-//! [mio]: https://github.com/carllerche/mio
-//! [mio-api]: ../mioco/mio/index.html
-
-#![feature(recover)]
-#![feature(std_panic)]
-#![feature(panic_propagate)]
-#![feature(fnbox)]
-#![feature(as_unsafe_cell)]
-#![feature(reflect_marker)]
-#![warn(missing_docs)]
-#![allow(private_in_public)]
-
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
-
-#[cfg(test)]
-extern crate env_logger;
-#[cfg(test)]
-extern crate net2;
-
-extern crate thread_scoped;
-extern crate libc;
-extern crate spin;
-extern crate mio as mio_orig;
-extern crate context;
-extern crate nix;
-#[macro_use]
-extern crate log;
-extern crate time;
-extern crate num_cpus;
-extern crate slab;
-
-/// Re-export of some `mio` symbols, that are part of the mioco API.
-pub mod mio {
-    pub use super::mio_orig::{EventLoop, Handler, Ipv4Addr};
-}
+use slab;
+use num_cpus;
+use thread_scoped;
 
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::marker::Reflect;
 use std::mem;
+use std;
 
-use mio_orig::{Token, EventLoop, EventLoopConfig};
+use mio_orig::{self, Token, EventLoop, EventLoopConfig};
 use mio_orig::Handler as MioHandler;
 
 use std::collections::VecDeque;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use sync::mpsc;
+use self::sync::mpsc;
 
 use std::ptr;
 
-use timer::Timer;
+use self::timer::Timer;
 
 macro_rules! thread_trace_fmt_prefix {
     () => ("T{}: ")
@@ -153,15 +85,15 @@ pub mod tcp;
 /// UDP IO
 pub mod udp;
 
-pub use evented::{Evented, MioAdapter};
+pub use self::evented::{Evented, MioAdapter};
 mod evented;
 
-use coroutine::{Coroutine, RcCoroutine};
+use self::coroutine::{Coroutine, RcCoroutine};
 mod coroutine;
 
-pub use thread::Handler;
-use thread::Message;
-use thread::{tl_current_coroutine, tl_current_coroutine_ptr};
+pub use self::thread::Handler;
+use self::thread::Message;
+use self::thread::{tl_current_coroutine, tl_current_coroutine_ptr};
 mod thread;
 
 
@@ -1140,5 +1072,3 @@ macro_rules! select {
     }};
 }
 
-#[cfg(test)]
-mod tests;
