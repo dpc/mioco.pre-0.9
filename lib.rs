@@ -84,7 +84,10 @@ pub mod sched {
     pub use super::src::CoroutineControl as Coroutine;
 }
 
-pub use src::{timer, tcp, udp, sync, unix};
+#[cfg(not(windows))]
+pub use src::{unix};
+
+pub use src::{timer, tcp, udp, sync};
 
 pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented};
 pub use src::{get_userdata, set_userdata, set_children_userdata};
