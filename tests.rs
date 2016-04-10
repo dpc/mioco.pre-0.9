@@ -404,8 +404,8 @@ fn timer_times_out() {
                 timer.set_timeout(500);
 
                 select!(
-                    reader:r => { panic!("reader fired first!") },
-                    timer:r => {},
+                    r:reader => { panic!("reader fired first!") },
+                    r:timer => {},
                     );
 
                 let mut lock = finished_ok_1_copy.lock().unwrap();
@@ -439,7 +439,7 @@ fn timer_default_timeout() {
             mioco::spawn(move || {
                 let timer = mioco::timer::Timer::new();
                 select!(
-                    timer:r => {},
+                    r:timer => {},
                     );
 
                 let mut lock = finished_ok_copy.lock().unwrap();
@@ -476,7 +476,7 @@ fn timer_select_takes_time() {
             timer.set_timeout(500);
 
             select!(
-                timer:r => {},
+                r:timer => {},
                 );
         })
             .unwrap();
@@ -1339,4 +1339,33 @@ fn multiple_return_types() {
         assert_eq!(res.unwrap(), vec![1, 2]);
     }
 
+}
+
+#[test]
+fn select_on_struct_fields() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            mioco::spawn(move || {
+                struct Foo {
+                    timer : mioco::timer::Timer,
+                }
+                let s = Foo {
+                    timer: mioco::timer::Timer::new(),
+                };
+
+                select!(
+                    r:s.timer => {},
+                    );
+
+                let mut lock = finished_ok_copy.lock().unwrap();
+                *lock = true;
+            });
+        }).unwrap();
+
+        assert!(*finished_ok.lock().unwrap());
+    }
 }

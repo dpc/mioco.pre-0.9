@@ -32,7 +32,7 @@ fn main() {
                     let mut timer = mioco::timer::Timer::new();
                     timer.set_timeout(5000);
                     select!(
-                        conn:r => {
+                        r:conn => {
                             let size = conn.read(&mut buf).unwrap();
                             if size == 0 {
                                 /* eof */
@@ -40,7 +40,7 @@ fn main() {
                             }
                             conn.write_all(&mut buf[0..size]).unwrap();
                         },
-                        timer:r => {
+                        r:timer => {
                             conn.shutdown(mioco::tcp::Shutdown::Both).unwrap();
                         },
                         );

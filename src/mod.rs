@@ -1043,21 +1043,21 @@ pub fn select_wait() -> Event {
 #[macro_export]
 macro_rules! select {
     (@wrap1 ) => {};
-    (@wrap1 $rx:ident:r => $code:expr, $($tail:tt)*) => {
+    (@wrap1 r:$rx:expr => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::read());
         }
         select!(@wrap1 $($tail)*)
     };
-    (@wrap1 $rx:ident:w => $code:expr, $($tail:tt)*) => {
+    (@wrap1 w:$rx:expr => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::write());
         }
         select!(@wrap1 $($tail)*)
     };
-    (@wrap1 $rx:ident:rw => $code:expr, $($tail:tt)*) => {
+    (@wrap1 rw:$rx:expr => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::both());
@@ -1067,17 +1067,17 @@ macro_rules! select {
     (@wrap2 $ret:ident) => {
         // end code
     };
-    (@wrap2 $ret:ident $rx:ident:r => $code:expr, $($tail:tt)*) => {{
+    (@wrap2 $ret:ident r:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
         if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
     }};
-    (@wrap2 $ret:ident $rx:ident:w => $code:expr, $($tail:tt)*) => {{
+    (@wrap2 $ret:ident w:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
         if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
     }};
-    (@wrap2 $ret:ident $rx:ident:rw => $code:expr, $($tail:tt)*) => {{
+    (@wrap2 $ret:ident rw:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
         if ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
