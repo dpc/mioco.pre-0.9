@@ -1369,3 +1369,31 @@ fn select_on_struct_fields() {
         assert!(*finished_ok.lock().unwrap());
     }
 }
+
+/// See: http://github.com/dpc/mioco/issues/125
+#[test]
+fn timer_fires_only_once() {
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+            let mut timer_a = mioco::timer::Timer::new();
+            let mut timer_b = mioco::timer::Timer::new();
+
+            for _ in 0..10 {
+                timer_a.set_timeout(100);
+                timer_b.set_timeout(300);
+                select!(
+                    r:timer_a => {},
+                    r:timer_b => {panic!("wrong timer fired!")},
+                    );
+            }
+            let mut lock = finished_ok_copy.lock().unwrap();
+            *lock = true;
+        }).unwrap();
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
