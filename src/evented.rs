@@ -247,30 +247,30 @@ impl<R, EP> Evented for EP
 /// of different types, the trait object is being used.
 pub trait EventSourceTrait {
     /// Register
-    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
 
     /// Reregister
-    fn reregister(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
 
     /// Deregister
-    fn deregister(&self, event_loop: &mut EventLoop<Handler>, token: Token);
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token);
 }
 
 impl<T> EventSourceTrait for T where T: mio_orig::Evented
 {
-    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         event_loop.register(self, token, interest, mio_orig::PollOpt::edge())
                   .expect("register failed");
     }
 
     /// Reregister
-    fn reregister(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         event_loop.reregister(self, token, interest, mio_orig::PollOpt::edge())
                   .expect("reregister failed");
     }
 
     /// Deregister
-    fn deregister(&self, event_loop: &mut EventLoop<Handler>, _token: Token) {
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, _token: Token) {
         event_loop.deregister(self)
                   .expect("deregister failed");
     }
@@ -385,7 +385,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
 
         let token = token_from_ids(co_id, self.0.borrow().common.id.unwrap());
 
-        EventSourceTrait::register(&self.0.borrow().io, event_loop, token, interest);
+        EventSourceTrait::register(&mut self.0.borrow_mut().io, event_loop, token, interest);
     }
 
     /// Reregister oneshot handler for the next event
@@ -406,13 +406,13 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
 
         let token = token_from_ids(co_id, self.0.borrow().common.id.unwrap());
 
-        EventSourceTrait::reregister(&self.0.borrow().io, event_loop, token, interest);
+        EventSourceTrait::reregister(&mut self.0.borrow_mut().io, event_loop, token, interest);
     }
 
     /// Un-reregister event we're not interested in anymore
     fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, co_id: coroutine::Id) {
         let token = token_from_ids(co_id, self.0.borrow().common.id.unwrap());
-        EventSourceTrait::deregister(&self.0.borrow().io, event_loop, token);
+        EventSourceTrait::deregister(&mut self.0.borrow_mut().io, event_loop, token);
     }
 }
 
@@ -426,17 +426,17 @@ impl<T> RcEventSource<T> where T: EventSourceTrait + 'static
 impl<T> EventSourceTrait for RcEventSource<T> where T: EventSourceTrait
 {
     /// Register
-    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
-        self.0.borrow().io.register(event_loop, token, interest);
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+        self.0.borrow_mut().io.register(event_loop, token, interest);
     }
 
     /// Reregister
-    fn reregister(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
-        self.0.borrow().io.reregister(event_loop, token, interest);
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+        self.0.borrow_mut().io.reregister(event_loop, token, interest);
     }
 
     /// Deregister
-    fn deregister(&self, event_loop: &mut EventLoop<Handler>, token: Token) {
-        self.0.borrow().io.deregister(event_loop, token);
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token) {
+        self.0.borrow_mut().io.deregister(event_loop, token);
     }
 }

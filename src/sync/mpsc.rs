@@ -39,7 +39,7 @@ impl<T> EventedImpl for Receiver<T> where T: 'static
 }
 
 impl<T> EventSourceTrait for ReceiverCore<T> {
-    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         debug_assert!(interest.is_readable());
         trace!("Receiver({}): register", token.as_usize());
         let mut lock = self.shared.lock();
@@ -57,7 +57,7 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         }
     }
 
-    fn reregister(&self, _event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self, _event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         debug_assert!(interest.is_readable());
         trace!("Receiver({}): reregister", token.as_usize());
         let mut lock = self.shared.lock();
@@ -74,7 +74,7 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         }
     }
 
-    fn deregister(&self, _event_loop: &mut EventLoop<Handler>, token: Token) {
+    fn deregister(&mut self, _event_loop: &mut EventLoop<Handler>, token: Token) {
         trace!("Receiver({}): dereregister", token.as_usize());
         let mut lock = self.shared.lock();
         lock.token = None;

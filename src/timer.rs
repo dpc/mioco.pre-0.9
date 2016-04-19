@@ -1,7 +1,7 @@
 use super::RW;
 use super::thread::Handler;
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
-use mio_orig::{EventLoop, Token, EventSet};
+use mio_orig::{self, EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
 
 /// A Timer generating event after a given time
@@ -17,13 +17,18 @@ pub struct Timer {
 }
 
 struct TimerCore {
+    // TODO: Rename these two?
     timeout: SteadyTime,
+    mio_timeout: Option<mio_orig::Timeout>,
 }
 
 impl Timer {
     /// Create a new timer
     pub fn new() -> Timer {
-        let timer_core = TimerCore { timeout: SteadyTime::now() };
+        let timer_core = TimerCore {
+            timeout: SteadyTime::now(),
+            mio_timeout: None,
+        };
         Timer { rc: RcEventSource::new(timer_core) }
     }
 
@@ -97,7 +102,7 @@ impl TimerCore {
 }
 
 impl EventSourceTrait for TimerCore {
-    fn register(&self, event_loop: &mut EventLoop<Handler>, token: Token, _interest: EventSet) {
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, _interest: EventSet) {
         let timeout = self.timeout;
         let now = SteadyTime::now();
         let delay = if timeout <= now {
@@ -108,18 +113,23 @@ impl EventSourceTrait for TimerCore {
 
         trace!("Timer({}): set timeout in {}ms", token.as_usize(), delay);
         match event_loop.timeout_ms(token, delay as u64) {
-            Ok(_) => {}
+            Ok(timeout) => {
+                self.mio_timeout = Some(timeout);
+            }
             Err(reason) => {
                 panic!("Could not create mio::Timeout: {:?}", reason);
             }
         }
     }
 
-    fn reregister(&self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+        event_loop.clear_timeout(self.mio_timeout.unwrap());
         self.register(event_loop, token, interest)
     }
 
-    fn deregister(&self, _event_loop: &mut EventLoop<Handler>, _token: Token) {}
+    fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, _token: Token) {
+        event_loop.clear_timeout(self.mio_timeout.unwrap());
+    }
 }
 
 unsafe impl Send for Timer {}
