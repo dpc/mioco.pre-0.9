@@ -41,9 +41,6 @@
 //! [mio]: https://github.com/carllerche/mio
 //! [mio-api]: ../mioco/mio/index.html
 
-#![feature(recover)]
-#![feature(std_panic)]
-#![feature(panic_propagate)]
 #![feature(fnbox)]
 #![feature(as_unsafe_cell)]
 #![feature(reflect_marker)]

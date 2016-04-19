@@ -190,7 +190,7 @@ extern "C" fn unwind_stack(t: context::Transfer) -> context::Transfer {
         *o_c = Some(t.context);
     }
 
-    panic::propagate(Box::new(Killed))
+    panic::resume_unwind(Box::new(Killed))
 }
 
 impl Coroutine {
@@ -234,12 +234,12 @@ impl Coroutine {
         // coroutine code (which can have different signatures),
         // and sending the notification back
         let coroutine_main_fn = move || {
-            let coroutine_user_fn = panic::AssertRecoverSafe(coroutine_user_fn);
-            let res = panic::recover(move || {
+            let coroutine_user_fn = panic::AssertUnwindSafe(coroutine_user_fn);
+            let res = panic::catch_unwind(move || {
 
                 let coroutine = unsafe { tl_current_coroutine() };
                 if coroutine.killed {
-                    panic::propagate(Box::new(Killed))
+                    panic::resume_unwind(Box::new(Killed))
                 }
 
                 coroutine_user_fn()

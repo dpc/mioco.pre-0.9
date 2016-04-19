@@ -123,7 +123,7 @@ fn empty_subcoroutines() {
 }
 
 fn silent_panic() -> ! {
-    std::panic::propagate(Box::new("explicit panic silented by mioco/src/test.rs"));
+    std::panic::resume_unwind(Box::new("explicit panic silented by mioco/src/test.rs"));
 }
 
 #[test]

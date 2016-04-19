@@ -359,7 +359,7 @@ impl mio_orig::Handler for Handler {
                     self.deliver_to_scheduler(event_loop);
                 }
             }
-            Message::PropagatePanic(cause) => panic::propagate(cause),
+            Message::PropagatePanic(cause) => panic::resume_unwind(cause),
             Message::Shutdown => self.shutdown(),
             Message::Terminate => {
                 debug_assert_eq!(self.shared
