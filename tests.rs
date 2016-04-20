@@ -1372,7 +1372,7 @@ fn select_on_struct_fields() {
 
 /// See: http://github.com/dpc/mioco/issues/125
 #[test]
-fn timer_fires_only_once() {
+fn timer_cleared_on_reregister() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
@@ -1390,6 +1390,34 @@ fn timer_fires_only_once() {
                     r:timer_b => {panic!("wrong timer fired!")},
                     );
             }
+            let mut lock = finished_ok_copy.lock().unwrap();
+            *lock = true;
+        }).unwrap();
+
+        assert!(*finished_ok.lock().unwrap());
+    }
+}
+
+/// See: http://github.com/dpc/mioco/issues/126
+#[test]
+fn sleep_is_precise() {
+    use ::time;
+
+    for &threads in THREADS_N.iter() {
+        let finished_ok = Arc::new(Mutex::new(false));
+
+        let finished_ok_copy = finished_ok.clone();
+        mioco::start_threads(threads, move || {
+
+
+            let start = time::precise_time_ns();
+            mioco::sleep_ms(100);
+            let duration = time::precise_time_ns()  -start ;
+
+            assert!(duration < 101000);
+            assert!(duration >  99000);
+
+
             let mut lock = finished_ok_copy.lock().unwrap();
             *lock = true;
         }).unwrap();
