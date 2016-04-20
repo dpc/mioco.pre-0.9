@@ -975,7 +975,8 @@ pub fn thread_num() -> usize {
 /// Warning: When issued inside of mioco, the precision of this call (and
 /// other time based functionality) is limited by `mio` event loop
 /// settings. Any small value of `time_ms` will effectively be rounded up to
-/// `mio_orig::EventLoop::timer_tick_ms()`.
+/// `mio::EventLoop::timer_tick_ms()`. This can be configured with
+/// custom `mioco::Config` argument passed to `mioco::new_configured()`
 pub fn sleep(duration: std::time::Duration) {
     if in_coroutine() {
         let mut timer = Timer::new();

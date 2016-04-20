@@ -6,12 +6,11 @@ use time::{SteadyTime, Duration};
 
 /// A Timer generating event after a given time
 ///
-/// Can be used to block coroutine or to implement timeout for other `EventSource`.
-///
-/// Create using `MiocoHandle::timeout()`.
-///
 /// Use `MiocoHandle::select()` to wait for an event, or `read()` to block until
 /// done.
+///
+/// Note the timer effective resolution is limited by underlying mio timer.
+/// See `mioco::sleep()` for details.
 pub struct Timer {
     rc: RcEventSource<TimerCore>,
 }
@@ -77,6 +76,9 @@ impl Timer {
     /// Set timeout for the timer
     ///
     /// The timeout counts from the time `set_timeout` is called.
+    ///
+    /// Note the timer effective resolution is limited by underlying mio
+    /// timer. See `mioco::sleep()` for details.
     pub fn set_timeout(&mut self, delay_ms: i64) {
         self.rc.io_mut().timeout = SteadyTime::now() + Duration::milliseconds(delay_ms);
     }
