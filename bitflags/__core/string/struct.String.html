@@ -775,9 +775,8 @@ it may not be what a human considers the length of the string.</p>
 
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='string'>&quot;not empty&quot;</span>;
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>s</span>.<span class='ident'>is_empty</span>());</pre>
-</div><h4 id='method.is_char_boundary' class='method'><code>fn <a href='#method.is_char_boundary' class='fnname'>is_char_boundary</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.bool.html'>bool</a></code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: it is unclear whether this method pulls its weight with the existence of the char_indices iterator or this method may want to be replaced with checked slicing</p>
-</em></div><div class='docblock'><p>Checks that <code>index</code>-th byte lies at the start and/or end of a
+</div><h4 id='method.is_char_boundary' class='method'><span class="since">1.9.0</span><code>fn <a href='#method.is_char_boundary' class='fnname'>is_char_boundary</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Checks that <code>index</code>-th byte lies at the start and/or end of a
 UTF-8 code point sequence.</p>
 
 <p>The start and end of the string (when <code>index == self.len()</code>) are
@@ -788,8 +787,6 @@ boundaries.</p>
 
 <h1 id='examples-29' class='section-header'><a href='#examples-29'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
-
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='string'>&quot;Löwe 老虎 Léopard&quot;</span>;
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>is_char_boundary</span>(<span class='number'>0</span>));
 <span class='comment'>// start of `老`</span>
@@ -878,7 +875,7 @@ satisfied:</p>
 <li><code>begin</code> and <code>end</code> must lie on UTF-8 sequence boundaries.</li>
 </ul>
 </div><h4 id='method.char_range_at' class='method'><code>fn <a href='#method.char_range_at' class='fnname'>char_range_at</a>(&amp;self, start: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../../bitflags/__core/str/struct.CharRange.html' title='bitflags::__core::str::CharRange'>CharRange</a></code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: often replaced by char_indices, this method may be removed in favor of just char_at() or eventually removed altogether</p>
+<div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use slicing plus chars() plus len_utf8</p>
 </em></div><div class='docblock'><p>Given a byte position, returns the next <code>char</code> and its index.</p>
 
 <h1 id='panics-6' class='section-header'><a href='#panics-6'>Panics</a></h1>
@@ -892,6 +889,7 @@ done by <code>.chars()</code> or <code>.char_indices()</code>.</p>
 
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>deprecated</span>)]</span>
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>::<span class='ident'>CharRange</span>;
 
@@ -919,7 +917,7 @@ done by <code>.chars()</code> or <code>.char_indices()</code>.</p>
 17: m
 </code></pre>
 </div><h4 id='method.char_range_at_reverse' class='method'><code>fn <a href='#method.char_range_at_reverse' class='fnname'>char_range_at_reverse</a>(&amp;self, start: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../../bitflags/__core/str/struct.CharRange.html' title='bitflags::__core::str::CharRange'>CharRange</a></code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: often replaced by char_indices, this method may be removed in favor of just char_at_reverse() or eventually removed altogether</p>
+<div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use slicing plus chars().rev() plus len_utf8</p>
 </em></div><div class='docblock'><p>Given a byte position, returns the previous <code>char</code> and its position.</p>
 
 <p>Note that Unicode has many features, such as combining marks, ligatures,
@@ -938,6 +936,7 @@ done by <code>.chars().rev()</code> or <code>.char_indices()</code>.</p>
 
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>deprecated</span>)]</span>
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>::<span class='ident'>CharRange</span>;
 
@@ -965,7 +964,7 @@ done by <code>.chars().rev()</code> or <code>.char_indices()</code>.</p>
 3: 中
 </code></pre>
 </div><h4 id='method.char_at' class='method'><code>fn <a href='#method.char_at' class='fnname'>char_at</a>(&amp;self, i: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.char.html'>char</a></code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: frequently replaced by the chars() iterator, this method may be removed or possibly renamed in the future; it is normally replaced by chars/char_indices iterators or by getting the first char from a subslice</p>
+<div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use slicing plus chars()</p>
 </em></div><div class='docblock'><p>Given a byte position, returns the <code>char</code> at that position.</p>
 
 <h1 id='panics-8' class='section-header'><a href='#panics-8'>Panics</a></h1>
@@ -975,13 +974,14 @@ If <code>i</code> is not the index of the beginning of a valid UTF-8 sequence.</
 <h1 id='examples-35' class='section-header'><a href='#examples-35'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>deprecated</span>)]</span>
 
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='string'>&quot;abπc&quot;</span>;
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at</span>(<span class='number'>1</span>), <span class='string'>&#39;b&#39;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at</span>(<span class='number'>2</span>), <span class='string'>&#39;π&#39;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at</span>(<span class='number'>4</span>), <span class='string'>&#39;c&#39;</span>);</pre>
 </div><h4 id='method.char_at_reverse' class='method'><code>fn <a href='#method.char_at_reverse' class='fnname'>char_at_reverse</a>(&amp;self, i: <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.char.html'>char</a></code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: see char_at for more details, but reverse semantics are also somewhat unclear, especially with which cases generate panics</p>
+<div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use slicing plus chars().rev()</p>
 </em></div><div class='docblock'><p>Given a byte position, returns the <code>char</code> at that position, counting
 from the end.</p>
 
@@ -992,13 +992,14 @@ If <code>i</code> is not an index following a valid UTF-8 sequence.</p>
 <h1 id='examples-36' class='section-header'><a href='#examples-36'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>deprecated</span>)]</span>
 
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='string'>&quot;abπc&quot;</span>;
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at_reverse</span>(<span class='number'>1</span>), <span class='string'>&#39;a&#39;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at_reverse</span>(<span class='number'>2</span>), <span class='string'>&#39;b&#39;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>char_at_reverse</span>(<span class='number'>3</span>), <span class='string'>&#39;π&#39;</span>);</pre>
 </div><h4 id='method.slice_shift_char' class='method'><code>fn <a href='#method.slice_shift_char' class='fnname'>slice_shift_char</a>(&amp;self) -&gt; <a class='enum' href='../../../bitflags/__core/option/enum.Option.html' title='bitflags::__core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.tuple.html'>(</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.char.html'>char</a>, &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.str.html'>str</a><a class='primitive' href='https://doc.rust-lang.org/nightly/bitflags/primitive.tuple.html'>)</a>&gt;</code></h4>
-<div class='stability'><em class='stab unstable'>Unstable (<code>str_char</code>)<p>: awaiting conventions about shifting and slices and may not be warranted with the existence of the chars and/or char_indices iterators</p>
+<div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use chars() plus Chars::as_str</p>
 </em></div><div class='docblock'><p>Retrieves the first <code>char</code> from a <code>&amp;str</code> and returns it.</p>
 
 <p>Note that a single Unicode character (grapheme cluster)
@@ -1012,6 +1013,7 @@ points one code point beyond the code point that was shifted.</p>
 <h1 id='examples-37' class='section-header'><a href='#examples-37'>Examples</a></h1>
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>str_char</span>)]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>deprecated</span>)]</span>
 
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='string'>&quot;Łódź&quot;</span>; <span class='comment'>// \u{141}o\u{301}dz\u{301}</span>
 <span class='kw'>let</span> (<span class='ident'>c</span>, <span class='ident'>s1</span>) <span class='op'>=</span> <span class='ident'>s</span>.<span class='ident'>slice_shift_char</span>().<span class='ident'>unwrap</span>();

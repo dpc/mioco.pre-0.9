@@ -734,30 +734,30 @@
 <span class='doccomment'>/// of different types, the trait object is being used.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>EventSourceTrait</span> {
     <span class='doccomment'>/// Register</span>
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
 
     <span class='doccomment'>/// Deregister</span>
-    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>);
+    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>);
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>T</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span>
 {
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='self'>self</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>mio_orig</span>::<span class='ident'>PollOpt</span>::<span class='ident'>edge</span>())
                   .<span class='ident'>expect</span>(<span class='string'>&quot;register failed&quot;</span>);
     }
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>reregister</span>(<span class='self'>self</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>mio_orig</span>::<span class='ident'>PollOpt</span>::<span class='ident'>edge</span>())
                   .<span class='ident'>expect</span>(<span class='string'>&quot;reregister failed&quot;</span>);
     }
 
     <span class='doccomment'>/// Deregister</span>
-    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>_token</span>: <span class='ident'>Token</span>) {
+    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>_token</span>: <span class='ident'>Token</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>deregister</span>(<span class='self'>self</span>)
                   .<span class='ident'>expect</span>(<span class='string'>&quot;deregister failed&quot;</span>);
     }
@@ -872,7 +872,7 @@
 
         <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='ident'>token_from_ids</span>(<span class='ident'>co_id</span>, <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>common</span>.<span class='ident'>id</span>.<span class='ident'>unwrap</span>());
 
-        <span class='ident'>EventSourceTrait</span>::<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
+        <span class='ident'>EventSourceTrait</span>::<span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
     }
 
     <span class='doccomment'>/// Reregister oneshot handler for the next event</span>
@@ -893,13 +893,13 @@
 
         <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='ident'>token_from_ids</span>(<span class='ident'>co_id</span>, <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>common</span>.<span class='ident'>id</span>.<span class='ident'>unwrap</span>());
 
-        <span class='ident'>EventSourceTrait</span>::<span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
+        <span class='ident'>EventSourceTrait</span>::<span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
     }
 
     <span class='doccomment'>/// Un-reregister event we&#39;re not interested in anymore</span>
     <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>co_id</span>: <span class='ident'>coroutine</span>::<span class='ident'>Id</span>) {
         <span class='kw'>let</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='ident'>token_from_ids</span>(<span class='ident'>co_id</span>, <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>common</span>.<span class='ident'>id</span>.<span class='ident'>unwrap</span>());
-        <span class='ident'>EventSourceTrait</span>::<span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>);
+        <span class='ident'>EventSourceTrait</span>::<span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>, <span class='ident'>event_loop</span>, <span class='ident'>token</span>);
     }
 }
 
@@ -913,18 +913,18 @@
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span>
 {
     <span class='doccomment'>/// Register</span>
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
-        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
     }
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
-        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
     }
 
     <span class='doccomment'>/// Deregister</span>
-    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>) {
-        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>io</span>.<span class='ident'>deregister</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>);
+    <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>) {
+        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>deregister</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>);
     }
 }
 </pre>

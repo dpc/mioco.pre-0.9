@@ -785,7 +785,7 @@
                     <span class='self'>self</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='ident'>event_loop</span>);
                 }
             }
-            <span class='ident'>Message</span>::<span class='ident'>PropagatePanic</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>cause</span>),
+            <span class='ident'>Message</span>::<span class='ident'>PropagatePanic</span>(<span class='ident'>cause</span>) <span class='op'>=&gt;</span> <span class='ident'>panic</span>::<span class='ident'>resume_unwind</span>(<span class='ident'>cause</span>),
             <span class='ident'>Message</span>::<span class='ident'>Shutdown</span> <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>shutdown</span>(),
             <span class='ident'>Message</span>::<span class='ident'>Terminate</span> <span class='op'>=&gt;</span> {
                 <span class='macro'>debug_assert_eq</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='ident'>shared</span>

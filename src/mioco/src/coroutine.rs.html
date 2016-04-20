@@ -845,7 +845,7 @@
         <span class='op'>*</span><span class='ident'>o_c</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>.<span class='ident'>context</span>);
     }
 
-    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
+    <span class='ident'>panic</span>::<span class='ident'>resume_unwind</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
 }
 
 <span class='kw'>impl</span> <span class='ident'>Coroutine</span> {
@@ -889,12 +889,12 @@
         <span class='comment'>// coroutine code (which can have different signatures),</span>
         <span class='comment'>// and sending the notification back</span>
         <span class='kw'>let</span> <span class='ident'>coroutine_main_fn</span> <span class='op'>=</span> <span class='kw'>move</span> <span class='op'>||</span> {
-            <span class='kw'>let</span> <span class='ident'>coroutine_user_fn</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>AssertRecoverSafe</span>(<span class='ident'>coroutine_user_fn</span>);
-            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>recover</span>(<span class='kw'>move</span> <span class='op'>||</span> {
+            <span class='kw'>let</span> <span class='ident'>coroutine_user_fn</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>AssertUnwindSafe</span>(<span class='ident'>coroutine_user_fn</span>);
+            <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>panic</span>::<span class='ident'>catch_unwind</span>(<span class='kw'>move</span> <span class='op'>||</span> {
 
                 <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>tl_current_coroutine</span>() };
                 <span class='kw'>if</span> <span class='ident'>coroutine</span>.<span class='ident'>killed</span> {
-                    <span class='ident'>panic</span>::<span class='ident'>propagate</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
+                    <span class='ident'>panic</span>::<span class='ident'>resume_unwind</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>Killed</span>))
                 }
 
                 <span class='ident'>coroutine_user_fn</span>()

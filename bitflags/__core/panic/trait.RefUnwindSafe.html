@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `RefRecoverSafe` trait in crate `bitflags`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, RefRecoverSafe">
+    <meta name="description" content="API documentation for the Rust `RefUnwindSafe` trait in crate `bitflags`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, RefUnwindSafe">
 
-    <title>bitflags::__core::panic::RefRecoverSafe - Rust</title>
+    <title>bitflags::__core::panic::RefUnwindSafe - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../../main.css">
@@ -28,7 +28,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>panic</a></p><script>window.sidebarCurrent = {name: 'RefRecoverSafe', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>panic</a></p><script>window.sidebarCurrent = {name: 'RefUnwindSafe', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -43,25 +43,24 @@
     </nav>
 
     <section id='main' class="content trait">
-<h1 class='fqn'><span class='in-band'>Trait <a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>panic</a>::<wbr><a class='trait' href=''>RefRecoverSafe</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Trait <a href='../../index.html'>bitflags</a>::<wbr><a href='../index.html'>__core</a>::<wbr><a href='index.html'>panic</a>::<wbr><a class='trait' href=''>RefUnwindSafe</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-6717' class='srclink' href='https://doc.rust-lang.org/nightly/std/panic/trait.RefRecoverSafe.html?gotosrc=6717' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait RefRecoverSafe { }</pre><div class='stability'><em class='stab unstable'>Unstable (<code>recover</code>)<p>: awaiting feedback</p>
-</em></div><div class='docblock'><p>A marker trait representing types where a shared reference is considered
+               </span><a id='src-6721' class='srclink' href='https://doc.rust-lang.org/nightly/std/panic/trait.RefUnwindSafe.html?gotosrc=6721' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait RefUnwindSafe { }</pre><div class='docblock'><p>A marker trait representing types where a shared reference is considered
 recover safe.</p>
 
 <p>This trait is namely not implemented by <code>UnsafeCell</code>, the root of all
 interior mutability.</p>
 
 <p>This is a &quot;helper marker trait&quot; used to provide impl blocks for the
-<code>RecoverSafe</code> trait, for more information see that documentation.</p>
+<code>UnwindSafe</code> trait, for more information see that documentation.</p>
 </div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
     </ul><script type="text/javascript" async
-                         src="../../../implementors/std/panic/trait.RefRecoverSafe.js">
+                         src="../../../implementors/std/panic/trait.RefUnwindSafe.js">
                  </script></section>
     <section id='search' class="content hidden"></section>
 

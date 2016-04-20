@@ -50,12 +50,14 @@
                </span><a id='src-30557' class='srclink' href='https://doc.rust-lang.org/nightly/core/raw/trait.Repr.html?gotosrc=30557' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub unsafe trait Repr&lt;T&gt; {
     fn <a href='#method.repr' class='fnname'>repr</a>(&amp;self) -&gt; T { ... }
-}</pre><div class='stability'><em class='stab unstable'>Unstable (<code>raw</code>)</em></div><div class='docblock'><p>This trait is meant to map equivalences between raw structs and their
+}</pre><div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use raw accessors/constructors in <code>slice</code> module</p>
+</em></div><div class='docblock'><p>This trait is meant to map equivalences between raw structs and their
 corresponding rust values.</p>
 </div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.repr' class='method stab unstable'><code>fn <a href='#method.repr' class='fnname'>repr</a>(&amp;self) -&gt; T</code></h3><div class='stability'><em class='stab unstable'>Unstable (<code>raw</code>)</em></div><div class='docblock'><p>This function &quot;unwraps&quot; a rust value (without consuming it) into its raw
+        <h3 id='method.repr' class='method stab unstable deprecated'><code>fn <a href='#method.repr' class='fnname'>repr</a>(&amp;self) -&gt; T</code></h3><div class='stability'><em class='stab unstable deprecated'>Deprecated since 1.9.0<p>: use raw accessors/constructors in <code>slice</code> module</p>
+</em></div><div class='docblock'><p>This function &quot;unwraps&quot; a rust value (without consuming it) into its raw
 struct representation. This can be used to read/write different values
 for the struct. This is a safe method because by default it does not
 enable write-access to the fields of the return value in safe code.</p>
