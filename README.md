@@ -62,7 +62,7 @@ programming language.
 
 Mioco uses asynchronous event loop, to cooperatively switch between
 coroutines (aka. green threads), depending on data availability. You
-can think of `mioco` as of *Node.js for Rust* or Rust *[green
+can think of `mioco` as *Node.js for Rust* or Rust *[green
 threads][green threads] on top of [`mio`][mio]*.
 
 Read [Documentation](//dpc.github.io/mioco/) for details and features.
