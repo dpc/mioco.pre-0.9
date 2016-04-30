@@ -1399,6 +1399,7 @@ fn timer_cleared_on_reregister() {
 }
 
 /// See: http://github.com/dpc/mioco/issues/126
+#[ignore]
 #[test]
 fn sleep_is_precise() {
     use ::time;
