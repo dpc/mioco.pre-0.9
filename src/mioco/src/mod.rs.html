@@ -1140,15 +1140,17 @@
 <span id="1096">1096</span>
 <span id="1097">1097</span>
 <span id="1098">1098</span>
+<span id="1099">1099</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>slab</span>;
 <span class='kw'>use</span> <span class='ident'>num_cpus</span>;
 <span class='kw'>use</span> <span class='ident'>thread_scoped</span>;
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;userdata&quot;</span>)]</span>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::<span class='ident'>RefCell</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>rc</span>::<span class='ident'>Rc</span>;
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;go-faster&quot;</span>)]</span>
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;userdata&quot;</span>)]</span>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>marker</span>::<span class='ident'>Reflect</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>;
@@ -1772,7 +1774,7 @@
                          <span class='ident'>thread_id</span>: <span class='ident'>usize</span>,
                          <span class='ident'>senders</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>thread</span>::<span class='ident'>MioSender</span><span class='op'>&gt;</span>,
                          <span class='ident'>thread_shared</span>: <span class='ident'>thread</span>::<span class='ident'>ArcHandlerThreadShared</span>,
-                         <span class='ident'>userdata</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Any</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='ident'>Sync</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
+                         <span class='ident'>userdata</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>coroutine</span>::<span class='ident'>UserData</span><span class='op'>&gt;</span>,
                          <span class='ident'>coroutine_config</span>: <span class='ident'>coroutine</span>::<span class='ident'>Config</span>)
         <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnOnce</span>() <span class='op'>-&gt;</span> <span class='ident'>T</span>,
               <span class='ident'>F</span>: <span class='ident'>Send</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>,
@@ -1811,7 +1813,7 @@
     <span class='ident'>thread_num</span>: <span class='ident'>usize</span>,
     <span class='ident'>scheduler</span>: <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Scheduler</span><span class='op'>&gt;&gt;</span>,
     <span class='ident'>event_loop_config</span>: <span class='ident'>EventLoopConfig</span>,
-    <span class='ident'>user_data</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Any</span> <span class='op'>+</span> <span class='ident'>Send</span> <span class='op'>+</span> <span class='ident'>Sync</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>,
+    <span class='ident'>user_data</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>coroutine</span>::<span class='ident'>UserData</span><span class='op'>&gt;</span>,
     <span class='ident'>coroutine_config</span>: <span class='ident'>coroutine</span>::<span class='ident'>Config</span>,
 }
 

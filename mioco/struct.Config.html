@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1669' class='srclink' href='../src/mioco/src/mod.rs.html#667-673' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1679' class='srclink' href='../src/mioco/src/mod.rs.html#668-674' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Config {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance builder.</p>
@@ -82,6 +82,10 @@ in FIFO manner.</p>
 lead to SEGFAULTs. See <a href="https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs">context-rs stack.rs</a>
 for implementation details. The sane minimum seems to be 128KiB,
 which is two 64KB pages.</p>
+</div><h4 id='method.set_userdata' class='method'><code>fn <a href='#method.set_userdata' class='fnname'>set_userdata</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Reflect.html' title='core::marker::Reflect'>Reflect</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> + 'static&gt;(&amp;mut self, data: T) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Set user-provided data for the first coroutine</p>
+
+<p>See <code>set_userdata</code>.</p>
 </div><h4 id='method.event_loop' class='method'><code>fn <a href='#method.event_loop' class='fnname'>event_loop</a>(&amp;mut self) -&gt; &amp;mut <a class='struct' href='../mio/event_loop/struct.EventLoopConfig.html' title='mio::event_loop::EventLoopConfig'>EventLoopConfig</a></code></h4>
 <div class='docblock'><p>Configure <code>mio::EvenLoop</code> for all the threads</p>
 </div><h4 id='method.set_catch_panics' class='method'><code>fn <a href='#method.set_catch_panics' class='fnname'>set_catch_panics</a>(&amp;mut self, catch_panics: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut Self</code></h4>

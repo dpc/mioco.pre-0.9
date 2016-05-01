@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1551' class='srclink' href='../../src/mioco/src/mod.rs.html#406-412' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1553' class='srclink' href='../../src/mioco/src/mod.rs.html#407-413' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Coroutine {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine scheduling handle.</p>
@@ -66,6 +66,8 @@ given <code>thread_id</code>.</p>
 <div class='docblock'><p>Finish migrating Coroutine by attaching it to a new thread.</p>
 </div><h4 id='method.is_yielding' class='method'><code>fn <a href='#method.is_yielding' class='fnname'>is_yielding</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Is this Coroutine ready after <code>yield_now()</code>?</p>
+</div><h4 id='method.get_userdata' class='method'><code>fn <a href='#method.get_userdata' class='fnname'>get_userdata</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt;(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;T&gt;</code></h4>
+<div class='docblock'><p>Get coroutine user-provided data.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
