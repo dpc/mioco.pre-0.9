@@ -627,7 +627,7 @@ impl Mioco {
                          thread_id: usize,
                          senders: Vec<thread::MioSender>,
                          thread_shared: thread::ArcHandlerThreadShared,
-                         userdata: Option<Arc<Box<Any + Send + Sync>>>,
+                         userdata: Option<coroutine::UserDataAny>,
                          coroutine_config: coroutine::Config)
         where F: FnOnce() -> T,
               F: Send + 'static,
@@ -666,7 +666,7 @@ pub struct Config {
     thread_num: usize,
     scheduler: Arc<Box<Scheduler>>,
     event_loop_config: EventLoopConfig,
-    user_data: Option<Arc<Box<Any + Send + Sync>>>,
+    user_data: Option<coroutine::UserDataAny>,
     coroutine_config: coroutine::Config,
 }
 

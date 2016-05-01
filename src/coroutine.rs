@@ -137,6 +137,9 @@ impl Deref for AnyStack {
 
 struct Killed;
 
+/// Used to store Any userdata
+pub type UserDataAny = Arc<Box<Any + Send + Sync>>;
+
 /// Mioco coroutine (a.k.a. *mioco handler*)
 // TODO: Make everything private
 pub struct Coroutine {
@@ -174,10 +177,10 @@ pub struct Coroutine {
     pub sync_channel: Option<(mpsc::Sender<()>, mpsc::Receiver<()>)>,
 
     /// Userdata of the coroutine
-    pub user_data: Option<Arc<Box<Any + Send + Sync>>>,
+    pub user_data: Option<UserDataAny>,
 
     /// Userdata meant for inheritance
-    pub inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
+    pub inherited_user_data: Option<UserDataAny>,
 
     /// Force exit
     killed: bool,
@@ -196,7 +199,7 @@ extern "C" fn unwind_stack(t: context::Transfer) -> context::Transfer {
 impl Coroutine {
     /// Spawn a new Coroutine
     pub fn spawn<F, T>(handler_shared: RcHandlerShared,
-                       inherited_user_data: Option<Arc<Box<Any + Send + Sync>>>,
+                       inherited_user_data: Option<UserDataAny>,
                        coroutine_user_fn: F,
                        exit_sender: ExitSender<T>)
                        -> RcCoroutine
