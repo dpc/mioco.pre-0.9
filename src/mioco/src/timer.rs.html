@@ -177,21 +177,22 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>RW</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>RW</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='self'>self</span>, <span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
 <span class='kw'>use</span> <span class='ident'>time</span>::{<span class='ident'>SteadyTime</span>, <span class='ident'>Duration</span>};
 
 <span class='doccomment'>/// A Timer generating event after a given time</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Can be used to block coroutine or to implement timeout for other `EventSource`.</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// Create using `MiocoHandle::timeout()`.</span>
-<span class='doccomment'>///</span>
 <span class='doccomment'>/// Use `MiocoHandle::select()` to wait for an event, or `read()` to block until</span>
 <span class='doccomment'>/// done.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Note the timer effective resolution is limited by underlying mio timer.</span>
+<span class='doccomment'>/// See `mioco::sleep()` for details.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Timer</span> {
     <span class='ident'>rc</span>: <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>TimerCore</span><span class='op'>&gt;</span>,
 }
@@ -257,6 +258,9 @@
     <span class='doccomment'>/// Set timeout for the timer</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The timeout counts from the time `set_timeout` is called.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// Note the timer effective resolution is limited by underlying mio</span>
+    <span class='doccomment'>/// timer. See `mioco::sleep()` for details.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>delay_ms</span>: <span class='ident'>i64</span>) {
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_mut</span>().<span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>() <span class='op'>+</span> <span class='ident'>Duration</span>::<span class='ident'>milliseconds</span>(<span class='ident'>delay_ms</span>);
     }

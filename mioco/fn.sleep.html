@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1791' class='srclink' href='../src/mioco/src/mod.rs.html#979-988' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1744' class='srclink' href='../src/mioco/src/mod.rs.html#986-995' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn sleep(duration: <a class='struct' href='https://doc.rust-lang.org/nightly/std/time/duration/struct.Duration.html' title='std::time::duration::Duration'>Duration</a>)</pre><div class='docblock'><p>Block execution for a given time.</p>
 
 <p>Inside mioco coroutine, this will yield execution and block coroutine
@@ -58,7 +58,8 @@ for a given period of time.</p>
 <p>Warning: When issued inside of mioco, the precision of this call (and
 other time based functionality) is limited by <code>mio</code> event loop
 settings. Any small value of <code>time_ms</code> will effectively be rounded up to
-<code>mio_orig::EventLoop::timer_tick_ms()</code>.</p>
+<code>mio::EventLoop::timer_tick_ms()</code>. This can be configured with
+custom <code>mioco::Config</code> argument passed to <code>mioco::new_configured()</code></p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

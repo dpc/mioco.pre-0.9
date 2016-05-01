@@ -47,17 +47,18 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-19' class='srclink' href='../src/spin/mutex.rs.html#87-91' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct MutexGuard&lt;'a, T: 'a&gt; {
+               </span><a id='src-21' class='srclink' href='../src/spin/mutex.rs.html#89-93' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct MutexGuard&lt;'a, T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + 'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A guard to which the protected data can be accessed</p>
 
 <p>When the guard falls out of scope it will release the lock.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='associatedtype.Target' class='type'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target' class='type'>Target</a> = T</code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='associatedtype.Target' class='type'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target' class='type'>Target</a> = T</code></h4>
 <h4 id='method.deref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref' class='fnname'>deref</a>&lt;'b&gt;(&amp;'b self) -&gt; &amp;'b T</code></h4>
-</div><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#tymethod.deref_mut' class='fnname'>deref_mut</a>&lt;'b&gt;(&amp;'b mut self) -&gt; &amp;'b mut T</code></h4>
-</div><h3 class='impl'><code>impl&lt;'a, T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
-</div></section>
+</div><h3 class='impl'><code>impl&lt;'a, T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#tymethod.deref_mut' class='fnname'>deref_mut</a>&lt;'b&gt;(&amp;'b mut self) -&gt; &amp;'b mut T</code></h4>
+</div><h3 class='impl'><code>impl&lt;'a, T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
+<div class='docblock'><p>The dropping of the MutexGuard will release the lock it was created from.</p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

@@ -907,7 +907,7 @@
         <span class='ident'>env_p</span>.<span class='ident'>push</span>(<span class='ident'>ptr</span>::<span class='ident'>null</span>());
 
         <span class='kw'>unsafe</span> {
-            <span class='ident'>super</span>::<span class='ident'>ffi</span>::<span class='ident'>execvpe</span>(<span class='ident'>filename</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>env_p</span>.<span class='ident'>as_ptr</span>())
+            <span class='kw'>super</span>::<span class='ident'>ffi</span>::<span class='ident'>execvpe</span>(<span class='ident'>filename</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>args_p</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>env_p</span>.<span class='ident'>as_ptr</span>())
         };
 
         <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Errno</span>::<span class='ident'>last</span>()))

@@ -47,8 +47,8 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-15' class='srclink' href='../src/spin/mutex.rs.html#78-82' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct Mutex&lt;T&gt; {
+               </span><a id='src-17' class='srclink' href='../src/spin/mutex.rs.html#80-84' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Mutex&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>This type provides MUTual EXclusion based on spinning.</p>
 
@@ -69,7 +69,7 @@
 helpful. In other cases however, you are encouraged to use the locks from the standard
 library.</p>
 
-<h1 id='simple-example' class='section-header'><a href='#simple-example'>Simple example</a></h1>
+<h1 id='simple-examples' class='section-header'><a href='#simple-examples'>Simple examples</a></h1>
 <pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>spin</span>;
 <span class='kw'>let</span> <span class='ident'>spin_mutex</span> <span class='op'>=</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
@@ -135,7 +135,9 @@ library.</p>
     <span class='comment'>// do something with lock</span>
     <span class='ident'>drop</span>(<span class='ident'>lock</span>);
 }</pre>
-</div><h4 id='method.lock' class='method'><code>fn <a href='#method.lock' class='fnname'>lock</a>(&amp;self) -&gt; <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;T&gt;</code></h4>
+</div><h4 id='method.into_inner' class='method'><code>fn <a href='#method.into_inner' class='fnname'>into_inner</a>(self) -&gt; T</code></h4>
+<div class='docblock'><p>Consumes this mutex, returning the underlying data.</p>
+</div></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.lock' class='method'><code>fn <a href='#method.lock' class='fnname'>lock</a>(&amp;self) -&gt; <a class='struct' href='../spin/struct.MutexGuard.html' title='spin::MutexGuard'>MutexGuard</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Locks the spinlock and returns a guard.</p>
 
 <p>The returned value may be dereferenced for data access
@@ -150,8 +152,8 @@ and the lock will be dropped when the guard falls out of scope.</p>
     <span class='comment'>// The lock is implicitly dropped</span>
 }
 </pre>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
-</div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h4>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.Mutex.html' title='spin::Mutex'>Mutex</a>&lt;T&gt;</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

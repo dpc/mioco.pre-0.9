@@ -228,8 +228,8 @@
 
 <span class='kw'>mod</span> <span class='ident'>ffi</span> {
     <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_char</span>, <span class='ident'>size_t</span>, <span class='ident'>ssize_t</span>, <span class='ident'>c_uint</span>, <span class='ident'>c_int</span>};
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>MQd</span>;
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>MqAttr</span>;
+    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>MQd</span>;
+    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>MqAttr</span>;
 
     <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>improper_ctypes</span>)]</span>
     <span class='kw'>extern</span> <span class='string'>&quot;C&quot;</span> {

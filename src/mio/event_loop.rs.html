@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.5.0/src/event_loop.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.5.1/src/event_loop.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>event_loop.rs.html -- source</title>
@@ -969,7 +969,7 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::<span class='ident'>AtomicIsize</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::<span class='ident'>Ordering</span>::<span class='ident'>SeqCst</span>;
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>EventLoop</span>;
+    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>EventLoop</span>;
     <span class='kw'>use</span> {<span class='ident'>unix</span>, <span class='ident'>Handler</span>, <span class='ident'>Token</span>, <span class='ident'>TryRead</span>, <span class='ident'>TryWrite</span>, <span class='ident'>EventSet</span>, <span class='ident'>PollOpt</span>};
     <span class='kw'>use</span> <span class='ident'>bytes</span>::{<span class='ident'>Buf</span>, <span class='ident'>SliceBuf</span>, <span class='ident'>ByteBuf</span>};
 

@@ -47,8 +47,8 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-75' class='srclink' href='../src/spin/rw_lock.rs.html#23-27' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct RwLock&lt;T&gt; {
+               </span><a id='src-82' class='srclink' href='../src/spin/rw_lock.rs.html#47-51' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct RwLock&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A reader-writer lock</p>
 
@@ -65,6 +65,27 @@ to allow access to the contained of the lock.</p>
 
 <p>Based on
 <a href="https://jfdube.wordpress.com/2014/01/03/implementing-a-recursive-read-write-spinlock/">https://jfdube.wordpress.com/2014/01/03/implementing-a-recursive-read-write-spinlock/</a></p>
+
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>spin</span>;
+
+<span class='kw'>let</span> <span class='ident'>lock</span> <span class='op'>=</span> <span class='ident'>spin</span>::<span class='ident'>RwLock</span>::<span class='ident'>new</span>(<span class='number'>5</span>);
+
+<span class='comment'>// many reader locks can be held at once</span>
+{
+    <span class='kw'>let</span> <span class='ident'>r1</span> <span class='op'>=</span> <span class='ident'>lock</span>.<span class='ident'>read</span>();
+    <span class='kw'>let</span> <span class='ident'>r2</span> <span class='op'>=</span> <span class='ident'>lock</span>.<span class='ident'>read</span>();
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='ident'>r1</span>, <span class='number'>5</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='ident'>r2</span>, <span class='number'>5</span>);
+} <span class='comment'>// read locks are dropped at this point</span>
+
+<span class='comment'>// only one write lock may be held, however</span>
+{
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>w</span> <span class='op'>=</span> <span class='ident'>lock</span>.<span class='ident'>write</span>();
+    <span class='op'>*</span><span class='ident'>w</span> <span class='op'>+=</span> <span class='number'>1</span>;
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='ident'>w</span>, <span class='number'>6</span>);
+} <span class='comment'>// write lock is dropped here</span></pre>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>const fn <a href='#method.new' class='fnname'>new</a>(user_data: T) -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h4>
 <div class='docblock'><p>Creates a new spinlock wrapping the supplied data.</p>
 
@@ -81,7 +102,9 @@ to allow access to the contained of the lock.</p>
     <span class='comment'>// do something with lock</span>
     <span class='ident'>drop</span>(<span class='ident'>lock</span>);
 }</pre>
-</div><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;'a, T&gt;</code></h4>
+</div><h4 id='method.into_inner' class='method'><code>fn <a href='#method.into_inner' class='fnname'>into_inner</a>(self) -&gt; T</code></h4>
+<div class='docblock'><p>Consumes this <code>RwLock</code>, returning the underlying data.</p>
+</div></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;'a, T&gt;</code></h4>
 <div class='docblock'><p>Locks this rwlock with shared read access, blocking the current thread
 until it can be acquired.</p>
 
@@ -161,8 +184,8 @@ returned.</p>
         <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> (), <span class='comment'>// no cigar</span>
     };
 }</pre>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: 'static + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
-</div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h4>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: 'static + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

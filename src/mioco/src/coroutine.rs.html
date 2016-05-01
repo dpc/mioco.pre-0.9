@@ -653,15 +653,15 @@
 <span id="609">609</span>
 <span id="610">610</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>CoroutineControl</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
+<span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>CoroutineControl</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
                     <span class='ident'>tl_current_coroutine</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>Token</span>, <span class='ident'>EventSet</span>, <span class='ident'>EventLoop</span>};
 
 <span class='kw'>use</span> <span class='ident'>context</span>::{<span class='self'>self</span>, <span class='ident'>stack</span>};

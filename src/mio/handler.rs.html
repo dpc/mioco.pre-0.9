@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.5.0/src/handler.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/mio-0.5.1/src/handler.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>handler.rs.html -- source</title>
@@ -100,11 +100,11 @@
     }
 
     <span class='doccomment'>/// Invoked when a message has been received via the event loop&#39;s channel.</span>
-    <span class='kw'>fn</span> <span class='ident'>notify</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='ident'>Self</span>::<span class='ident'>Message</span>) {
+    <span class='kw'>fn</span> <span class='ident'>notify</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='kw'>Self</span>::<span class='ident'>Message</span>) {
     }
 
     <span class='doccomment'>/// Invoked when a timeout has completed.</span>
-    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>timeout</span>: <span class='ident'>Self</span>::<span class='ident'>Timeout</span>) {
+    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>timeout</span>: <span class='kw'>Self</span>::<span class='ident'>Timeout</span>) {
     }
 
     <span class='doccomment'>/// Invoked when `EventLoop` has been interrupted by a signal interrupt.</span>

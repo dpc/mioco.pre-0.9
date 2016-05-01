@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Once","A synchronization primitive which can be used to run a one-time global initialization. Unlike its std equivalent, this is generalized so that The closure returns a value and it is stored. Once therefore acts something like 1a future, too."]]});

@@ -287,14 +287,14 @@
 <span id="243">243</span>
 <span id="244">244</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>RW</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>Handler</span>, <span class='ident'>Message</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw'>super</span>::<span class='ident'>RW</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>Handler</span>, <span class='ident'>Message</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
 <span class='kw'>use</span> <span class='ident'>spin</span>::<span class='ident'>Mutex</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>MioSender</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>super</span>::{<span class='ident'>sender_retry</span>, <span class='ident'>in_coroutine</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>MioSender</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='kw'>super</span>::{<span class='ident'>sender_retry</span>, <span class='ident'>in_coroutine</span>};
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
