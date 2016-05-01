@@ -21,16 +21,15 @@
 ## Code snippet
 
 ``` rust
-fn main() {
-    mioco::start(||{
+    mioco::start(|| -> io::Result<()> {
         let addr = listend_addr();
 
-        let listener = TcpListener::bind(&addr).unwrap();
+        let listener = try!(TcpListener::bind(&addr));
 
-        println!("Starting tcp echo server on {:?}", listener.local_addr().unwrap());
+        println!("Starting tcp echo server on {:?}", try!(listener.local_addr()));
 
         loop {
-            let mut conn = listener.accept().unwrap();
+            let mut conn = try!(listener.accept());
 
             mioco::spawn(move || -> io::Result<()> {
                 let mut buf = [0u8; 1024 * 16];
@@ -43,8 +42,7 @@ fn main() {
                 Ok(())
             });
         }
-    }).unwrap();
-}
+    }).unwrap().unwrap();
 ```
 
 This trivial code scales very well. See [benchmarks](BENCHMARKS.md).
