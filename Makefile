@@ -23,8 +23,12 @@ EXAMPLES = $(shell cd examples 2>/dev/null && ls *.rs 2>/dev/null | sed -e 's/.r
 all: $(ALL_TARGETS)
 
 .PHONY: run test build doc clean clippy
-run test build clean:
+run build clean:
 	cargo $@ $(CARGO_FLAGS)
+
+test:
+	cargo $@ $(CARGO_FLAGS) --no-default-features --features ""
+	cargo $@ $(CARGO_FLAGS) --no-default-features --features "userdata"
 
 check:
 	$(info Running check; use `make build` to actually build)
@@ -39,13 +43,13 @@ bench:
 
 .PHONY: travistest
 travistest:
-	for i in `seq 10`; do cargo test $(CARGO_FLAGS) || exit 1 ; done
+	for i in `seq 10`; do make test || exit 1 ; done
 
 .PHONY: longtest
 longtest:
 	@echo "Running longtest. Press Ctrl+C to stop at any time"
 	@sleep 2
-	@i=0; while i=$$((i + 1)) && echo "Iteration $$i" && cargo test $(CARGO_FLAGS) ; do :; done
+	@i=0; while i=$$((i + 1)) && echo "Iteration $$i" && make test ; do :; done
 
 .PHONY: $(EXAMPLES)
 $(EXAMPLES):
@@ -54,7 +58,7 @@ $(EXAMPLES):
 .PHONY: doc
 doc: FORCE
 	rm -rf target/doc
-	cargo doc
+	cargo doc --features="userdata"
 
 .PHONY: publishdoc
 publishdoc: doc

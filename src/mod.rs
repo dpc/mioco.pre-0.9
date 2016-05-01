@@ -2,9 +2,11 @@ use slab;
 use num_cpus;
 use thread_scoped;
 
+#[cfg(feature = "userdata")]
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
+#[cfg(feature = "userdata")]
 use std::marker::Reflect;
 use std::mem;
 use std;
@@ -502,6 +504,7 @@ impl CoroutineControl {
     }
 
     /// Get coroutine user-provided data.
+    #[cfg(feature = "userdata")]
     pub fn get_userdata<T: Any>(&self) -> Option<&T> {
         let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
 
@@ -627,7 +630,7 @@ impl Mioco {
                          thread_id: usize,
                          senders: Vec<thread::MioSender>,
                          thread_shared: thread::ArcHandlerThreadShared,
-                         userdata: Option<Arc<Box<Any + Send + Sync>>>,
+                         userdata: Option<coroutine::UserData>,
                          coroutine_config: coroutine::Config)
         where F: FnOnce() -> T,
               F: Send + 'static,
@@ -666,7 +669,7 @@ pub struct Config {
     thread_num: usize,
     scheduler: Arc<Box<Scheduler>>,
     event_loop_config: EventLoopConfig,
-    user_data: Option<Arc<Box<Any + Send + Sync>>>,
+    user_data: Option<coroutine::UserData>,
     coroutine_config: coroutine::Config,
 }
 
@@ -726,6 +729,7 @@ impl Config {
     /// Set user-provided data for the first coroutine
     ///
     /// See `set_userdata`.
+    #[cfg(feature = "userdata")]
     pub fn set_userdata<T: Reflect + Send + Sync + 'static>(&mut self, data: T) -> &mut Self {
         self.user_data = Some(Arc::new(Box::new(data)));
         self
@@ -918,6 +922,7 @@ pub fn sync<'b, F, R>(f: F) -> R
 /// Returns `None` if `T` does not match or if no data was set.
 ///
 /// See `set_userdata`.
+#[cfg(feature = "userdata")]
 pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
     let coroutine = unsafe { tl_current_coroutine() };
     match coroutine.user_data {
@@ -933,6 +938,7 @@ pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
 /// Set user-provided data for the current coroutine.
 ///
 /// Every coroutine can carry an additional piece of data.
+#[cfg(feature = "userdata")]
 pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.user_data = Some(Arc::new(Box::new(data)));
@@ -944,6 +950,7 @@ pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
 /// `None` to clear.
 ///
 /// See `set_userdata`.
+#[cfg(feature = "userdata")]
 pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.inherited_user_data = match data {

@@ -42,8 +42,8 @@
 //! [mio-api]: ../mioco/mio/index.html
 
 #![feature(fnbox)]
-#![feature(as_unsafe_cell)]
-#![feature(reflect_marker)]
+#![cfg_attr(feature="userdata", feature(as_unsafe_cell))]
+#![cfg_attr(feature="userdata", feature(reflect_marker))]
 #![warn(missing_docs)]
 #![allow(private_in_public)]
 
@@ -87,6 +87,7 @@ pub use src::{unix};
 pub use src::{timer, tcp, udp, sync};
 
 pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented};
+#[cfg(feature = "userdata")]
 pub use src::{get_userdata, set_userdata, set_children_userdata};
 pub use src::{in_coroutine, select_wait, sleep, sleep_ms, spawn, start, shutdown};
 pub use src::{start_threads, thread_num, yield_now};

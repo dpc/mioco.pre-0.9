@@ -1032,6 +1032,7 @@ fn tcp_basic_client_server() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn simple_userdata() {
     for &threads in THREADS_N.iter() {
@@ -1043,6 +1044,7 @@ fn simple_userdata() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn userdata_wrong_type() {
     for &threads in THREADS_N.iter() {
@@ -1054,6 +1056,7 @@ fn userdata_wrong_type() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn userdata_scheduler() {
     struct TestScheduler;
@@ -1099,6 +1102,7 @@ fn userdata_scheduler() {
     assert!(!*finished_ok.lock().unwrap());
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn simple_userdata_inheritance() {
     for &threads in THREADS_N.iter() {
@@ -1112,6 +1116,7 @@ fn simple_userdata_inheritance() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn no_userdata_inheritance() {
     for &threads in THREADS_N.iter() {
@@ -1124,6 +1129,7 @@ fn no_userdata_inheritance() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn userdata_multi_inheritance() {
     for &threads in THREADS_N.iter() {
@@ -1139,6 +1145,7 @@ fn userdata_multi_inheritance() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn userdata_inheritance_reset() {
     for &threads in THREADS_N.iter() {
@@ -1155,6 +1162,7 @@ fn userdata_inheritance_reset() {
     }
 }
 
+#[cfg(feature = "userdata")]
 #[test]
 fn userdata_no_reference_invalidation() {
     for &threads in THREADS_N.iter() {

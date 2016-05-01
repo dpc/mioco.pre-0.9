@@ -21,7 +21,9 @@ name = "mioco"
 path = "lib.rs"
 
 [features]
-default=[]
+default=["userdata"]
+
+userdata = []
 
 [dependencies]
 nix = "0.5.0"
