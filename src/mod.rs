@@ -22,6 +22,8 @@ use std::ptr;
 
 use self::timer::Timer;
 
+use owning_ref::{ArcRef, ErasedArcRef};
+
 macro_rules! thread_trace_fmt_prefix {
     () => ("T{}: ")
 }
@@ -502,16 +504,18 @@ impl CoroutineControl {
     }
 
     /// Get coroutine user-provided data.
-    pub fn get_userdata<T: Any>(&self) -> Option<&T> {
-        let coroutine_ref = unsafe { &mut *self.rc.as_unsafe_cell().get() as &mut Coroutine };
-
-        match coroutine_ref.user_data {
-            Some(ref arc) => {
-                let boxed_any: &Box<Any + Send + Sync> = arc.as_ref();
-                let any: &Any = boxed_any.as_ref();
-                any.downcast_ref::<T>()
+    pub fn get_userdata<T: Any>(&self) -> Option<ErasedArcRef<T>> {
+        let opt_arcref : Option<ArcRef<_>> = self.rc.borrow().user_data.clone().map(|arc| arc.into());
+        if let Some(arcref) = opt_arcref {
+            if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
+                Some(arcref.map(|ud| {
+                    (&**ud as &Any).downcast_ref::<T>().unwrap()
+                }).erase_owner())
+            } else {
+                None
             }
-            None => None,
+        } else {
+            None
         }
     }
 }
@@ -918,15 +922,20 @@ pub fn sync<'b, F, R>(f: F) -> R
 /// Returns `None` if `T` does not match or if no data was set.
 ///
 /// See `set_userdata`.
-pub fn get_userdata<'a, T: Any>() -> Option<&'a T> {
+pub fn get_userdata<'a, T: Any>() -> Option<ErasedArcRef<T>> {
     let coroutine = unsafe { tl_current_coroutine() };
-    match coroutine.user_data {
-        Some(ref arc) => {
-            let boxed_any: &Box<Any + Send + Sync> = arc.as_ref();
-            let any: &Any = boxed_any.as_ref();
-            any.downcast_ref::<T>()
+
+    let opt_arcref : Option<ArcRef<_>> = coroutine.user_data.clone().map(|arc| arc.into());
+    if let Some(arcref) = opt_arcref {
+        if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
+            Some(arcref.map(|ud| {
+                (&**ud as &Any).downcast_ref::<T>().unwrap()
+            }).erase_owner())
+        } else {
+            None
         }
-        None => None,
+    } else {
+        None
     }
 }
 

@@ -1048,7 +1048,7 @@ fn userdata_wrong_type() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::set_userdata(42 as u32);
-            assert_eq!(mioco::get_userdata::<i32>(), None);
+            assert!(mioco::get_userdata::<i32>().is_none());
         })
             .unwrap()
     }
@@ -1117,7 +1117,7 @@ fn no_userdata_inheritance() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, || {
             mioco::spawn(|| {
-                assert_eq!(mioco::get_userdata::<u32>(), None);
+                assert!(mioco::get_userdata::<u32>().is_none());
             });
         })
             .unwrap()
@@ -1147,7 +1147,7 @@ fn userdata_inheritance_reset() {
             mioco::spawn(|| {
                 mioco::set_children_userdata::<u32>(None);
                 mioco::spawn(|| {
-                    assert_eq!(mioco::get_userdata::<u32>(), None);
+                    assert!(mioco::get_userdata::<u32>().is_none());
                 });
             });
         })

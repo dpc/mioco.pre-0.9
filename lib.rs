@@ -42,7 +42,6 @@
 //! [mio-api]: ../mioco/mio/index.html
 
 #![feature(fnbox)]
-#![feature(as_unsafe_cell)]
 #![feature(reflect_marker)]
 #![warn(missing_docs)]
 #![allow(private_in_public)]
@@ -66,6 +65,7 @@ extern crate log;
 extern crate time;
 extern crate num_cpus;
 extern crate slab;
+extern crate owning_ref;
 
 #[macro_use]
 mod src;
