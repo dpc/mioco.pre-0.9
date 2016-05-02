@@ -506,7 +506,7 @@ impl CoroutineControl {
     /// Get coroutine user-provided data.
     pub fn get_userdata<T: Any>(&self) -> Option<ErasedArcRef<T>> {
         let opt_arcref : Option<ArcRef<_>> = self.rc.borrow().user_data.clone().map(|arc| arc.into());
-        if let Some(arcref) = opt_arcref {
+        opt_arcref.and_then(|arcref| {
             if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
                 Some(arcref.map(|ud| {
                     (&**ud as &Any).downcast_ref::<T>().unwrap()
@@ -514,9 +514,7 @@ impl CoroutineControl {
             } else {
                 None
             }
-        } else {
-            None
-        }
+        })
     }
 }
 
@@ -926,7 +924,7 @@ pub fn get_userdata<'a, T: Any>() -> Option<ErasedArcRef<T>> {
     let coroutine = unsafe { tl_current_coroutine() };
 
     let opt_arcref : Option<ArcRef<_>> = coroutine.user_data.clone().map(|arc| arc.into());
-    if let Some(arcref) = opt_arcref {
+    opt_arcref.and_then(|arcref| {
         if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
             Some(arcref.map(|ud| {
                 (&**ud as &Any).downcast_ref::<T>().unwrap()
@@ -934,9 +932,7 @@ pub fn get_userdata<'a, T: Any>() -> Option<ErasedArcRef<T>> {
         } else {
             None
         }
-    } else {
-        None
-    }
+    })
 }
 
 /// Set user-provided data for the current coroutine.
