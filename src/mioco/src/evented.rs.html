@@ -484,6 +484,26 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>RW</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>coroutine</span>};
 <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
@@ -530,7 +550,7 @@
 
 <span class='doccomment'>/// Private trait for all mioco provided IO</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>EventedImpl</span> {
-    <span class='kw'>type</span> <span class='ident'>Raw</span> : <span class='ident'>EventSourceTrait</span><span class='op'>+</span><span class='lifetime'>&#39;static</span>;
+    <span class='kw'>type</span> <span class='ident'>Raw</span>: <span class='ident'>EventSourceTrait</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>;
 
     <span class='kw'>fn</span> <span class='ident'>shared</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='kw'>Self</span>::<span class='ident'>Raw</span><span class='op'>&gt;</span>;
 
@@ -568,15 +588,15 @@
 <span class='comment'>// All mioco IO functions are guaranteed to not keep any references to</span>
 <span class='comment'>// `Evented` structs after return. `Rc` is used only when coroutine</span>
 <span class='comment'>// is blocked - meaning it is not using it.</span>
-<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>Send</span>
-{}
+<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>Send</span> {}
 
 <span class='doccomment'>/// Adapt raw `mio` type to mioco `Evented` requirements.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// See source of `src/tcp.rs` for example of usage.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>(<span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>);
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
 {
     <span class='doccomment'>/// Create `MioAdapter` from raw mio type.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>mio_type</span>: <span class='ident'>MT</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
@@ -584,7 +604,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>EventedImpl</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>EventedImpl</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
 {
     <span class='kw'>type</span> <span class='ident'>Raw</span> <span class='op'>=</span> <span class='ident'>MT</span>;
 
@@ -593,7 +614,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryRead</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryRead</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
 {
     <span class='doccomment'>/// Try reading data into a buffer.</span>
     <span class='doccomment'>///</span>
@@ -603,7 +625,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>io</span>::<span class='ident'>Read</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryRead</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>io</span>::<span class='ident'>Read</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryRead</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
 {
     <span class='doccomment'>/// Block on read.</span>
     <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
@@ -621,7 +644,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryWrite</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryWrite</span>
 {
     <span class='doccomment'>/// Try writing a data from the buffer.</span>
     <span class='doccomment'>///</span>
@@ -631,7 +655,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>io</span>::<span class='ident'>Write</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryWrite</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>io</span>::<span class='ident'>Write</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>mio_orig</span>::<span class='ident'>TryWrite</span>
 {
     <span class='doccomment'>/// Block on write.</span>
     <span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
@@ -692,7 +717,8 @@
 
 <span class='comment'>// type Output = MioAdapter&lt;MT::Output&gt;;</span>
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>FromRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>FromRawFd</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>FromRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>FromRawFd</span>
 {
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_fd</span>(<span class='ident'>fd</span>: <span class='ident'>RawFd</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
         <span class='ident'>MioAdapter</span>(<span class='ident'>RcEventSource</span>::<span class='ident'>new</span>(<span class='ident'>MT</span>::<span class='ident'>from_raw_fd</span>(<span class='ident'>fd</span>)))
@@ -700,7 +726,8 @@
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>AsRawFd</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>MioAdapter</span><span class='op'>&lt;</span><span class='ident'>MT</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>MT</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span> <span class='op'>+</span> <span class='ident'>AsRawFd</span>
 {
     <span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
         <span class='self'>self</span>.<span class='ident'>shared</span>().<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>as_raw_fd</span>()
@@ -737,13 +764,17 @@
     <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                  <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                  <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                  <span class='ident'>interest</span>: <span class='ident'>EventSet</span>);
 
     <span class='doccomment'>/// Deregister</span>
     <span class='kw'>fn</span> <span class='ident'>deregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>);
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>T</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>T</span>
+    <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>mio_orig</span>::<span class='ident'>Evented</span>
 {
     <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>register</span>(<span class='self'>self</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>mio_orig</span>::<span class='ident'>PollOpt</span>::<span class='ident'>edge</span>())
@@ -751,7 +782,10 @@
     }
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                  <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                  <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                  <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>reregister</span>(<span class='self'>self</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>, <span class='ident'>mio_orig</span>::<span class='ident'>PollOpt</span>::<span class='ident'>edge</span>())
                   .<span class='ident'>expect</span>(<span class='string'>&quot;reregister failed&quot;</span>);
     }
@@ -785,7 +819,7 @@
     <span class='kw'>pub</span> <span class='ident'>peer_hup</span>: <span class='ident'>bool</span>,
 }
 
-<span class='doccomment'>/// Wrapped mio IO (mio_orig::Evented+TryRead+TryWrite)</span>
+<span class='doccomment'>/// Wrapped mio IO (`mio_orig::Evented+TryRead+TryWrite`)</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// `Handle` is just a cloneable reference to this struct</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>RcEventSourceShared</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
@@ -811,7 +845,7 @@
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// Mioco event loop and coroutine itself never use the data in the same</span>
 <span class='doccomment'>/// time: either event loop or coroutine logic can be executing at the same</span>
-<span class='doccomment'>/// time. Technically this could use a pointer, but RefCell is useful for</span>
+<span class='doccomment'>/// time. Technically this could use a pointer, but `RefCell` is useful for</span>
 <span class='doccomment'>/// making sure no references are being kept when switching between these</span>
 <span class='doccomment'>/// two execution streams.</span>
 <span class='doccomment'>///</span>
@@ -842,7 +876,8 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>RcEventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>RcEventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span>
 {
     <span class='kw'>fn</span> <span class='ident'>blocked_on</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RW</span> {
         <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow</span>().<span class='ident'>common</span>.<span class='ident'>blocked_on</span>
@@ -903,14 +938,16 @@
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span>
 {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>to_trait</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>RcEventSourceTrait</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span> {
         <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>RcEventSource</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>clone</span>()))
     }
 }
 
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span>
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>RcEventSource</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>
+    <span class='kw'>where</span> <span class='ident'>T</span>: <span class='ident'>EventSourceTrait</span>
 {
     <span class='doccomment'>/// Register</span>
     <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
@@ -918,7 +955,10 @@
     }
 
     <span class='doccomment'>/// Reregister</span>
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                  <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                  <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                  <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>io</span>.<span class='ident'>reregister</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>);
     }
 

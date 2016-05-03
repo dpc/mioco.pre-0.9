@@ -179,6 +179,19 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>RW</span>;
 <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
@@ -215,6 +228,13 @@
 
     <span class='kw'>fn</span> <span class='ident'>is_done</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_ref</span>().<span class='ident'>should_resume</span>()
+    }
+}
+
+
+<span class='kw'>impl</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>Timer</span> {
+    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+        <span class='ident'>Timer</span>::<span class='ident'>new</span>()
     }
 }
 
@@ -286,7 +306,10 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>EventSourceTrait</span> <span class='kw'>for</span> <span class='ident'>TimerCore</span> {
-    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>_interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>register</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                <span class='ident'>_interest</span>: <span class='ident'>EventSet</span>) {
         <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>timeout</span>;
         <span class='kw'>let</span> <span class='ident'>now</span> <span class='op'>=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>();
         <span class='kw'>let</span> <span class='ident'>delay</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>now</span> {
@@ -306,7 +329,10 @@
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>token</span>: <span class='ident'>Token</span>, <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
+    <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
+                  <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>,
+                  <span class='ident'>token</span>: <span class='ident'>Token</span>,
+                  <span class='ident'>interest</span>: <span class='ident'>EventSet</span>) {
         <span class='ident'>event_loop</span>.<span class='ident'>clear_timeout</span>(<span class='self'>self</span>.<span class='ident'>mio_timeout</span>.<span class='ident'>unwrap</span>());
         <span class='self'>self</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>interest</span>)
     }

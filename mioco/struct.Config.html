@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1679' class='srclink' href='../src/mioco/src/mod.rs.html#668-674' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1695' class='srclink' href='../src/mioco/src/mod.rs.html#682-688' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Config {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance builder.</p>
@@ -79,7 +79,7 @@ in FIFO manner.</p>
 <p>Should be a power of 2.</p>
 
 <p>Stack size includes a protection page. Setting too small stack will
-lead to SEGFAULTs. See <a href="https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs">context-rs stack.rs</a>
+lead to SEGFAULTs. See <a href="(https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs)">context-rs stack.rs</a>
 for implementation details. The sane minimum seems to be 128KiB,
 which is two 64KB pages.</p>
 </div><h4 id='method.set_userdata' class='method'><code>fn <a href='#method.set_userdata' class='fnname'>set_userdata</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Reflect.html' title='core::marker::Reflect'>Reflect</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> + 'static&gt;(&amp;mut self, data: T) -&gt; &amp;mut Self</code></h4>
@@ -104,7 +104,8 @@ instance.</li>
 This is useful when hitting OS limits regarding process mappings.
 It&#39;s better idea to fix it at the OS level, but eg. for automated
 testing it might be useful.</p>
-</div></div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../mioco/struct.Config.html' title='mioco::Config'>Config</a></code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; Self</code></h4>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

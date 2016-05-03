@@ -420,9 +420,6 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>any</span>::<span class='ident'>Any</span>;
@@ -633,8 +630,9 @@
 
 <span class='doccomment'>/// Mioco event loop `Handler`</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// Registered in `mio_orig::EventLoop` and implementing `mio_orig::Handler`.  This `struct` is quite</span>
-<span class='doccomment'>/// internal so you should not have to worry about it.</span>
+<span class='doccomment'>/// Registered in `mio_orig::EventLoop` and implementing</span>
+<span class='doccomment'>/// `mio_orig::Handler`.  This `struct` is quite internal so you should not</span>
+<span class='doccomment'>/// have to worry about it.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Handler</span> {
     <span class='ident'>shared</span>: <span class='ident'>RcHandlerShared</span>,
     <span class='ident'>scheduler</span>: <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>SchedulerThread</span> <span class='op'>+</span> <span class='lifetime'>&#39;static</span><span class='op'>&gt;</span>,
@@ -661,11 +659,7 @@
     <span class='doccomment'>/// To prevent recursion, all the newly spawned or newly made</span>
     <span class='doccomment'>/// ready Coroutines are delivered to scheduler here.</span>
     <span class='kw'>fn</span> <span class='ident'>deliver_to_scheduler</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>) {
-        <span class='kw'>let</span> <span class='ident'>Handler</span> {
-            <span class='kw-2'>ref</span> <span class='ident'>shared</span>,
-            <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>scheduler</span>,
-            ..
-        } <span class='op'>=</span> <span class='op'>*</span><span class='self'>self</span>;
+        <span class='kw'>let</span> <span class='ident'>Handler</span> { <span class='kw-2'>ref</span> <span class='ident'>shared</span>, <span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>scheduler</span>, .. } <span class='op'>=</span> <span class='op'>*</span><span class='self'>self</span>;
 
         <span class='kw'>loop</span> {
             <span class='kw'>let</span> <span class='ident'>spawned</span> <span class='op'>=</span> <span class='ident'>shared</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>spawned</span>.<span class='ident'>pop_front</span>();

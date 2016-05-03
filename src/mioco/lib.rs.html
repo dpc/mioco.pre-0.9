@@ -137,7 +137,6 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
-<span id="96">96</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015-2016 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -183,8 +182,7 @@
 <span class='doccomment'>//! [mio-api]: ../mioco/mio/index.html</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>fnbox</span>)]</span>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;userdata&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>as_unsafe_cell</span>))]</span>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;userdata&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>reflect_marker</span>))]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>reflect_marker</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>warn</span>(<span class='ident'>missing_docs</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>private_in_public</span>)]</span>
 
@@ -207,6 +205,7 @@
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>time</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>num_cpus</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>slab</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>owning_ref</span>;
 
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>mod</span> <span class='ident'>src</span>;
@@ -223,12 +222,11 @@
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>unix</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::<span class='ident'>unix</span>;
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>timer</span>, <span class='ident'>tcp</span>, <span class='ident'>udp</span>, <span class='ident'>sync</span>};
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>Config</span>, <span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>Handler</span>, <span class='ident'>JoinHandle</span>, <span class='ident'>MioAdapter</span>, <span class='ident'>Mioco</span>, <span class='ident'>RW</span>, <span class='ident'>Evented</span>};
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;userdata&quot;</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>get_userdata</span>, <span class='ident'>set_userdata</span>, <span class='ident'>set_children_userdata</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>in_coroutine</span>, <span class='ident'>select_wait</span>, <span class='ident'>sleep</span>, <span class='ident'>sleep_ms</span>, <span class='ident'>spawn</span>, <span class='ident'>start</span>, <span class='ident'>shutdown</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>start_threads</span>, <span class='ident'>thread_num</span>, <span class='ident'>yield_now</span>};
