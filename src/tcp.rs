@@ -53,7 +53,7 @@ impl TcpStream {
 
         if let Ok(ref stream) = stream {
             if let Err(err) = stream.shared().io_ref().take_socket_error() {
-                return Err(err)
+                return Err(err);
             }
         }
 
@@ -73,7 +73,7 @@ impl TcpStream {
 
         if let Ok(ref stream) = stream {
             if let Err(err) = stream.shared().io_ref().take_socket_error() {
-                return Err(err)
+                return Err(err);
             }
         }
 

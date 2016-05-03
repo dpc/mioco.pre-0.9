@@ -207,8 +207,9 @@ impl HandlerShared {
 
 /// Mioco event loop `Handler`
 ///
-/// Registered in `mio_orig::EventLoop` and implementing `mio_orig::Handler`.  This `struct` is quite
-/// internal so you should not have to worry about it.
+/// Registered in `mio_orig::EventLoop` and implementing
+/// `mio_orig::Handler`.  This `struct` is quite internal so you should not
+/// have to worry about it.
 pub struct Handler {
     shared: RcHandlerShared,
     scheduler: Box<SchedulerThread + 'static>,
@@ -235,11 +236,7 @@ impl Handler {
     /// To prevent recursion, all the newly spawned or newly made
     /// ready Coroutines are delivered to scheduler here.
     fn deliver_to_scheduler(&mut self, event_loop: &mut EventLoop<Self>) {
-        let Handler {
-            ref shared,
-            ref mut scheduler,
-            ..
-        } = *self;
+        let Handler { ref shared, ref mut scheduler, .. } = *self;
 
         loop {
             let spawned = shared.borrow_mut().spawned.pop_front();

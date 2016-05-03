@@ -46,7 +46,9 @@ impl Read for FakePipeReader {
 impl ::evented::EventedImpl for FakePipeReader {
     type Raw = <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
 
-    fn shared(&self) -> &::evented::RcEventSource<<mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw> {
+    fn shared(&self) -> &::evented::RcEventSource<
+        <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw
+            > {
         self.0.shared()
     }
 }
@@ -240,8 +242,9 @@ fn lots_of_event_sources() {
                 let (reader, writer) = pipe();
 
                 mioco::spawn(move || {
-                    // This fake readers are not really used, they are just registered for the sake of
-                    // testing if event sources registered with high id number are handled correctly
+                    // This fake readers are not really used, they are just
+                    // registered for the sake of testing if event sources
+                    // registered with high id number are handled correctly
                     let mut readers = Vec::new();
                     let mut writers = Vec::new();
                     for _ in 0..100 {
@@ -276,7 +279,8 @@ fn lots_of_event_sources() {
 
             let mut lock = finished_copy.lock().unwrap();
             *lock = true;
-        }).unwrap();
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -840,7 +844,7 @@ fn million_coroutines() {
     assert!(*finished_ok.lock().unwrap());
 }
 
-fn rwlock_wait_for_nonzero(counter : &mioco::sync::RwLock<usize>) {
+fn rwlock_wait_for_nonzero(counter: &mioco::sync::RwLock<usize>) {
     loop {
         {
             let counter = counter.read().unwrap();
@@ -852,13 +856,13 @@ fn rwlock_wait_for_nonzero(counter : &mioco::sync::RwLock<usize>) {
     }
 }
 
-fn rwlock_wait_and_increment(counter : &mioco::sync::RwLock<usize>) {
+fn rwlock_wait_and_increment(counter: &mioco::sync::RwLock<usize>) {
     rwlock_wait_for_nonzero(counter);
     let mut counter = counter.write().unwrap();
     *counter = *counter + 1;
 }
 
-fn mutex_wait_for_nonzero(counter : &mioco::sync::Mutex<usize>) {
+fn mutex_wait_for_nonzero(counter: &mioco::sync::Mutex<usize>) {
     loop {
         {
             let counter = counter.lock().unwrap();
@@ -870,7 +874,7 @@ fn mutex_wait_for_nonzero(counter : &mioco::sync::Mutex<usize>) {
     }
 }
 
-fn mutex_wait_and_increment(counter : &mioco::sync::Mutex<usize>) {
+fn mutex_wait_and_increment(counter: &mioco::sync::Mutex<usize>) {
     mutex_wait_for_nonzero(counter);
     let mut counter = counter.lock().unwrap();
     *counter = *counter + 1;
@@ -895,7 +899,8 @@ fn simple_rwlock() {
         })
             .unwrap();
 
-        assert_eq!(*counter_copy.native_lock().read().unwrap(), (threads * 4) + 1);
+        assert_eq!(*counter_copy.native_lock().read().unwrap(),
+                   (threads * 4) + 1);
     }
 }
 
@@ -925,7 +930,8 @@ fn simple_rwlock_supports_inside_and_outside() {
         })
             .unwrap();
 
-        assert_eq!(*counter_copy.native_lock().read().unwrap(), (threads * 8) + 1);
+        assert_eq!(*counter_copy.native_lock().read().unwrap(),
+                   (threads * 8) + 1);
     }
 }
 
@@ -947,7 +953,8 @@ fn simple_mutex() {
         })
             .unwrap();
 
-        assert_eq!(*counter_copy.native_lock().lock().unwrap(), (threads * 4) + 1);
+        assert_eq!(*counter_copy.native_lock().lock().unwrap(),
+                   (threads * 4) + 1);
     }
 }
 
@@ -976,7 +983,8 @@ fn simple_mutex_supports_inside_and_outside() {
         })
             .unwrap();
 
-        assert_eq!(*counter_copy.native_lock().lock().unwrap(), (threads * 8) + 1);
+        assert_eq!(*counter_copy.native_lock().lock().unwrap(),
+                   (threads * 8) + 1);
     }
 }
 
@@ -986,7 +994,8 @@ fn tcpstream_block_on_connect() {
     mioco::start(move || {
         let addr = FromStr::from_str("127.0.0.1:1").unwrap();
         assert!(mioco::tcp::TcpStream::connect(&addr).is_err());
-    }).unwrap();
+    })
+        .unwrap();
 }
 
 #[test]
@@ -1360,11 +1369,9 @@ fn select_on_struct_fields() {
 
             mioco::spawn(move || {
                 struct Foo {
-                    timer : mioco::timer::Timer,
+                    timer: mioco::timer::Timer,
                 }
-                let s = Foo {
-                    timer: mioco::timer::Timer::new(),
-                };
+                let s = Foo { timer: mioco::timer::Timer::new() };
 
                 select!(
                     r:s.timer => {},
@@ -1373,7 +1380,8 @@ fn select_on_struct_fields() {
                 let mut lock = finished_ok_copy.lock().unwrap();
                 *lock = true;
             });
-        }).unwrap();
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -1401,7 +1409,8 @@ fn timer_cleared_on_reregister() {
             }
             let mut lock = finished_ok_copy.lock().unwrap();
             *lock = true;
-        }).unwrap();
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }
@@ -1411,7 +1420,7 @@ fn timer_cleared_on_reregister() {
 #[ignore]
 #[test]
 fn sleep_is_precise() {
-    use ::time;
+    use time;
 
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
@@ -1422,15 +1431,16 @@ fn sleep_is_precise() {
 
             let start = time::precise_time_ns();
             mioco::sleep_ms(100);
-            let duration = time::precise_time_ns()  -start ;
+            let duration = time::precise_time_ns() - start;
 
             assert!(duration < 101000);
-            assert!(duration >  99000);
+            assert!(duration > 99000);
 
 
             let mut lock = finished_ok_copy.lock().unwrap();
             *lock = true;
-        }).unwrap();
+        })
+            .unwrap();
 
         assert!(*finished_ok.lock().unwrap());
     }

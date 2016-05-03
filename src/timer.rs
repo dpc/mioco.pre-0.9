@@ -38,7 +38,9 @@ impl Timer {
 
 
 impl Default for Timer {
-    fn default() -> Self { Timer::new() }
+    fn default() -> Self {
+        Timer::new()
+    }
 }
 
 impl EventedImpl for Timer {
@@ -109,7 +111,10 @@ impl TimerCore {
 }
 
 impl EventSourceTrait for TimerCore {
-    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, _interest: EventSet) {
+    fn register(&mut self,
+                event_loop: &mut EventLoop<Handler>,
+                token: Token,
+                _interest: EventSet) {
         let timeout = self.timeout;
         let now = SteadyTime::now();
         let delay = if timeout <= now {
@@ -129,7 +134,10 @@ impl EventSourceTrait for TimerCore {
         }
     }
 
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self,
+                  event_loop: &mut EventLoop<Handler>,
+                  token: Token,
+                  interest: EventSet) {
         event_loop.clear_timeout(self.mio_timeout.unwrap());
         self.register(event_loop, token, interest)
     }

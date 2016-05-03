@@ -82,7 +82,7 @@ pub mod sched {
 }
 
 #[cfg(not(windows))]
-pub use src::{unix};
+pub use src::unix;
 
 pub use src::{timer, tcp, udp, sync};
 

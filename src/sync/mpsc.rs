@@ -29,7 +29,8 @@ struct ReceiverCore<T> {
     counter: ArcCounter,
 }
 
-impl<T> EventedImpl for Receiver<T> where T: 'static
+impl<T> EventedImpl for Receiver<T>
+    where T: 'static
 {
     type Raw = ReceiverCore<T>;
 
@@ -57,7 +58,10 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         }
     }
 
-    fn reregister(&mut self, _event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self,
+                  _event_loop: &mut EventLoop<Handler>,
+                  token: Token,
+                  interest: EventSet) {
         debug_assert!(interest.is_readable());
         trace!("Receiver({}): reregister", token.as_usize());
         let mut lock = self.shared.lock();
@@ -94,7 +98,8 @@ impl<T> Receiver<T> {
     }
 }
 
-impl<T> Receiver<T> where T: 'static
+impl<T> Receiver<T>
+    where T: 'static
 {
     /// Receive `T` sent using corresponding `Sender::send()`.
     ///
@@ -188,10 +193,7 @@ impl<T> Sender<T> {
 
 fn maybe_notify_receiver(shared: &ArcChannelShared) {
     let mut lock = shared.lock();
-    let ChannelShared {
-        ref mut sender,
-        ref mut token,
-    } = *lock;
+    let ChannelShared { ref mut sender, ref mut token } = *lock;
 
     if let Some(token) = *token {
         trace!("Sender: notifying {:?}", token);
@@ -236,8 +238,7 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 
     let counter = Arc::new(AtomicUsize::new(0));
     let (sender, receiver) = mpsc::channel();
-    (Sender::new(shared.clone(), counter.clone(), sender),
-     Receiver::new(shared, counter, receiver))
+    (Sender::new(shared.clone(), counter.clone(), sender), Receiver::new(shared, counter, receiver))
 }
 
 

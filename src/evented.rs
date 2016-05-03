@@ -43,7 +43,7 @@ pub trait Evented {
 
 /// Private trait for all mioco provided IO
 pub trait EventedImpl {
-    type Raw : EventSourceTrait+'static;
+    type Raw: EventSourceTrait + 'static;
 
     fn shared(&self) -> &RcEventSource<Self::Raw>;
 
@@ -81,15 +81,15 @@ pub trait EventedImpl {
 // All mioco IO functions are guaranteed to not keep any references to
 // `Evented` structs after return. `Rc` is used only when coroutine
 // is blocked - meaning it is not using it.
-unsafe impl<T> Send for MioAdapter<T> where T: mio_orig::Evented + Send
-{}
+unsafe impl<T> Send for MioAdapter<T> where T: mio_orig::Evented + Send {}
 
 /// Adapt raw `mio` type to mioco `Evented` requirements.
 ///
 /// See source of `src/tcp.rs` for example of usage.
 pub struct MioAdapter<MT>(RcEventSource<MT>);
 
-impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static
+impl<MT> MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static
 {
     /// Create `MioAdapter` from raw mio type.
     pub fn new(mio_type: MT) -> Self {
@@ -97,7 +97,8 @@ impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static
     }
 }
 
-impl<MT> EventedImpl for MioAdapter<MT> where MT: mio_orig::Evented + 'static
+impl<MT> EventedImpl for MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static
 {
     type Raw = MT;
 
@@ -106,7 +107,8 @@ impl<MT> EventedImpl for MioAdapter<MT> where MT: mio_orig::Evented + 'static
     }
 }
 
-impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::TryRead + 'static
+impl<MT> MioAdapter<MT>
+    where MT: mio_orig::Evented + mio_orig::TryRead + 'static
 {
     /// Try reading data into a buffer.
     ///
@@ -116,7 +118,8 @@ impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::TryRead + 'stati
     }
 }
 
-impl<MT> io::Read for MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::TryRead + 'static
+impl<MT> io::Read for MioAdapter<MT>
+    where MT: mio_orig::Evented + mio_orig::TryRead + 'static
 {
     /// Block on read.
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
@@ -134,7 +137,8 @@ impl<MT> io::Read for MioAdapter<MT> where MT: mio_orig::Evented + mio_orig::Try
     }
 }
 
-impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
+impl<MT> MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
 {
     /// Try writing a data from the buffer.
     ///
@@ -144,7 +148,8 @@ impl<MT> MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryWri
     }
 }
 
-impl<MT> io::Write for MioAdapter<MT> where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
+impl<MT> io::Write for MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static + mio_orig::TryWrite
 {
     /// Block on write.
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -205,7 +210,8 @@ impl<MT, O> MioAdapter<MT>
 
 // type Output = MioAdapter<MT::Output>;
 #[cfg(not(windows))]
-impl<MT> FromRawFd for MioAdapter<MT> where MT: mio_orig::Evented + 'static + FromRawFd
+impl<MT> FromRawFd for MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static + FromRawFd
 {
     unsafe fn from_raw_fd(fd: RawFd) -> Self {
         MioAdapter(RcEventSource::new(MT::from_raw_fd(fd)))
@@ -213,7 +219,8 @@ impl<MT> FromRawFd for MioAdapter<MT> where MT: mio_orig::Evented + 'static + Fr
 }
 
 #[cfg(not(windows))]
-impl<MT> AsRawFd for MioAdapter<MT> where MT: mio_orig::Evented + 'static + AsRawFd
+impl<MT> AsRawFd for MioAdapter<MT>
+    where MT: mio_orig::Evented + 'static + AsRawFd
 {
     fn as_raw_fd(&self) -> RawFd {
         self.shared().0.borrow_mut().io.as_raw_fd()
@@ -250,13 +257,17 @@ pub trait EventSourceTrait {
     fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
 
     /// Reregister
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet);
+    fn reregister(&mut self,
+                  event_loop: &mut EventLoop<Handler>,
+                  token: Token,
+                  interest: EventSet);
 
     /// Deregister
     fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token);
 }
 
-impl<T> EventSourceTrait for T where T: mio_orig::Evented
+impl<T> EventSourceTrait for T
+    where T: mio_orig::Evented
 {
     fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
         event_loop.register(self, token, interest, mio_orig::PollOpt::edge())
@@ -264,7 +275,10 @@ impl<T> EventSourceTrait for T where T: mio_orig::Evented
     }
 
     /// Reregister
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self,
+                  event_loop: &mut EventLoop<Handler>,
+                  token: Token,
+                  interest: EventSet) {
         event_loop.reregister(self, token, interest, mio_orig::PollOpt::edge())
                   .expect("reregister failed");
     }
@@ -355,7 +369,8 @@ impl<T> RcEventSource<T> {
     }
 }
 
-impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
+impl<T> RcEventSourceTrait for RcEventSource<T>
+    where T: EventSourceTrait
 {
     fn blocked_on(&self) -> RW {
         self.0.borrow().common.blocked_on
@@ -416,14 +431,16 @@ impl<T> RcEventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     }
 }
 
-impl<T> RcEventSource<T> where T: EventSourceTrait + 'static
+impl<T> RcEventSource<T>
+    where T: EventSourceTrait + 'static
 {
     pub fn to_trait(&self) -> Box<RcEventSourceTrait + 'static> {
         Box::new(RcEventSource(self.0.clone()))
     }
 }
 
-impl<T> EventSourceTrait for RcEventSource<T> where T: EventSourceTrait
+impl<T> EventSourceTrait for RcEventSource<T>
+    where T: EventSourceTrait
 {
     /// Register
     fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
@@ -431,7 +448,10 @@ impl<T> EventSourceTrait for RcEventSource<T> where T: EventSourceTrait
     }
 
     /// Reregister
-    fn reregister(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn reregister(&mut self,
+                  event_loop: &mut EventLoop<Handler>,
+                  token: Token,
+                  interest: EventSet) {
         self.0.borrow_mut().io.reregister(event_loop, token, interest);
     }
 

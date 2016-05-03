@@ -257,7 +257,7 @@ impl slab::Index for EventSourceId {
 ///
 /// Custom implementations of this trait allow users to change the order in
 /// which Coroutines are being scheduled.
-pub trait Scheduler : Sync+Send {
+pub trait Scheduler: Sync + Send {
     /// Spawn per-thread Scheduler
     fn spawn_thread(&self) -> Box<SchedulerThread + 'static>;
 }
@@ -329,7 +329,9 @@ impl FifoScheduler {
 }
 
 impl Default for FifoScheduler {
-    fn default() -> Self { FifoScheduler::new() }
+    fn default() -> Self {
+        FifoScheduler::new()
+    }
 }
 
 struct FifoSchedulerThread {
@@ -509,12 +511,15 @@ impl CoroutineControl {
 
     /// Get coroutine user-provided data.
     pub fn get_userdata<T: Any>(&self) -> Option<ErasedArcRef<T>> {
-        let opt_arcref : Option<ArcRef<_>> = self.rc.borrow().user_data.clone().map(|arc| arc.into());
+        let opt_arcref: Option<ArcRef<_>> = self.rc
+                                                .borrow()
+                                                .user_data
+                                                .clone()
+                                                .map(|arc| arc.into());
         opt_arcref.and_then(|arcref| {
             if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
-                Some(arcref.map(|ud| {
-                    (&**ud as &Any).downcast_ref::<T>().unwrap()
-                }).erase_owner())
+                Some(arcref.map(|ud| (&**ud as &Any).downcast_ref::<T>().unwrap())
+                           .erase_owner())
             } else {
                 None
             }
@@ -668,7 +673,9 @@ impl Mioco {
 }
 
 impl Default for Mioco {
-    fn default() -> Self { Mioco::new() }
+    fn default() -> Self {
+        Mioco::new()
+    }
 }
 
 /// Mioco instance builder.
@@ -725,9 +732,11 @@ impl Config {
     /// Should be a power of 2.
     ///
     /// Stack size includes a protection page. Setting too small stack will
-    /// lead to SEGFAULTs. See [context-rs stack.rs](https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs)
+    /// lead to SEGFAULTs. See [context-rs stack.rs][1]
     /// for implementation details. The sane minimum seems to be 128KiB,
     /// which is two 64KB pages.
+    ///
+    /// [1]: (https://github.com/zonyitoo/context-rs/blob/master/src/stack.rs)
     pub unsafe fn set_stack_size(&mut self, stack_size: usize) -> &mut Self {
         self.coroutine_config.stack_size = stack_size;
         self
@@ -770,7 +779,9 @@ impl Config {
 }
 
 impl Default for Config {
-    fn default() -> Self { Config::new() }
+    fn default() -> Self {
+        Config::new()
+    }
 }
 
 /// Start a new mioco instance.
@@ -811,7 +822,8 @@ pub struct JoinHandle<T> {
     receiver: sync::mpsc::Receiver<coroutine::ExitStatus<T>>,
 }
 
-impl<T> JoinHandle<T> where T: Send + 'static
+impl<T> JoinHandle<T>
+    where T: Send + 'static
 {
     /// Block waiting for coroutine completion
     ///
@@ -897,8 +909,8 @@ pub fn in_coroutine() -> bool {
 /// TODO: use threadpool to prevent potential system starvation?
 pub fn sync<'b, F, R>(f: F) -> R
     where F: FnOnce() -> R + 'b,
-          F : Send,
-          R : Send,
+          F: Send,
+          R: Send
 {
     let coroutine = unsafe { tl_current_coroutine() };
 
@@ -933,12 +945,11 @@ pub fn sync<'b, F, R>(f: F) -> R
 pub fn get_userdata<T: Any>() -> Option<ErasedArcRef<T>> {
     let coroutine = unsafe { tl_current_coroutine() };
 
-    let opt_arcref : Option<ArcRef<_>> = coroutine.user_data.clone().map(|arc| arc.into());
+    let opt_arcref: Option<ArcRef<_>> = coroutine.user_data.clone().map(|arc| arc.into());
     opt_arcref.and_then(|arcref| {
         if (&***arcref.owner() as &Any).downcast_ref::<T>().is_some() {
-            Some(arcref.map(|ud| {
-                (&**ud as &Any).downcast_ref::<T>().unwrap()
-            }).erase_owner())
+            Some(arcref.map(|ud| (&**ud as &Any).downcast_ref::<T>().unwrap())
+                       .erase_owner())
         } else {
             None
         }
@@ -995,7 +1006,7 @@ pub fn thread_num() -> usize {
 pub fn sleep(duration: std::time::Duration) {
     if in_coroutine() {
         let mut timer = Timer::new();
-        let dur_ms : u64 = duration.as_secs() * 1000 + duration.subsec_nanos() as u64 / 1_000_000;
+        let dur_ms: u64 = duration.as_secs() * 1000 + duration.subsec_nanos() as u64 / 1_000_000;
         timer.set_timeout(dur_ms as i64);
         let _ = timer.read();
     } else {
@@ -1104,4 +1115,3 @@ macro_rules! select {
         select!(@wrap2 ret $($tail)*);
     }};
 }
-

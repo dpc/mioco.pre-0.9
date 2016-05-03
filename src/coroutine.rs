@@ -274,7 +274,8 @@ impl Coroutine {
                         co_debug!(coroutine, "finished by panick");
                         let _ = exit_sender.send(Err(cause));
                     } else {
-                        // send fail here instead with the internal reason, so the user may get a nice backtrace
+                        // send fail here instead with the internal reason,
+                        // so the user may get a nice backtrace
                         let handler = coroutine.handler_shared.as_ref().unwrap().borrow();
                         sender_retry(&handler.get_sender_to_own_thread(),
                                      Message::PropagatePanic(cause));
@@ -411,11 +412,7 @@ impl Coroutine {
 
     // TODO: Remove and call add_spawned directly?
     pub fn start_children(&mut self) {
-        let Coroutine {
-            ref mut children_to_start,
-            ref handler_shared,
-            ..
-        } = *self;
+        let Coroutine { ref mut children_to_start, ref handler_shared, .. } = *self;
 
         let mut handler_shared = handler_shared.as_ref().unwrap().borrow_mut();
 
@@ -571,9 +568,7 @@ pub fn jump_in(coroutine: &RefCell<Coroutine>) {
 
     let (context, was_running_before, killed) = {
         let mut co = coroutine.borrow_mut();
-        (co.context.take().unwrap(),
-         co.was_running_before(),
-         co.killed)
+        (co.context.take().unwrap(), co.was_running_before(), co.killed)
     };
 
     let t = if killed && was_running_before {
