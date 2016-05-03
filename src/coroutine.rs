@@ -491,8 +491,8 @@ impl CoroutineSlabHandle {
         &self.rc
     }
 
-    pub fn to_coroutine_control(self) -> CoroutineControl {
-        CoroutineControl::new(self.rc)
+    pub fn to_coroutine_control(&self) -> CoroutineControl {
+        CoroutineControl::new(self.rc.clone())
     }
 
     /// Deliver an event to a Coroutine

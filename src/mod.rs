@@ -209,7 +209,7 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
 }
 
 /// Mioco Handler keeps only Slab of Coroutines, and uses a scheme in which
-/// Token bits encode both Coroutine and EventSource within it
+/// Token bits encode both Coroutine and `EventSource` within it
 const EVENT_SOURCE_TOKEN_SHIFT: usize = 10;
 const EVENT_SOURCE_TOKEN_MASK: usize = (1 << EVENT_SOURCE_TOKEN_SHIFT) - 1;
 
@@ -326,6 +326,10 @@ impl FifoScheduler {
     pub fn new() -> Self {
         FifoScheduler { thread_num: Arc::new(AtomicUsize::new(0)) }
     }
+}
+
+impl Default for FifoScheduler {
+    fn default() -> Self { FifoScheduler::new() }
 }
 
 struct FifoSchedulerThread {
@@ -663,6 +667,10 @@ impl Mioco {
     }
 }
 
+impl Default for Mioco {
+    fn default() -> Self { Mioco::new() }
+}
+
 /// Mioco instance builder.
 pub struct Config {
     thread_num: usize,
@@ -761,6 +769,9 @@ impl Config {
     }
 }
 
+impl Default for Config {
+    fn default() -> Self { Config::new() }
+}
 
 /// Start a new mioco instance.
 ///
@@ -910,8 +921,7 @@ pub fn sync<'b, F, R>(f: F) -> R
 
     rx.recv().unwrap();
 
-    let res = join.join();
-    res
+    join.join()
 }
 
 /// Get user-provided data of the current coroutine.
@@ -920,7 +930,7 @@ pub fn sync<'b, F, R>(f: F) -> R
 /// Returns `None` if `T` does not match or if no data was set.
 ///
 /// See `set_userdata`.
-pub fn get_userdata<'a, T: Any>() -> Option<ErasedArcRef<T>> {
+pub fn get_userdata<T: Any>() -> Option<ErasedArcRef<T>> {
     let coroutine = unsafe { tl_current_coroutine() };
 
     let opt_arcref : Option<ArcRef<_>> = coroutine.user_data.clone().map(|arc| arc.into());

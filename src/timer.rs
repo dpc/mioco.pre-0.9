@@ -36,6 +36,11 @@ impl Timer {
     }
 }
 
+
+impl Default for Timer {
+    fn default() -> Self { Timer::new() }
+}
+
 impl EventedImpl for Timer {
     type Raw = TimerCore;
 

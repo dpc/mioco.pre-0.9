@@ -298,7 +298,7 @@ pub struct EventSourceCommon {
     pub peer_hup: bool,
 }
 
-/// Wrapped mio IO (mio_orig::Evented+TryRead+TryWrite)
+/// Wrapped mio IO (`mio_orig::Evented+TryRead+TryWrite`)
 ///
 /// `Handle` is just a cloneable reference to this struct
 pub struct RcEventSourceShared<T> {
@@ -324,7 +324,7 @@ impl<T> RcEventSourceShared<T> {
 ///
 /// Mioco event loop and coroutine itself never use the data in the same
 /// time: either event loop or coroutine logic can be executing at the same
-/// time. Technically this could use a pointer, but RefCell is useful for
+/// time. Technically this could use a pointer, but `RefCell` is useful for
 /// making sure no references are being kept when switching between these
 /// two execution streams.
 ///
