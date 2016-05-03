@@ -45,21 +45,39 @@ pub type TcpStream = MioAdapter<mio_orig::tcp::TcpStream>;
 impl TcpStream {
     /// Create a new TCP stream an issue a non-blocking connect to the specified address.
     pub fn connect(addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpStream::connect(addr).map(|t| {
+        let stream = mio_orig::tcp::TcpStream::connect(addr).map(|t| {
             let stream = MioAdapter::new(t);
             stream.block_on(RW::write());
             stream
-        })
+        });
+
+        if let Ok(ref stream) = stream {
+            if let Err(err) = stream.shared().io_ref().take_socket_error() {
+                return Err(err)
+            }
+        }
+
+        stream
+
     }
 
     /// Creates a new TcpStream from the pending socket inside the given
     /// `std::net::TcpBuilder`, connecting it to the address specified.
     pub fn connect_stream(stream: std::net::TcpStream, addr: &SocketAddr) -> io::Result<Self> {
-        mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| {
+        let stream = mio_orig::tcp::TcpStream::connect_stream(stream, addr).map(|t| {
             let stream = MioAdapter::new(t);
             stream.block_on(RW::write());
+
             stream
-        })
+        });
+
+        if let Ok(ref stream) = stream {
+            if let Err(err) = stream.shared().io_ref().take_socket_error() {
+                return Err(err)
+            }
+        }
+
+        stream
     }
 
     /// Local address of connection.
