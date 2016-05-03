@@ -981,6 +981,15 @@ fn simple_mutex_supports_inside_and_outside() {
 }
 
 #[test]
+fn tcpstream_block_on_connect() {
+    use std::str::FromStr;
+    mioco::start(move || {
+        let addr = FromStr::from_str("127.0.0.1:1").unwrap();
+        assert!(mioco::tcp::TcpStream::connect(&addr).is_err());
+    }).unwrap();
+}
+
+#[test]
 #[cfg_attr(windows, ignore)] // Issue #105
 fn tcp_basic_client_server() {
     use std::str::FromStr;
