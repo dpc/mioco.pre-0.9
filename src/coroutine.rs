@@ -6,6 +6,7 @@ use super::thread::{HandlerShared, Message};
 use super::thread::Handler;
 use super::evented::{RcEventSourceTrait, RcEventSource, EventSourceTrait};
 use super::thread::RcHandlerShared;
+use super::thunk::Thunk;
 use super::sync::mpsc;
 use mio_orig::{Token, EventSet, EventLoop};
 
@@ -19,7 +20,6 @@ use std::ops::Deref;
 use std::sync::Arc;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
-use std::boxed::FnBox;
 use std::mem;
 use std::panic;
 
@@ -169,7 +169,7 @@ pub struct Coroutine {
     pub children_to_start: Vec<RcCoroutine>,
 
     /// Function to be run inside Coroutine
-    coroutine_func: Option<Box<FnBox()>>,
+    coroutine_func: Option<Thunk<'static>>,
 
     /// In case Rc to self is needed
     pub self_rc: Option<RcCoroutine>,
@@ -220,7 +220,7 @@ impl Coroutine {
                 coroutine.coroutine_func.take().unwrap()
             };
 
-            f.call_box(());
+            f.invoke(());
 
             let context = {
                 let coroutine: &mut Coroutine = unsafe { mem::transmute(data) };
@@ -316,7 +316,7 @@ impl Coroutine {
                               handler_shared: Some(handler_shared.clone()),
                               blocked_on: Vec::with_capacity(4),
                               children_to_start: Vec::new(),
-                              coroutine_func: Some(Box::new(coroutine_main_fn)),
+                              coroutine_func: Some(Thunk::new(coroutine_main_fn)),
                               self_rc: None,
                               sync_channel: None,
                               user_data: inherited_user_data.clone(),

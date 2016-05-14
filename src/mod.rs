@@ -96,6 +96,7 @@ pub use self::thread::Handler;
 use self::thread::Message;
 use self::thread::{tl_current_coroutine, tl_current_coroutine_ptr};
 mod thread;
+mod thunk;
 
 
 /// Read/Write/Both/None
