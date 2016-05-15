@@ -5,7 +5,6 @@ use thread_scoped;
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::marker::Reflect;
 use std::mem;
 use std;
 
@@ -97,6 +96,7 @@ pub use self::thread::Handler;
 use self::thread::Message;
 use self::thread::{tl_current_coroutine, tl_current_coroutine_ptr};
 mod thread;
+mod thunk;
 
 
 /// Read/Write/Both/None
@@ -745,7 +745,7 @@ impl Config {
     /// Set user-provided data for the first coroutine
     ///
     /// See `set_userdata`.
-    pub fn set_userdata<T: Reflect + Send + Sync + 'static>(&mut self, data: T) -> &mut Self {
+    pub fn set_userdata<T: Any + Send + Sync>(&mut self, data: T) -> &mut Self {
         self.user_data = Some(Arc::new(Box::new(data)));
         self
     }
@@ -959,7 +959,7 @@ pub fn get_userdata<T: Any>() -> Option<ErasedArcRef<T>> {
 /// Set user-provided data for the current coroutine.
 ///
 /// Every coroutine can carry an additional piece of data.
-pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
+pub fn set_userdata<T: Any + Send + Sync>(data: T) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.user_data = Some(Arc::new(Box::new(data)));
 }
@@ -970,7 +970,7 @@ pub fn set_userdata<T: Reflect + Send + Sync + 'static>(data: T) {
 /// `None` to clear.
 ///
 /// See `set_userdata`.
-pub fn set_children_userdata<T: Reflect + Send + Sync + 'static>(data: Option<T>) {
+pub fn set_children_userdata<T: Any + Send + Sync>(data: Option<T>) {
     let mut coroutine = unsafe { tl_current_coroutine() };
     coroutine.inherited_user_data = match data {
         Some(data) => Some(Arc::new(Box::new(data))),

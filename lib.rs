@@ -41,8 +41,6 @@
 //! [mio]: https://github.com/carllerche/mio
 //! [mio-api]: ../mioco/mio/index.html
 
-#![feature(fnbox)]
-#![feature(reflect_marker)]
 #![warn(missing_docs)]
 #![allow(private_in_public)]
 
