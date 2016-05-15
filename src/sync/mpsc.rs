@@ -242,4 +242,5 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 }
 
 
-unsafe impl<T> Send for Receiver<T> {}
+unsafe impl<T : Send> Send for Receiver<T> {}
+unsafe impl<T : Send> Send for Sender<T> {}
