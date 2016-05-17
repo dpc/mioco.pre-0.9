@@ -5,7 +5,7 @@ mod mioco {
 
 use std;
 use std::io::{self, Read, Write};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 
 use time::{SteadyTime, Duration};
 
@@ -14,9 +14,9 @@ use std::net::SocketAddr;
 use net2::TcpBuilder;
 
 #[cfg(windows)]
-struct FakePipeReader(mioco::sync::mpsc::Receiver<u8>);
+struct FakePipeReader(mpsc::Receiver<u8>);
 #[cfg(windows)]
-struct FakePipeWriter(mioco::sync::mpsc::Sender<u8>);
+struct FakePipeWriter(mpsc::Sender<u8>);
 
 #[cfg(windows)]
 impl Read for FakePipeReader {
@@ -44,10 +44,10 @@ impl Read for FakePipeReader {
 
 #[cfg(windows)]
 impl ::evented::EventedImpl for FakePipeReader {
-    type Raw = <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
+    type Raw = <mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
 
     fn shared(&self) -> &::evented::RcEventSource<
-        <mioco::sync::mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw
+        <mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw
             > {
         self.0.shared()
     }
@@ -75,7 +75,7 @@ fn pipe() -> (mioco::unix::PipeReader, mioco::unix::PipeWriter) {
 
 #[cfg(windows)]
 fn pipe() -> (FakePipeReader, FakePipeWriter) {
-    let (tx, rx) = mioco::sync::mpsc::channel();
+    let (tx, rx) = mpsc::channel();
     (FakePipeReader(rx), FakePipeWriter(tx))
 }
 
@@ -326,7 +326,7 @@ fn channel_disconnect_on_sender_drop() {
         let finished_ok_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (sender, receiver) = mioco::sync::mpsc::channel();
+            let (sender, receiver) = mpsc::channel();
 
             mioco::spawn(move || {
                 assert!(receiver.recv().is_ok());
@@ -356,7 +356,7 @@ fn channel_disconnect_on_sender_drop_many() {
         let finished_ok_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (sender, receiver) = mioco::sync::mpsc::channel();
+            let (sender, receiver) = mpsc::channel();
             const HOW_MANY: usize = 10;
 
             mioco::spawn(move || {
@@ -1008,7 +1008,7 @@ fn tcp_basic_client_server() {
         let finished_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
-            let (out, inn) = mioco::sync::mpsc::channel();
+            let (out, inn) = mpsc::channel();
 
             mioco::spawn(move || {
                 let addr = FromStr::from_str("127.0.0.1:0").unwrap();
@@ -1202,8 +1202,8 @@ fn in_coroutine_false() {
 
 #[test]
 fn mpsc_outside_outside() {
-    let (tx1, rx1) = mioco::sync::mpsc::channel();
-    let (tx2, rx2) = mioco::sync::mpsc::channel();
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
     thread::spawn(move || {
         for i in 0..10 {
             tx1.send(i).unwrap();
@@ -1219,8 +1219,8 @@ fn mpsc_outside_outside() {
 
 #[test]
 fn mpsc_inside_outside() {
-    let (tx1, rx1) = mioco::sync::mpsc::channel();
-    let (tx2, rx2) = mioco::sync::mpsc::channel();
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
     mioco::spawn(move || {
         for i in 0..10 {
             tx1.send(i).unwrap();
@@ -1237,8 +1237,8 @@ fn mpsc_inside_outside() {
 #[test]
 fn mpsc_inside_inside() {
     for &threads in THREADS_N.iter() {
-        let (tx1, rx1) = mioco::sync::mpsc::channel();
-        let (tx2, rx2) = mioco::sync::mpsc::channel();
+        let (tx1, rx1) = mpsc::channel();
+        let (tx2, rx2) = mpsc::channel();
 
         let finished_ok1 = Arc::new(Mutex::new(false));
         let finished_copy1 = finished_ok1.clone();
