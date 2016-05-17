@@ -51,13 +51,7 @@ pub trait EventedImpl {
         let coroutine = unsafe { tl_current_coroutine() };
         coroutine.block_on(self.shared(), rw);
         coroutine::jump_out(&coroutine.self_rc.as_ref().unwrap());
-        {
-            co_debug!(coroutine, "resumed due to event {:?}", coroutine.last_event);
-            debug_assert!(rw.has_read() || coroutine.last_event.has_write());
-            debug_assert!(rw.has_write() || coroutine.last_event.has_read());
-            debug_assert!(coroutine.last_event.id().as_usize() ==
-                          self.shared().0.borrow().common.id.unwrap().as_usize());
-        }
+        co_debug!(coroutine, "resumed due to event {:?}", coroutine.last_event);
     }
 
     /// Index id of a `EventSource`
