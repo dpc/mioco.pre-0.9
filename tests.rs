@@ -5,13 +5,15 @@ mod mioco {
 
 use std;
 use std::io::{self, Read, Write};
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{Arc, Mutex};
 
 use time::{SteadyTime, Duration};
 
 use std::thread;
 use std::net::SocketAddr;
 use net2::TcpBuilder;
+
+use super::sync::mpsc;
 
 #[cfg(windows)]
 struct FakePipeReader(mpsc::Receiver<u8>);
