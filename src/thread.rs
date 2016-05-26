@@ -7,6 +7,7 @@ use std::panic;
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::collections::VecDeque;
+use std::time::Duration;
 
 use super::coroutine::{self, Coroutine, CoroutineSlabHandle, RcCoroutine, STARTING_ID, SPECIAL_ID,
                        SPECIAL_ID_SCHED_TIMEOUT};
@@ -310,8 +311,8 @@ impl mio_orig::Handler for Handler {
             self.scheduler.tick(event_loop);
             self.deliver_to_scheduler(event_loop);
             if let Some(timeout) = self.scheduler.timeout() {
-                event_loop.timeout_ms(token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
-                                      timeout)
+                event_loop.timeout(token_from_ids(SPECIAL_ID, SPECIAL_ID_SCHED_TIMEOUT),
+                                      Duration::from_millis(timeout))
                           .unwrap();
             }
         }

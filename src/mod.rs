@@ -8,7 +8,7 @@ use std::rc::Rc;
 use std::mem;
 use std;
 
-use mio_orig::{self, Token, EventLoop, EventLoopConfig};
+use mio_orig::{self, Token, EventLoop, EventLoopBuilder};
 use mio_orig::Handler as MioHandler;
 
 use std::collections::VecDeque;
@@ -197,12 +197,12 @@ fn sender_retry<M: Send>(sender: &mio_orig::Sender<M>, msg: M) {
 
         if counter > 20000 {
             panic!("Mio Queue Full, process hangs. consider increasing \
-                    `EventLoopConfig::notify_capacity");
+                    `EventLoopBuilder::notify_capacity");
         }
 
         if !warning_printed {
             warning_printed = true;
-            warn!("send_retry: retry; consider increasing `EventLoopConfig::notify_capacity`");
+            warn!("send_retry: retry; consider increasing `EventLoopBuilder::notify_capacity`");
         }
         std::thread::yield_now();
     }
@@ -580,8 +580,8 @@ impl Mioco {
         let mut event_loops = VecDeque::new();
         let mut senders = Vec::new();
         for _ in 0..self.config.thread_num {
-            let event_loop = EventLoop::configured(self.config.event_loop_config.clone())
-                                 .expect("new EventLoop");
+            let event_loop = self.config.event_loop_config
+                .clone().build().expect("new EventLoop");
             senders.push(event_loop.channel());
             event_loops.push_back(event_loop);
         }
@@ -682,7 +682,7 @@ impl Default for Mioco {
 pub struct Config {
     thread_num: usize,
     scheduler: Arc<Box<Scheduler>>,
-    event_loop_config: EventLoopConfig,
+    event_loop_config: EventLoopBuilder,
     user_data: Option<coroutine::UserDataAny>,
     coroutine_config: coroutine::Config,
 }
@@ -751,7 +751,7 @@ impl Config {
     }
 
     /// Configure `mio::EvenLoop` for all the threads
-    pub fn event_loop(&mut self) -> &mut EventLoopConfig {
+    pub fn event_loop(&mut self) -> &mut EventLoopBuilder {
         &mut self.event_loop_config
     }
 

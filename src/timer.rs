@@ -3,6 +3,7 @@ use super::thread::Handler;
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use mio_orig::{self, EventLoop, Token, EventSet};
 use time::{SteadyTime, Duration};
+use std;
 
 /// A Timer generating event after a given time
 ///
@@ -118,13 +119,13 @@ impl EventSourceTrait for TimerCore {
         let timeout = self.timeout;
         let now = SteadyTime::now();
         let delay = if timeout <= now {
-            0
+            std::time::Duration::from_millis(0)
         } else {
-            (timeout - now).num_milliseconds()
+            (timeout - now).to_std().unwrap()
         };
 
-        trace!("Timer({}): set timeout in {}ms", token.as_usize(), delay);
-        match event_loop.timeout_ms(token, delay as u64) {
+        trace!("Timer({}): set timeout in {}ms", token.as_usize(), delay.as_secs() * 1000 + (delay.subsec_nanos() / 1000) as u64);
+        match event_loop.timeout(token, delay) {
             Ok(timeout) => {
                 self.mio_timeout = Some(timeout);
             }
@@ -138,12 +139,12 @@ impl EventSourceTrait for TimerCore {
                   event_loop: &mut EventLoop<Handler>,
                   token: Token,
                   interest: EventSet) {
-        event_loop.clear_timeout(self.mio_timeout.unwrap());
+        event_loop.clear_timeout(&self.mio_timeout.clone().unwrap());
         self.register(event_loop, token, interest)
     }
 
     fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, _token: Token) {
-        event_loop.clear_timeout(self.mio_timeout.unwrap());
+        event_loop.clear_timeout(&self.mio_timeout.clone().unwrap());
     }
 }
 

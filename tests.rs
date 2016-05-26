@@ -1419,7 +1419,6 @@ fn timer_cleared_on_reregister() {
 }
 
 /// See: http://github.com/dpc/mioco/issues/126
-#[ignore]
 #[test]
 fn sleep_is_precise() {
     use time;
@@ -1430,14 +1429,23 @@ fn sleep_is_precise() {
         let finished_ok_copy = finished_ok.clone();
         mioco::start_threads(threads, move || {
 
+            for i in 0..4 {
+                // event loop precision
+                let precision_ms = 100;
+                let reference_ms = (i + 1) * precision_ms;
 
-            let start = time::precise_time_ns();
-            mioco::sleep_ms(100);
-            let duration = time::precise_time_ns() - start;
+                let start = time::precise_time_ns();
+                mioco::sleep_ms(reference_ms as u32);
+                let actual_ns = time::precise_time_ns() - start;
 
-            assert!(duration < 101000);
-            assert!(duration > 99000);
-
+                let margin_ns = precision_ms * 1_000_000;
+                let upper_bound_ns = reference_ms * 1_000_000 + margin_ns;
+                let lower_bound_ns = reference_ms * 1_000_000 - margin_ns;
+                println!("{} vs {}", actual_ns,  upper_bound_ns);
+                assert!(actual_ns <= upper_bound_ns);
+                println!("{} vs {}", actual_ns,  lower_bound_ns);
+                assert!(actual_ns <= lower_bound_ns);
+            }
 
             let mut lock = finished_ok_copy.lock().unwrap();
             *lock = true;
