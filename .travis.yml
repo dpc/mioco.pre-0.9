@@ -9,7 +9,6 @@ script:
 
 matrix:
   allow_failures:
-    - rust: beta
     - rust: stable
 
 env:
