@@ -7,10 +7,6 @@ script:
   - make all
   - make travistest
 
-matrix:
-  allow_failures:
-    - rust: stable
-
 env:
   matrix:
     -
