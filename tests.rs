@@ -1483,8 +1483,6 @@ fn select_on_channel_is_fast() {
 
             println!("duration_ns: {}", duration);
             assert!(duration < 100_000_000);
-
-            assert_eq!(0, 1);
         }).unwrap();
     }
 }
