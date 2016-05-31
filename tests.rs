@@ -1447,3 +1447,44 @@ fn sleep_is_precise() {
         assert!(*finished_ok.lock().unwrap());
     }
 }
+
+#[test]
+fn select_on_channel_is_fast() {
+    use time;
+    const N : usize = 10;
+
+    for &threads in THREADS_N.iter() {
+        let (tx, rx) = mpsc::channel();
+        for i in 0..N {
+            tx.send(i).unwrap()
+        }
+
+
+        mioco::start_threads(threads, move || {
+
+            let start = time::precise_time_ns();
+
+            for i in 0..N {
+                loop {
+                    select!(
+                        r:rx=> match rx.try_recv() {
+                            Ok(r) =>{
+                                assert_eq!(i, r);
+                                break;
+                            },
+                            Err(e) => {
+                                assert_eq!(e, std::sync::mpsc::TryRecvError::Empty);
+                            }
+                        },
+                        )
+                }
+            }
+            let duration = time::precise_time_ns() - start;
+
+            println!("duration_ns: {}", duration);
+            assert!(duration < 1_000_000);
+
+            assert_eq!(0, 1);
+        }).unwrap();
+    }
+}
