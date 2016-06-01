@@ -114,11 +114,11 @@ impl EventSourceTrait for TimerCore {
     fn register(&mut self,
                 event_loop: &mut EventLoop<Handler>,
                 token: Token,
-                _interest: EventSet) {
+                _interest: EventSet) -> bool {
         let timeout = self.timeout;
         let now = SteadyTime::now();
         let delay = if timeout <= now {
-            0
+            return true
         } else {
             (timeout - now).num_milliseconds()
         };
@@ -132,18 +132,23 @@ impl EventSourceTrait for TimerCore {
                 panic!("Could not create mio::Timeout: {:?}", reason);
             }
         }
+        false
     }
 
     fn reregister(&mut self,
                   event_loop: &mut EventLoop<Handler>,
                   token: Token,
-                  interest: EventSet) {
-        event_loop.clear_timeout(self.mio_timeout.unwrap());
+                  interest: EventSet) -> bool {
+        if let Some(timeout) = self.mio_timeout {
+            event_loop.clear_timeout(timeout);
+        }
         self.register(event_loop, token, interest)
     }
 
     fn deregister(&mut self, event_loop: &mut EventLoop<Handler>, _token: Token) {
-        event_loop.clear_timeout(self.mio_timeout.unwrap());
+        if let Some(timeout) = self.mio_timeout {
+            event_loop.clear_timeout(timeout);
+        }
     }
 }
 

@@ -404,9 +404,25 @@ impl Coroutine {
     }
 
     // TODO: Make priv.
-    pub fn register_all(&mut self, event_loop: &mut EventLoop<Handler>) {
+    pub fn register_all(&mut self, event_loop: &mut EventLoop<Handler>) -> bool {
+        let mut id = None;
+        let mut rw = None;
+
         for io in &mut self.blocked_on {
-            io.register(event_loop, self.id);
+            if io.register(event_loop, self.id) {
+                id = Some(io.id().unwrap());
+                rw = Some(io.blocked_on());
+            }
+        }
+        if let Some(id) = id {
+            self.unblock(event_loop,
+                         Event {
+                             rw: rw.unwrap(),
+                             id: id,
+                         });
+            true
+        } else {
+            false
         }
     }
 

@@ -40,7 +40,7 @@ impl<T> EventedImpl for Receiver<T>
 }
 
 impl<T> EventSourceTrait for ReceiverCore<T> {
-    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) {
+    fn register(&mut self, event_loop: &mut EventLoop<Handler>, token: Token, interest: EventSet) -> bool {
         debug_assert!(interest.is_readable());
         trace!("Receiver({}): register", token.as_usize());
         let mut lock = self.shared.lock();
@@ -51,17 +51,16 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
         if self.counter.load(Ordering::SeqCst) != 0 {
             trace!("Receiver({}): not empty; self notify", token.as_usize());
             lock.token = None;
-            let sender = lock.sender.clone().unwrap();
-            // don't loop holding a lock
-            drop(lock);
-            sender_retry(&sender, Message::ChannelMsg(token));
+            true
+        } else {
+            false
         }
     }
 
     fn reregister(&mut self,
                   _event_loop: &mut EventLoop<Handler>,
                   token: Token,
-                  interest: EventSet) {
+                  interest: EventSet) -> bool {
         debug_assert!(interest.is_readable());
         trace!("Receiver({}): reregister", token.as_usize());
         let mut lock = self.shared.lock();
@@ -71,10 +70,9 @@ impl<T> EventSourceTrait for ReceiverCore<T> {
 
         if self.counter.load(Ordering::SeqCst) != 0 {
             lock.token = None;
-            let sender = lock.sender.clone().unwrap();
-            // don't loop holding a lock
-            drop(lock);
-            sender_retry(&sender, Message::ChannelMsg(token));
+            true
+        } else {
+            false
         }
     }
 
@@ -151,7 +149,6 @@ struct SenderShared {
 
 impl Drop for SenderShared {
     fn drop(&mut self) {
-
         let prev_counter = self.counter.fetch_add(1, Ordering::SeqCst);
         if prev_counter == 0 {
             maybe_notify_receiver(&self.shared);

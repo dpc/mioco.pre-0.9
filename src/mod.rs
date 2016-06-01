@@ -448,7 +448,12 @@ impl CoroutineControl {
     /// After `resume()` (or ignored event()) we need to perform the following maintenance.
     fn after_resume(&self, event_loop: &mut EventLoop<thread::Handler>) {
 
-        self.rc.borrow_mut().register_all(event_loop);
+        // TODO: Instead of registering all, then deregistering all (in case
+        // of self-waking io) just stop on first self-waking io, and
+        // deregister only io that was already registered
+        if self.rc.borrow_mut().register_all(event_loop) {
+            self.rc.borrow_mut().deregister_all(event_loop)
+        }
         self.rc.borrow_mut().start_children();
 
         let state = self.rc.borrow().state().clone();
@@ -457,6 +462,13 @@ impl CoroutineControl {
             let mut coroutine_ctrl = CoroutineControl::new(self.rc.clone());
             coroutine_ctrl.set_is_yielding();
             self.rc.borrow_mut().unblock_after_yield();
+            let rc_coroutine = self.rc.borrow();
+            let mut handler_shared = rc_coroutine.handler_shared_mut();
+
+            handler_shared.add_ready(coroutine_ctrl);
+        } else if state.is_ready() {
+            debug_assert!(self.rc.borrow().blocked_on.is_empty());
+            let coroutine_ctrl = CoroutineControl::new(self.rc.clone());
             let rc_coroutine = self.rc.borrow();
             let mut handler_shared = rc_coroutine.handler_shared_mut();
 
