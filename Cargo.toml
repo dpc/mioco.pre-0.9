@@ -1,9 +1,9 @@
 [package]
 name = "mioco"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Dawid Ciężarkiewicz <dpc@dpc.pw>"]
 description = "Scalable, asynchronous IO coroutine-based handling (aka MIO COroutines)."
-keywords = ["mio", "aio", "io", "coroutine", "async"]
+keywords = ["mio", "asynchronous", "coroutine", "async", "fiber"]
 license = "MPL-2.0"
 documentation = "https://dpc.github.io/mioco/"
 homepage = "https://github.com/dpc/mioco"
@@ -34,11 +34,11 @@ libc = "0.2.10"
 thread-scoped = "1.0.0"
 context = "1.0.0"
 slab = "0.2.0"
-clippy = {version = "0.0.69", optional = true}
+clippy = {version = "0.0.71", optional = true}
 owning_ref = "0.1.4"
 
 [dev-dependencies]
 env_logger = "0.3.2"
 httparse = "1.1.1"
 net2 = "0.2.23"
-rand = "*"
+rand = "0.3.14"
