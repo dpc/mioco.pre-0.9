@@ -650,16 +650,33 @@
 <span id="606">606</span>
 <span id="607">607</span>
 <span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>CoroutineControl</span>;
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
+<span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>CoroutineControl</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
                     <span class='ident'>tl_current_coroutine</span>};
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thunk</span>::<span class='ident'>Thunk</span>;
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>Token</span>, <span class='ident'>EventSet</span>, <span class='ident'>EventLoop</span>};
 
 <span class='kw'>use</span> <span class='ident'>context</span>::{<span class='self'>self</span>, <span class='ident'>stack</span>};
@@ -672,7 +689,6 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>Arc</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::{<span class='ident'>RefCell</span>, <span class='ident'>RefMut</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>rc</span>::<span class='ident'>Rc</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>boxed</span>::<span class='ident'>FnBox</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>panic</span>;
 
@@ -822,7 +838,7 @@
     <span class='kw'>pub</span> <span class='ident'>children_to_start</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>RcCoroutine</span><span class='op'>&gt;</span>,
 
     <span class='doccomment'>/// Function to be run inside Coroutine</span>
-    <span class='ident'>coroutine_func</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>FnBox</span>()<span class='op'>&gt;&gt;</span>,
+    <span class='ident'>coroutine_func</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Thunk</span><span class='op'>&lt;</span><span class='lifetime'>&#39;static</span><span class='op'>&gt;&gt;</span>,
 
     <span class='doccomment'>/// In case Rc to self is needed</span>
     <span class='kw'>pub</span> <span class='ident'>self_rc</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>RcCoroutine</span><span class='op'>&gt;</span>,
@@ -873,7 +889,7 @@
                 <span class='ident'>coroutine</span>.<span class='ident'>coroutine_func</span>.<span class='ident'>take</span>().<span class='ident'>unwrap</span>()
             };
 
-            <span class='ident'>f</span>.<span class='ident'>call_box</span>(());
+            <span class='ident'>f</span>.<span class='ident'>invoke</span>(());
 
             <span class='kw'>let</span> <span class='ident'>context</span> <span class='op'>=</span> {
                 <span class='kw'>let</span> <span class='ident'>coroutine</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Coroutine</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>data</span>) };
@@ -969,7 +985,7 @@
                               <span class='ident'>handler_shared</span>: <span class='prelude-val'>Some</span>(<span class='ident'>handler_shared</span>.<span class='ident'>clone</span>()),
                               <span class='ident'>blocked_on</span>: <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='number'>4</span>),
                               <span class='ident'>children_to_start</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
-                              <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_main_fn</span>)),
+                              <span class='ident'>coroutine_func</span>: <span class='prelude-val'>Some</span>(<span class='ident'>Thunk</span>::<span class='ident'>new</span>(<span class='ident'>coroutine_main_fn</span>)),
                               <span class='ident'>self_rc</span>: <span class='prelude-val'>None</span>,
                               <span class='ident'>sync_channel</span>: <span class='prelude-val'>None</span>,
                               <span class='ident'>user_data</span>: <span class='ident'>inherited_user_data</span>.<span class='ident'>clone</span>(),
@@ -1057,9 +1073,25 @@
     }
 
     <span class='comment'>// TODO: Make priv.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>register_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>register_all</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>id</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rw</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
+
         <span class='kw'>for</span> <span class='ident'>io</span> <span class='kw'>in</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>blocked_on</span> {
-            <span class='ident'>io</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='self'>self</span>.<span class='ident'>id</span>);
+            <span class='kw'>if</span> <span class='ident'>io</span>.<span class='ident'>register</span>(<span class='ident'>event_loop</span>, <span class='self'>self</span>.<span class='ident'>id</span>) {
+                <span class='ident'>id</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>io</span>.<span class='ident'>id</span>().<span class='ident'>unwrap</span>());
+                <span class='ident'>rw</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>io</span>.<span class='ident'>blocked_on</span>());
+            }
+        }
+        <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>id</span>) <span class='op'>=</span> <span class='ident'>id</span> {
+            <span class='self'>self</span>.<span class='ident'>unblock</span>(<span class='ident'>event_loop</span>,
+                         <span class='ident'>Event</span> {
+                             <span class='ident'>rw</span>: <span class='ident'>rw</span>.<span class='ident'>unwrap</span>(),
+                             <span class='ident'>id</span>: <span class='ident'>id</span>,
+                         });
+            <span class='boolval'>true</span>
+        } <span class='kw'>else</span> {
+            <span class='boolval'>false</span>
         }
     }
 

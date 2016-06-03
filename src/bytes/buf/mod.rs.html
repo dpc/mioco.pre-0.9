@@ -675,14 +675,14 @@
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Sink</span> {
     <span class='kw'>type</span> <span class='ident'>Error</span>;
 
-    <span class='kw'>fn</span> <span class='ident'>sink</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span>, <span class='kw'>Self</span>::<span class='ident'>Error</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>sink</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>Buf</span><span class='op'>&gt;</span>(<span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span>, <span class='ident'>Self</span>::<span class='ident'>Error</span><span class='op'>&gt;</span>;
 }
 
 <span class='doccomment'>/// A value that writes bytes from itself into a `MutBuf`.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Source</span> {
     <span class='kw'>type</span> <span class='ident'>Error</span>;
 
-    <span class='kw'>fn</span> <span class='ident'>fill</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span>, <span class='kw'>Self</span>::<span class='ident'>Error</span><span class='op'>&gt;</span>;
+    <span class='kw'>fn</span> <span class='ident'>fill</span><span class='op'>&lt;</span><span class='ident'>B</span>: <span class='ident'>MutBuf</span><span class='op'>&gt;</span>(<span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>B</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span>, <span class='ident'>Self</span>::<span class='ident'>Error</span><span class='op'>&gt;</span>;
 }
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>Sink</span> <span class='kw'>for</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>u8</span>] {

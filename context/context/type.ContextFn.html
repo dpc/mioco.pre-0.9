@@ -48,7 +48,7 @@
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a id='src-24' class='srclink' href='../../src/context/context.rs.html#45' title='goto source code'>[src]</a></span></h1>
-<pre class='rust typedef'>type ContextFn = extern fn(t: <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a>) -&gt; !;</pre><div class='docblock'><p>Functions of this signature are used as the entry point for a new <code>Context</code>.</p>
+<pre class='rust typedef'>type ContextFn =  extern "C" fn(t: <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a>) -&gt; !;</pre><div class='docblock'><p>Functions of this signature are used as the entry point for a new <code>Context</code>.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

@@ -299,7 +299,7 @@
 }
 
 <span class='kw'>fn</span> <span class='ident'>set_nonblock</span>(<span class='ident'>s</span>: <span class='kw-2'>&amp;</span><span class='ident'>AsRawFd</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-    <span class='ident'>fcntl</span>(<span class='ident'>s</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>F_SETFL</span>(<span class='ident'>O_NONBLOCK</span>)).<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+    <span class='ident'>fcntl</span>(<span class='ident'>s</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>F_SETFL</span>(<span class='ident'>O_NONBLOCK</span>)).<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
                                              .<span class='ident'>map</span>(<span class='op'>|</span>_<span class='op'>|</span> ())
 }
 

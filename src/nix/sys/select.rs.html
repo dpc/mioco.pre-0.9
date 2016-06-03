@@ -188,7 +188,7 @@
 <span class='kw'>mod</span> <span class='ident'>ffi</span> {
     <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
     <span class='kw'>use</span> <span class='ident'>sys</span>::<span class='ident'>time</span>::<span class='ident'>TimeVal</span>;
-    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>FdSet</span>;
+    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>FdSet</span>;
 
     <span class='kw'>extern</span> {
         <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>select</span>(<span class='ident'>nfds</span>: <span class='ident'>c_int</span>,

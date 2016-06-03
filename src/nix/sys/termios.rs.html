@@ -553,7 +553,7 @@
 
     <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>any</span>(<span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;macos&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;freebsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;dragonfly&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;openbsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;netbsd&quot;</span>, <span class='ident'>target_os</span> <span class='op'>=</span> <span class='string'>&quot;linux&quot;</span>))]</span>
     <span class='kw'>mod</span> <span class='ident'>non_android</span> {
-        <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
+        <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
         <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 
         <span class='comment'>// `Termios` contains bitflags which are not considered</span>
@@ -584,7 +584,7 @@
     <span class='kw'>mod</span> <span class='ident'>android</span> {
         <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>funcs</span>::<span class='ident'>bsd44</span>::<span class='ident'>ioctl</span>;
         <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
-        <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
+        <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>consts</span>::<span class='op'>*</span>;
 
         <span class='kw'>const</span> <span class='ident'>TCGETS</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x5401</span>;
         <span class='kw'>const</span> <span class='ident'>TCSBRK</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x5409</span>;

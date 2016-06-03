@@ -2342,7 +2342,7 @@
     <span class='doccomment'>/// should not be used when `-1` is not the errno sentinel value.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>result</span><span class='op'>&lt;</span><span class='ident'>S</span>: <span class='ident'>ErrnoSentinel</span> <span class='op'>+</span> <span class='ident'>PartialEq</span><span class='op'>&lt;</span><span class='ident'>S</span><span class='op'>&gt;&gt;</span>(<span class='ident'>value</span>: <span class='ident'>S</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>S</span><span class='op'>&gt;</span> {
         <span class='kw'>if</span> <span class='ident'>value</span> <span class='op'>==</span> <span class='ident'>S</span>::<span class='ident'>sentinel</span>() {
-            <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='kw'>Self</span>::<span class='ident'>last</span>()))
+            <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>Sys</span>(<span class='ident'>Self</span>::<span class='ident'>last</span>()))
         } <span class='kw'>else</span> {
             <span class='prelude-val'>Ok</span>(<span class='ident'>value</span>)
         }
@@ -4173,7 +4173,7 @@
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>test</span> {
-    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='op'>*</span>;
+    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='op'>*</span>;
     <span class='kw'>use</span> <span class='ident'>nixtest</span>::<span class='ident'>assert_const_eq</span>;
     <span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 

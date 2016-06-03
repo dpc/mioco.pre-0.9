@@ -431,9 +431,9 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>VecDeque</span>;
 
-<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>coroutine</span>::{<span class='self'>self</span>, <span class='ident'>Coroutine</span>, <span class='ident'>CoroutineSlabHandle</span>, <span class='ident'>RcCoroutine</span>, <span class='ident'>STARTING_ID</span>, <span class='ident'>SPECIAL_ID</span>,
+<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>coroutine</span>::{<span class='self'>self</span>, <span class='ident'>Coroutine</span>, <span class='ident'>CoroutineSlabHandle</span>, <span class='ident'>RcCoroutine</span>, <span class='ident'>STARTING_ID</span>, <span class='ident'>SPECIAL_ID</span>,
                        <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>};
-<span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>SchedulerThread</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>token_from_ids</span>, <span class='ident'>CoroutineControl</span>, <span class='ident'>sender_retry</span>};
+<span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>SchedulerThread</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>token_from_ids</span>, <span class='ident'>CoroutineControl</span>, <span class='ident'>sender_retry</span>};
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='self'>self</span>, <span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
 
 <span class='kw'>use</span> <span class='ident'>slab</span>;
@@ -767,7 +767,7 @@
         <span class='self'>self</span>.<span class='ident'>deliver_to_scheduler</span>(<span class='ident'>event_loop</span>);
     }
 
-    <span class='kw'>fn</span> <span class='ident'>notify</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='kw'>Self</span>::<span class='ident'>Message</span>) {
+    <span class='kw'>fn</span> <span class='ident'>notify</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='ident'>Handler</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='ident'>Self</span>::<span class='ident'>Message</span>) {
         <span class='kw'>match</span> <span class='ident'>msg</span> {
             <span class='ident'>Message</span>::<span class='ident'>ChannelMsg</span>(<span class='ident'>token</span>) <span class='op'>=&gt;</span> <span class='self'>self</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>token</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>()),
             <span class='ident'>Message</span>::<span class='ident'>Migration</span>(<span class='kw-2'>mut</span> <span class='ident'>co_ctrl</span>) <span class='op'>=&gt;</span> {
@@ -793,7 +793,7 @@
         }
     }
 
-    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='kw'>Self</span>::<span class='ident'>Timeout</span>) {
+    <span class='kw'>fn</span> <span class='ident'>timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>event_loop</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>EventLoop</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>, <span class='ident'>msg</span>: <span class='ident'>Self</span>::<span class='ident'>Timeout</span>) {
         <span class='kw'>if</span> <span class='ident'>msg</span> <span class='op'>!=</span> <span class='ident'>token_from_ids</span>(<span class='ident'>SPECIAL_ID</span>, <span class='ident'>SPECIAL_ID_SCHED_TIMEOUT</span>) {
             <span class='self'>self</span>.<span class='ident'>ready</span>(<span class='ident'>event_loop</span>, <span class='ident'>msg</span>, <span class='ident'>EventSet</span>::<span class='ident'>readable</span>());
         }

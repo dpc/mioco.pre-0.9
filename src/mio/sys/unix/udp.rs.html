@@ -288,12 +288,12 @@
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_broadcast</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>on</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Broadcast</span>, <span class='kw-2'>&amp;</span><span class='ident'>on</span>)
-            .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+            .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_multicast_loop</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>on</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>IpMulticastLoop</span>, <span class='kw-2'>&amp;</span><span class='ident'>on</span>)
-            .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+            .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>join_multicast</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>multi</span>: <span class='kw-2'>&amp;</span><span class='ident'>IpAddr</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
@@ -304,7 +304,7 @@
 
                 <span class='comment'>// Set the socket option</span>
                 <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>IpAddMembership</span>, <span class='kw-2'>&amp;</span><span class='ident'>req</span>)
-                    .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+                    .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
             }
             <span class='ident'>IpAddr</span>::<span class='ident'>V6</span>(<span class='kw-2'>ref</span> <span class='ident'>addr</span>) <span class='op'>=&gt;</span> {
                 <span class='comment'>// Create the request</span>
@@ -312,7 +312,7 @@
 
                 <span class='comment'>// Set the socket option</span>
                 <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Ipv6AddMembership</span>, <span class='kw-2'>&amp;</span><span class='ident'>req</span>)
-                    .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+                    .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
             }
         }
     }
@@ -325,7 +325,7 @@
 
                 <span class='comment'>// Set the socket option</span>
                 <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>IpDropMembership</span>, <span class='kw-2'>&amp;</span><span class='ident'>req</span>)
-                    .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+                    .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
             }
             <span class='ident'>IpAddr</span>::<span class='ident'>V6</span>(<span class='kw-2'>ref</span> <span class='ident'>addr</span>) <span class='op'>=&gt;</span> {
                 <span class='comment'>// Create the request</span>
@@ -333,7 +333,7 @@
 
                 <span class='comment'>// Set the socket option</span>
                 <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>Ipv6DropMembership</span>, <span class='kw-2'>&amp;</span><span class='ident'>req</span>)
-                    .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+                    .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
             }
         }
     }
@@ -348,7 +348,7 @@
         };
 
         <span class='ident'>nix</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='ident'>as_raw_fd</span>(), <span class='ident'>nix</span>::<span class='ident'>sockopt</span>::<span class='ident'>IpMulticastTtl</span>, <span class='kw-2'>&amp;</span><span class='ident'>v</span>)
-            .<span class='ident'>map_err</span>(<span class='kw'>super</span>::<span class='ident'>from_nix_error</span>)
+            .<span class='ident'>map_err</span>(<span class='ident'>super</span>::<span class='ident'>from_nix_error</span>)
     }
 
     <span class='kw'>fn</span> <span class='ident'>associate_selector</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>selector</span>: <span class='kw-2'>&amp;</span><span class='ident'>Selector</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
