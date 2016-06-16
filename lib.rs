@@ -60,7 +60,6 @@ extern crate context;
 extern crate nix;
 #[macro_use]
 extern crate log;
-extern crate time;
 extern crate num_cpus;
 extern crate slab;
 extern crate owning_ref;

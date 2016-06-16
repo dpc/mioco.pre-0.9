@@ -2,7 +2,7 @@ use super::RW;
 use super::thread::Handler;
 use super::evented::{EventSourceTrait, RcEventSource, Evented, EventedImpl};
 use mio_orig::{self, EventLoop, Token, EventSet};
-use time::{SteadyTime, Duration};
+use std::time::{Instant, Duration};
 
 /// A Timer generating event after a given time
 ///
@@ -17,7 +17,7 @@ pub struct Timer {
 
 struct TimerCore {
     // TODO: Rename these two?
-    timeout: SteadyTime,
+    timeout: Instant,
     mio_timeout: Option<mio_orig::Timeout>,
 }
 
@@ -25,7 +25,7 @@ impl Timer {
     /// Create a new timer
     pub fn new() -> Timer {
         let timer_core = TimerCore {
-            timeout: SteadyTime::now(),
+            timeout: Instant::now(),
             mio_timeout: None,
         };
         Timer { rc: RcEventSource::new(timer_core) }
@@ -57,7 +57,7 @@ impl Timer {
     /// Returns current time
     ///
     /// TODO: Return wakeup time instead
-    pub fn read(&mut self) -> SteadyTime {
+    pub fn read(&mut self) -> Instant {
         loop {
             if let Some(t) = self.try_read() {
                 return t;
@@ -70,11 +70,11 @@ impl Timer {
     /// Try reading current time (if the timer is done)
     ///
     /// TODO: Return wakeup time instead
-    pub fn try_read(&mut self) -> Option<SteadyTime> {
+    pub fn try_read(&mut self) -> Option<Instant> {
         let done = self.is_done();
 
         if done {
-            Some(SteadyTime::now())
+            Some(Instant::now())
         } else {
             None
         }
@@ -86,18 +86,18 @@ impl Timer {
     ///
     /// Note the timer effective resolution is limited by underlying mio
     /// timer. See `mioco::sleep()` for details.
-    pub fn set_timeout(&mut self, delay_ms: i64) {
-        self.rc.io_mut().timeout = SteadyTime::now() + Duration::milliseconds(delay_ms);
+    pub fn set_timeout(&mut self, delay_ms: u64) {
+        self.rc.io_mut().timeout = Instant::now() + Duration::from_millis(delay_ms);
     }
 
     /// Set timeout for the timer using absolute time.
-    pub fn set_timeout_absolute(&mut self, timeout: SteadyTime) {
+    pub fn set_timeout_absolute(&mut self, timeout: Instant) {
         self.rc.io_mut().timeout = timeout;
     }
 
 
     /// Get absolute value of the timer timeout.
-    pub fn get_timeout_absolute(&mut self) -> SteadyTime {
+    pub fn get_timeout_absolute(&mut self) -> Instant {
         self.rc.io_ref().timeout
     }
 }
@@ -105,8 +105,8 @@ impl Timer {
 impl TimerCore {
     fn should_resume(&self) -> bool {
         trace!("Timer: should_resume? {}",
-               self.timeout <= SteadyTime::now());
-        self.timeout <= SteadyTime::now()
+               self.timeout <= Instant::now());
+        self.timeout <= Instant::now()
     }
 }
 
@@ -116,15 +116,16 @@ impl EventSourceTrait for TimerCore {
                 token: Token,
                 _interest: EventSet) -> bool {
         let timeout = self.timeout;
-        let now = SteadyTime::now();
+        let now = Instant::now();
         let delay = if timeout <= now {
             return true
         } else {
-            (timeout - now).num_milliseconds()
+            let elapsed = timeout - now;
+            elapsed.as_secs() * 1000 + (elapsed.subsec_nanos() / 1000_000) as u64
         };
 
         trace!("Timer({}): set timeout in {}ms", token.as_usize(), delay);
-        match event_loop.timeout_ms(token, delay as u64) {
+        match event_loop.timeout_ms(token, delay) {
             Ok(timeout) => {
                 self.mio_timeout = Some(timeout);
             }

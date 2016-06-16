@@ -4,11 +4,9 @@ mod mioco {
 }
 
 use std;
-use std::io::{self, Read, Write};
+use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
-
-use time::{SteadyTime, Duration};
-
+use std::time::{Instant, Duration};
 use std::thread;
 use std::net::SocketAddr;
 use net2::TcpBuilder;
@@ -461,21 +459,21 @@ fn timer_default_timeout() {
 #[test]
 fn sleep_takes_time() {
     for &threads in THREADS_N.iter() {
-        let starting_time = SteadyTime::now();
+        let starting_time = Instant::now();
 
         mioco::start_threads(threads, move || {
             mioco::sleep_ms(500);
         })
             .unwrap();
 
-        assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+        assert!(starting_time.elapsed() >= Duration::from_millis(500));
     }
 }
 
 #[test]
 fn timer_select_takes_time() {
     for &threads in THREADS_N.iter() {
-        let starting_time = SteadyTime::now();
+        let starting_time = Instant::now();
 
         mioco::start_threads(threads, move || {
             let mut timer = mioco::timer::Timer::new();
@@ -487,7 +485,7 @@ fn timer_select_takes_time() {
         })
             .unwrap();
 
-        assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+        assert!(starting_time.elapsed() >= Duration::from_millis(500));
     }
 }
 
@@ -607,7 +605,7 @@ fn basic_sync() {
 #[test]
 fn sync_takes_time() {
     for &threads in THREADS_N.iter() {
-        let starting_time = SteadyTime::now();
+        let starting_time = Instant::now();
 
         mioco::start_threads(threads, move || {
             mioco::sync(|| {
@@ -616,7 +614,7 @@ fn sync_takes_time() {
         })
             .unwrap();
 
-        assert!((SteadyTime::now() - starting_time) >= Duration::milliseconds(500));
+        assert!(starting_time.elapsed() >= Duration::from_millis(500));
     }
 }
 
@@ -801,7 +799,7 @@ fn spawn_as_start() {
     });
 
     for _ in 0..60 {
-        mioco::sleep(std::time::Duration::from_secs(1));
+        mioco::sleep(Duration::from_secs(1));
         if *finished_ok.lock().unwrap() {
             return;
         }
@@ -1422,8 +1420,6 @@ fn timer_cleared_on_reregister() {
 #[ignore]
 #[test]
 fn sleep_is_precise() {
-    use time;
-
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(false));
 
@@ -1431,12 +1427,12 @@ fn sleep_is_precise() {
         mioco::start_threads(threads, move || {
 
 
-            let start = time::precise_time_ns();
+            let start = Instant::now();
             mioco::sleep_ms(100);
-            let duration = time::precise_time_ns() - start;
+            let duration = start.elapsed();
 
-            assert!(duration < 101000);
-            assert!(duration > 99000);
+            assert!(duration < Duration::from_millis(101));
+            assert!(duration > Duration::from_millis(99));
 
 
             let mut lock = finished_ok_copy.lock().unwrap();
@@ -1452,7 +1448,6 @@ fn sleep_is_precise() {
 #[ignore]
 #[test]
 fn select_on_channel_is_fast() {
-    use time;
     const N : usize = 10;
 
     for &threads in THREADS_N.iter() {
@@ -1464,7 +1459,7 @@ fn select_on_channel_is_fast() {
 
         mioco::start_threads(threads, move || {
 
-            let start = time::precise_time_ns();
+            let start = Instant::now();
 
             for i in 0..N {
                 loop {
@@ -1481,10 +1476,10 @@ fn select_on_channel_is_fast() {
                         )
                 }
             }
-            let duration = time::precise_time_ns() - start;
+            let duration = start.elapsed();
 
-            println!("duration_ns: {}", duration);
-            assert!(duration < 100_000_000);
+            println!("duration: {:?}", duration);
+            assert!(duration < Duration::from_millis(100));
         }).unwrap();
     }
 }
