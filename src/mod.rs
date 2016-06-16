@@ -1019,7 +1019,7 @@ pub fn sleep(duration: std::time::Duration) {
     if in_coroutine() {
         let mut timer = Timer::new();
         let dur_ms: u64 = duration.as_secs() * 1000 + duration.subsec_nanos() as u64 / 1_000_000;
-        timer.set_timeout(dur_ms as i64);
+        timer.set_timeout(dur_ms);
         let _ = timer.read();
     } else {
         std::thread::sleep(duration);
@@ -1029,14 +1029,13 @@ pub fn sleep(duration: std::time::Duration) {
 /// Block execution for a given time.
 ///
 /// See `sleep`.
-#[allow(deprecated)]
-pub fn sleep_ms(time_ms: u32) {
+pub fn sleep_ms(time_ms: u64) {
     if in_coroutine() {
         let mut timer = Timer::new();
-        timer.set_timeout(time_ms as i64);
+        timer.set_timeout(time_ms);
         let _ = timer.read();
     } else {
-        std::thread::sleep_ms(time_ms);
+        std::thread::sleep(std::time::Duration::from_millis(time_ms));
     }
 }
 
