@@ -79,10 +79,6 @@ To report a bug or ask for features use [github issues][issues].
 
 ## Building & running
 
-Note: You must be using [nightly Rust][nightly rust] release. If you're using
-[multirust][multirust], which is highly recommended, switch with `multirust default
-nightly` command.
-
 ### Standalone
 
 To start test echo server:
@@ -93,7 +89,6 @@ For daily work:
 
     make all
 
-[nightly rust]: https://doc.rust-lang.org/book/nightly-rust.html
 [multirust]: https://github.com/brson/multirust
 
 ### In your project
