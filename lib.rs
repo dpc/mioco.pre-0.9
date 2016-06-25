@@ -24,7 +24,7 @@
 //! * multithreading support; (see `Config::set_thread_num()`)
 //! * timers (see `timer` module);
 //! * coroutine exit notification (see `JoinHandle`).
-//! * synchronous operations support (see `MiocoHandle::sync()`).
+//! * synchronous operations support (see `mioco::offload()`).
 //! * synchronization primitives (see `sync` module):
 //!   * channels (see `sync::mpsc::channel()`);
 //!   * support for synchronization with native environment (outside of Mioco instance)
@@ -85,7 +85,7 @@ pub use src::{timer, tcp, udp, sync};
 
 pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented};
 pub use src::{get_userdata, set_userdata, set_children_userdata};
-pub use src::{in_coroutine, select_wait, sleep, sleep_ms, spawn, start, shutdown};
+pub use src::{in_coroutine, select_wait, sleep, sleep_ms, spawn, start, shutdown, offload};
 pub use src::{start_threads, thread_num, yield_now};
 
 #[cfg(test)]

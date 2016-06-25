@@ -576,14 +576,14 @@ fn tiny_stacks() {
 }
 
 #[test]
-fn basic_sync() {
+fn basic_offload() {
     for &threads in THREADS_N.iter() {
         let finished_ok = Arc::new(Mutex::new(true));
 
         let finished_copy = finished_ok.clone();
 
         mioco::start_threads(threads, move || {
-            let res = mioco::sync(|| {
+            let res = mioco::offload(|| {
                 mioco::sleep_ms(1000);
                 let mut lock = finished_copy.lock().unwrap();
                 assert_eq!(*lock, true);
@@ -603,12 +603,12 @@ fn basic_sync() {
 }
 
 #[test]
-fn sync_takes_time() {
+fn offload_takes_time() {
     for &threads in THREADS_N.iter() {
         let starting_time = Instant::now();
 
         mioco::start_threads(threads, move || {
-            mioco::sync(|| {
+            mioco::offload(|| {
                 mioco::sleep_ms(500);
             });
         })
@@ -619,12 +619,12 @@ fn sync_takes_time() {
 }
 
 #[test]
-fn basic_sync_in_loop() {
+fn basic_offload_in_loop() {
     for &threads in THREADS_N.iter() {
         mioco::start_threads(threads, move || {
             let mut counter = 0i32;
             for i in 0..10000 {
-                let res = mioco::sync(|| {
+                let res = mioco::offload(|| {
                     if i & 0xf == 0 {
                         // cut the wait
                         mioco::sleep_ms(1);

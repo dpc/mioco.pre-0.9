@@ -910,16 +910,22 @@ pub fn in_coroutine() -> bool {
     coroutine != ptr::null_mut()
 }
 
-/// Execute a block of synchronous operations.
+/// Execute a block of blocking operations outside of mioco.
 ///
-/// This will execute a block of synchronous operations without blocking
-/// cooperative coroutine scheduling. This is done by offloading the
-/// synchronous operations to a separate thread, and blocking current
-/// coroutine when operation is completed.
+/// Mioco requires cooperative context-switching points like
+/// mioco IO, `yield_now()` etc. Long running CPU-intense work,
+/// or native blocking-IO could starve other coroutines.
 ///
+/// To prevent that this call can be used to execute a block of code
+/// without blocking cooperative coroutine scheduling. This is done by
+/// offloading the synchronous operations to a separate thread, and blocking
+/// current coroutine when operation is completed.
+///
+/// TODO: Right now a new thread will be spawned for every call.
+/// A thread pool pulling work given on a channel, would be more efficient
+/// and prevent spawning too many threads. PRs welcome.
 /// TODO: find some wise people to confirm if this is sound
-/// TODO: use threadpool to prevent potential system starvation?
-pub fn sync<'b, F, R>(f: F) -> R
+pub fn offload<'b, F, R>(f: F) -> R
     where F: FnOnce() -> R + 'b,
           F: Send,
           R: Send
