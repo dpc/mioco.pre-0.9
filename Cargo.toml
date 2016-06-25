@@ -24,20 +24,21 @@ path = "lib.rs"
 default=[]
 
 [dependencies]
-nix = "0.5.0"
+nix = "0.6.0"
 log = "0.3.5"
-spin = { version = "0.4.2", default-features=false }
+spin = { version = "0.4.3", default-features=false }
+time = "0.1.34"
 mio = "0.5.1"
-num_cpus = "0.2.0"
+num_cpus = "0.2.13"
 libc = "0.2.10"
 thread-scoped = "1.0.0"
 context = "1.0.0"
 slab = "0.2.0"
-clippy = {version = "0.0.71", optional = true}
+clippy = {version = "0.0.77", optional = true}
 owning_ref = "0.1.4"
 
 [dev-dependencies]
 env_logger = "0.3.2"
 httparse = "1.1.1"
-net2 = "0.2.23"
+net2 = "0.2.24"
 rand = "0.3.14"
