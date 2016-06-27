@@ -16,7 +16,7 @@
 //!
 //! Mioco coroutines should not use any native blocking-IO operations.  Any
 //! long-running operations, or blocking IO should be executed in
-//! `mioco::sync()` blocks.
+//! `mioco::offload()` blocks.
 //!
 //! # <a name="features"></a> Features:
 //!
