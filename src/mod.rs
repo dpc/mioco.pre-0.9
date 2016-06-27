@@ -850,7 +850,7 @@ impl<T> JoinHandle<T>
     }
 }
 
-/// Spawn a mioco coroutine.
+/// Spawn a mioco coroutine that executes the given function.
 ///
 /// If called inside an existing mioco instance - spawn and run a new coroutine
 /// in it.
@@ -859,10 +859,13 @@ impl<T> JoinHandle<T>
 /// in a separate thread or use existing mioco instance to run new mioco
 /// coroutine. The API intention is to guarantee:
 ///
-/// * this call will not block
-/// * coroutine will be executing in some mioco instance
+/// * This function does not block
+/// * The coroutine will execute in a mioco instance
 ///
 /// the details on reusing existing mioco instances might change.
+///
+/// Any panics in the given function are caught
+/// and result in an `Err` that is available in the `JoinHandle`.
 pub fn spawn<F, T>(f: F) -> JoinHandle<T>
     where F: FnOnce() -> T,
           F: Send + 'static,
