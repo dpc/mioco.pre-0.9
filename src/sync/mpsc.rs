@@ -167,6 +167,11 @@ pub struct Sender<T> {
     sender: mpsc::Sender<T>,
 }
 
+pub struct SyncSender<T> {
+    shared: Arc<SenderShared>,
+    sender: mpsc::SyncSender<T>,
+}
+
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
         Sender {
@@ -185,6 +190,33 @@ impl<T> Sender<T> {
             }),
             sender: sender,
         }
+    }
+}
+
+impl<T> SyncSender<T> {
+    fn new(shared: ArcChannelShared, counter: ArcCounter, sender: mpsc::SyncSender<T>) -> Self {
+        SyncSender {
+            shared: Arc::new(SenderShared {
+                shared: shared,
+                counter: counter,
+            }),
+            sender: sender,
+        }
+    }
+
+    /// Deliver `T` to the other end of the channel.
+    ///
+    /// Channel behaves like a queue.
+    ///
+    /// This is non-blocking operation.
+    pub fn send(&self, t: T) -> Result<(), mpsc::SendError<T>> {
+        try!(self.sender.send(t));
+        let prev_counter = self.shared.counter.fetch_add(1, Ordering::SeqCst);
+
+        if prev_counter == 0 {
+            maybe_notify_receiver(&self.shared.shared);
+        }
+        Ok(())
     }
 }
 
@@ -239,5 +271,29 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 }
 
 
+/// Create a channel
+///
+/// Channel can be used to deliver data via MPSC queue.
+///
+/// Channel is modeled after `std::sync::mpsc::channel()`, only
+/// supporting mioco-aware sending and receiving.
+///
+/// When receiving end is outside of coroutine, channel will behave just
+/// like `std::sync::mpsc::channel()`.
+pub fn sync_channel<T>(bound: usize) -> (SyncSender<T>, Receiver<T>) {
+    let shared = ChannelShared {
+        token: None,
+        sender: None,
+    };
+
+    let shared = Arc::new(Mutex::new(shared));
+
+    let counter = Arc::new(AtomicUsize::new(0));
+    let (sender, receiver) = mpsc::sync_channel(bound);
+    (SyncSender::new(shared.clone(), counter.clone(), sender), Receiver::new(shared, counter, receiver))
+}
+
+
 unsafe impl<T : Send> Send for Receiver<T> {}
 unsafe impl<T : Send> Send for Sender<T> {}
+unsafe impl<T : Send> Send for SyncSender<T> {}
