@@ -30,6 +30,7 @@ fn main() {
                             println!("TIMEOUT");
                         },
                         r:mail_recv => {
+                            println!("Reading ...");
                             thread::sleep(Duration::new(2, 0));
                             let message = mail_recv.recv();
                             println!("{:?}", message); 
