@@ -110,5 +110,6 @@ extern crate mioco;
 ## Projects using mioco:
 
 * [colerr][colerr] - colorize stderr;
+* [mioco-openssl example](https://github.com/sp3d/mioco-openssl-example) 
 
 Send PR or drop a link on gitter.
