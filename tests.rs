@@ -1314,6 +1314,7 @@ fn mpsc_inside_inside() {
     }
 }
 
+#[ignore]
 #[test]
 fn mpsc_sync_inside_inside() {
     for &threads in THREADS_N.iter() {
