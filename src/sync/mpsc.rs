@@ -221,18 +221,18 @@ impl<T> SyncSender<T> {
     /// When sender is outside mioco, this is a blocking operation (if channel
     /// is full). If the sender is inside mioco, `try_send` will be
     /// called where coroutine is yielded incase of `TrySendError::Full` error.
-    pub fn send(&self, t: T) -> Result<(), mpsc::SendError<T>>
-    where T: Clone {
+    pub fn send(&self, mut t: T) -> Result<(), mpsc::SendError<T>> {
        if in_coroutine() {
             loop {
-                match self.sender.try_send(t.clone()) {
-                    Err(mpsc::TrySendError::Full(_)) => {
+                t = match self.sender.try_send(t) {
+                    Err(mpsc::TrySendError::Full(t)) => {
                         println!("Yielding ...");
-                        yield_now()
+                        yield_now();
+                        t
                     }
                     Err(mpsc::TrySendError::Disconnected(t)) => return Err(mpsc::SendError(t)),
                     Ok(t) => return Ok(t),
-                }
+                };
             }
         } else {
             try!(self.sender.send(t));
