@@ -5,7 +5,7 @@ use mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
 use super::super::thread::MioSender;
-use super::super::{sender_retry, in_coroutine};
+use super::super::{sender_retry, in_coroutine, yield_now};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc;
@@ -167,10 +167,6 @@ pub struct Sender<T> {
     sender: mpsc::Sender<T>,
 }
 
-pub struct SyncSender<T> {
-    shared: Arc<SenderShared>,
-    sender: mpsc::SyncSender<T>,
-}
 
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
@@ -193,6 +189,20 @@ impl<T> Sender<T> {
     }
 }
 
+/// Channel sending end
+///
+/// Use this inside mioco coroutines or outside of mioco itself to send data
+/// asynchronously to the receiving end.
+///
+/// Outside mioco, this is a blocking operation if the channel is full.
+///
+/// Create with `sync_channel()`
+pub struct SyncSender<T> {
+    shared: Arc<SenderShared>,
+    sender: mpsc::SyncSender<T>,
+}
+
+
 impl<T> SyncSender<T> {
     fn new(shared: ArcChannelShared, counter: ArcCounter, sender: mpsc::SyncSender<T>) -> Self {
         SyncSender {
@@ -208,9 +218,26 @@ impl<T> SyncSender<T> {
     ///
     /// Channel behaves like a queue.
     ///
-    /// This is non-blocking operation.
-    pub fn send(&self, t: T) -> Result<(), mpsc::SendError<T>> {
-        try!(self.sender.send(t));
+    /// When sender is outside mioco, this is a blocking operation (if channel
+    /// is full). If the sender is inside mioco, `try_send` will be
+    /// called where coroutine is yielded incase of `TrySendError::Full` error.
+    pub fn send(&self, t: T) -> Result<(), mpsc::SendError<T>>
+    where T: Clone {
+       if in_coroutine() {
+            loop {
+                match self.sender.try_send(t.clone()) {
+                    Err(mpsc::TrySendError::Full(_)) => {
+                        println!("Yielding ...");
+                        yield_now()
+                    }
+                    Err(mpsc::TrySendError::Disconnected(t)) => return Err(mpsc::SendError(t)),
+                    Ok(t) => return Ok(t),
+                }
+            }
+        } else {
+            try!(self.sender.send(t));
+        }
+
         let prev_counter = self.shared.counter.fetch_add(1, Ordering::SeqCst);
 
         if prev_counter == 0 {
