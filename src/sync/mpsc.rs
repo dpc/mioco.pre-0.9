@@ -202,6 +202,15 @@ pub struct SyncSender<T> {
     sender: mpsc::SyncSender<T>,
 }
 
+impl<T> Clone for SyncSender<T> {
+    fn clone(&self) -> Self {
+        SyncSender {
+            shared: self.shared.clone(),
+            sender: self.sender.clone(),
+        }
+    }
+}
+
 
 impl<T> SyncSender<T> {
     fn new(shared: ArcChannelShared, counter: ArcCounter, sender: mpsc::SyncSender<T>) -> Self {
