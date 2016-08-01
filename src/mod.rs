@@ -1126,7 +1126,7 @@ macro_rules! select {
     }};
     (@wrap2 $ret:ident rw:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
-        if ret.id() == $rx.id() { $code }
+        if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
     }};
     ($($tail:tt)*) => {{
