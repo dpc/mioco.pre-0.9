@@ -1216,6 +1216,20 @@ fn mpsc_outside_outside() {
     }
 }
 
+#[test]
+fn mpsc_sync_outside_outside() {
+    let (tx1, rx1) = mpsc::sync_channel(3);
+    thread::spawn(move || {
+        for i in 0..10 {
+            tx1.send(i).unwrap();
+        }
+    });
+    for i in 0..10 {
+        thread::sleep(Duration::new(1, 0));
+        let r = rx1.recv().unwrap();
+        assert_eq!(r, i);
+    }
+}
 
 #[test]
 fn mpsc_inside_outside() {
@@ -1233,6 +1247,35 @@ fn mpsc_inside_outside() {
     }
 }
 
+#[test]
+fn mpsc_sync_inside_outside() {
+    let (tx1, rx1) = mpsc::sync_channel(3);
+    let (tx2, rx2) = mpsc::sync_channel(3);
+    // Tx in, Rx out
+    mioco::spawn(move || {
+        for i in 0..10 {
+            tx1.send(i).unwrap();
+        }
+    });
+    for i in 0..10 {
+        thread::sleep(Duration::new(1, 0));
+        assert_eq!(rx1.recv().unwrap(), i);
+    }
+
+    // Rx in, Tx out
+    mioco::spawn(move || {
+        for i in 0..10 {
+            thread::sleep(Duration::new(1, 0));
+            assert_eq!(rx2.recv().unwrap(), i);
+        }
+    });
+
+    for i in 0..10 {
+        tx2.send(i).unwrap();
+    }
+
+    thread::sleep(Duration::new(3, 0));
+}
 
 #[test]
 fn mpsc_inside_inside() {
@@ -1259,6 +1302,54 @@ fn mpsc_inside_inside() {
                 for i in 0..10 {
                     assert_eq!(rx1.recv().unwrap(), i);
                     tx2.send(i).unwrap();
+                }
+                let mut lock = finished_copy2.lock().unwrap();
+                *lock = true;
+            });
+        })
+            .unwrap();
+
+        assert!(*finished_ok1.lock().unwrap());
+        assert!(*finished_ok2.lock().unwrap());
+    }
+}
+
+#[ignore]
+#[test]
+fn mpsc_sync_inside_inside() {
+    for &threads in THREADS_N.iter() {
+        let (tx1, rx1) = mpsc::sync_channel(5);
+
+        let finished_ok1 = Arc::new(Mutex::new(false));
+        let finished_copy1 = finished_ok1.clone();
+
+        let finished_ok2 = Arc::new(Mutex::new(false));
+        let finished_copy2 = finished_ok2.clone();
+
+        mioco::start_threads(threads, move || {
+            mioco::spawn(move || {
+                for i in 0..10 {
+                    println!("{}. #### Sending ...", i);
+                    tx1.send(i).unwrap();
+                }
+                let mut lock = finished_copy1.lock().unwrap();
+                *lock = true;
+            });
+
+            mioco::spawn(move || {
+                for i in 0..10 {
+                    let r = rx1.recv().unwrap();
+                    println!("{}. @@@@ {:?}", i, r);
+                    assert_eq!(r, i);
+
+                    // select!(
+                    //     r:rx1 => {
+                    //         println!("Receiving ...");
+                    //         let r = rx1.try_recv().unwrap();
+                    //         println!("{}. @@@@ {:?}", i, r);
+                    //         assert_eq!(r, i);
+                    //     },
+                    // );
                 }
                 let mut lock = finished_copy2.lock().unwrap();
                 *lock = true;

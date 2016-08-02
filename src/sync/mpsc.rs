@@ -5,7 +5,7 @@ use mio_orig::{EventLoop, Token, EventSet};
 use std::sync::Arc;
 use spin::Mutex;
 use super::super::thread::MioSender;
-use super::super::{sender_retry, in_coroutine};
+use super::super::{sender_retry, in_coroutine, yield_now};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc;
@@ -167,6 +167,7 @@ pub struct Sender<T> {
     sender: mpsc::Sender<T>,
 }
 
+
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
         Sender {
@@ -185,6 +186,73 @@ impl<T> Sender<T> {
             }),
             sender: sender,
         }
+    }
+}
+
+/// Channel sending end
+///
+/// Use this inside mioco coroutines or outside of mioco itself to send data
+/// asynchronously to the receiving end.
+///
+/// Outside mioco, this is a blocking operation if the channel is full.
+///
+/// Create with `sync_channel()`
+pub struct SyncSender<T> {
+    shared: Arc<SenderShared>,
+    sender: mpsc::SyncSender<T>,
+}
+
+impl<T> Clone for SyncSender<T> {
+    fn clone(&self) -> Self {
+        SyncSender {
+            shared: self.shared.clone(),
+            sender: self.sender.clone(),
+        }
+    }
+}
+
+
+impl<T> SyncSender<T> {
+    fn new(shared: ArcChannelShared, counter: ArcCounter, sender: mpsc::SyncSender<T>) -> Self {
+        SyncSender {
+            shared: Arc::new(SenderShared {
+                shared: shared,
+                counter: counter,
+            }),
+            sender: sender,
+        }
+    }
+
+    /// Deliver `T` to the other end of the channel.
+    ///
+    /// Channel behaves like a queue.
+    ///
+    /// When sender is outside mioco, this is a blocking operation (if channel
+    /// is full). If the sender is inside mioco, `try_send` will be
+    /// called where coroutine is yielded incase of `TrySendError::Full` error.
+    pub fn send(&self, mut t: T) -> Result<(), mpsc::SendError<T>> {
+       if in_coroutine() {
+            loop {
+                t = match self.sender.try_send(t) {
+                    Err(mpsc::TrySendError::Full(t)) => {
+                        println!("Yielding ...");
+                        yield_now();
+                        t
+                    }
+                    Err(mpsc::TrySendError::Disconnected(t)) => return Err(mpsc::SendError(t)),
+                    Ok(t) => return Ok(t),
+                };
+            }
+        } else {
+            try!(self.sender.send(t));
+        }
+
+        let prev_counter = self.shared.counter.fetch_add(1, Ordering::SeqCst);
+
+        if prev_counter == 0 {
+            maybe_notify_receiver(&self.shared.shared);
+        }
+        Ok(())
     }
 }
 
@@ -239,5 +307,29 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 }
 
 
+/// Create a channel
+///
+/// Channel can be used to deliver data via MPSC queue.
+///
+/// Channel is modeled after `std::sync::mpsc::channel()`, only
+/// supporting mioco-aware sending and receiving.
+///
+/// When receiving end is outside of coroutine, channel will behave just
+/// like `std::sync::mpsc::channel()`.
+pub fn sync_channel<T>(bound: usize) -> (SyncSender<T>, Receiver<T>) {
+    let shared = ChannelShared {
+        token: None,
+        sender: None,
+    };
+
+    let shared = Arc::new(Mutex::new(shared));
+
+    let counter = Arc::new(AtomicUsize::new(0));
+    let (sender, receiver) = mpsc::sync_channel(bound);
+    (SyncSender::new(shared.clone(), counter.clone(), sender), Receiver::new(shared, counter, receiver))
+}
+
+
 unsafe impl<T : Send> Send for Receiver<T> {}
 unsafe impl<T : Send> Send for Sender<T> {}
+unsafe impl<T : Send> Send for SyncSender<T> {}
