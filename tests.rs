@@ -1314,7 +1314,6 @@ fn mpsc_inside_inside() {
     }
 }
 
-#[ignore]
 #[test]
 fn mpsc_sync_inside_inside() {
     for &threads in THREADS_N.iter() {
@@ -1329,7 +1328,6 @@ fn mpsc_sync_inside_inside() {
         mioco::start_threads(threads, move || {
             mioco::spawn(move || {
                 for i in 0..10 {
-                    println!("{}. #### Sending ...", i);
                     tx1.send(i).unwrap();
                 }
                 let mut lock = finished_copy1.lock().unwrap();
@@ -1338,18 +1336,18 @@ fn mpsc_sync_inside_inside() {
 
             mioco::spawn(move || {
                 for i in 0..10 {
-                    let r = rx1.recv().unwrap();
-                    println!("{}. @@@@ {:?}", i, r);
-                    assert_eq!(r, i);
+                    if i % 2 == 0 {
+                        let r = rx1.recv().unwrap();
+                        assert_eq!(r, i);
 
-                    // select!(
-                    //     r:rx1 => {
-                    //         println!("Receiving ...");
-                    //         let r = rx1.try_recv().unwrap();
-                    //         println!("{}. @@@@ {:?}", i, r);
-                    //         assert_eq!(r, i);
-                    //     },
-                    // );
+                    } else {
+                        select!(
+                            r:rx1 => {
+                                let r = rx1.try_recv().unwrap();
+                                assert_eq!(r, i);
+                            },
+                        );
+                    }
                 }
                 let mut lock = finished_copy2.lock().unwrap();
                 *lock = true;

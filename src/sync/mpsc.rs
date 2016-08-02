@@ -235,12 +235,11 @@ impl<T> SyncSender<T> {
             loop {
                 t = match self.sender.try_send(t) {
                     Err(mpsc::TrySendError::Full(t)) => {
-                        println!("Yielding ...");
                         yield_now();
                         t
                     }
                     Err(mpsc::TrySendError::Disconnected(t)) => return Err(mpsc::SendError(t)),
-                    Ok(t) => return Ok(t),
+                    Ok(_) => break,
                 };
             }
         } else {
