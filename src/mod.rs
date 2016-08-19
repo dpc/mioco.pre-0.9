@@ -86,7 +86,7 @@ pub mod tcp;
 /// UDP
 pub mod udp;
 
-pub use self::evented::{Evented, MioAdapter};
+pub use self::evented::{Evented, MioAdapter, EventedImpl, RcEventSource, EventSourceTrait};
 mod evented;
 
 use self::coroutine::{Coroutine, RcCoroutine};

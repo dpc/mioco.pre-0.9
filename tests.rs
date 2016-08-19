@@ -20,7 +20,7 @@ struct FakePipeWriter(mpsc::Sender<u8>);
 
 #[cfg(windows)]
 impl Read for FakePipeReader {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let mut i = 0;
         loop {
             if i >= buf.len() {
@@ -43,11 +43,11 @@ impl Read for FakePipeReader {
 }
 
 #[cfg(windows)]
-impl mioco::evented::EventedImpl for FakePipeReader {
-    type Raw = <mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
+impl mioco::EventedImpl for FakePipeReader {
+    type Raw = <mpsc::Receiver<u8> as mioco::EventedImpl>::Raw;
 
-    fn shared(&self) -> &::evented::RcEventSource<
-        <mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw
+    fn shared(&self) -> &mioco::RcEventSource<
+        <mpsc::Receiver<u8> as mioco::EventedImpl>::Raw
             > {
         self.0.shared()
     }

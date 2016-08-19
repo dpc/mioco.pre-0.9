@@ -83,7 +83,7 @@ pub use src::unix;
 
 pub use src::{timer, tcp, udp, sync};
 
-pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented};
+pub use src::{Config, Event, EventSourceId, Handler, JoinHandle, MioAdapter, Mioco, RW, Evented, EventedImpl, EventSourceTrait, RcEventSource};
 pub use src::{get_userdata, set_userdata, set_children_userdata};
 pub use src::{in_coroutine, select_wait, sleep, sleep_ms, spawn, start, shutdown, offload};
 pub use src::{start_threads, thread_num, yield_now};

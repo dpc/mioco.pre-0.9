@@ -19,7 +19,6 @@ use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 /// A generic implementation: `MioAdapter` implements this trait, wrapping
 /// native mio types (implementing `mio::Evented` trait).
 pub trait Evented {
-    #[doc(hidden)]
     /// Add event source to next select operation.
     ///
     /// Use `select!` macro instead.
@@ -41,12 +40,17 @@ pub trait Evented {
     fn id(&self) -> EventSourceId;
 }
 
-/// Private trait for all mioco provided IO
+/// Utility trait that simplifies implementing `Evented`
+///
+/// If it's just a simple wrapper over `EventSourceTrait`
 pub trait EventedImpl {
+    /// Raw IO type wrapped by this `EventImpl`
     type Raw: EventSourceTrait + 'static;
 
+    /// Get the wrapped io
     fn shared(&self) -> &RcEventSource<Self::Raw>;
 
+    #[doc(hidden)]
     fn block_on_prv(&self, rw: RW) {
         let coroutine = unsafe { tl_current_coroutine() };
         coroutine.block_on(self.shared(), rw);
@@ -55,10 +59,13 @@ pub trait EventedImpl {
     }
 
     /// Index id of a `EventSource`
+    #[doc(hidden)]
     fn id_prv(&self) -> EventSourceId {
         self.shared().0.borrow().common.id.unwrap()
     }
 
+    /// Add event source to next select operation.
+    #[doc(hidden)]
     unsafe fn select_add_prv(&self, rw: RW) {
         let coroutine = tl_current_coroutine();
         let id = coroutine.blocked_on.len();
@@ -352,23 +359,28 @@ impl<T> RcEventSourceShared<T> {
 pub struct RcEventSource<T>(Rc<RefCell<RcEventSourceShared<T>>>);
 
 impl<T> RcEventSource<T> {
+    /// Create a new `RcEventSource`
     pub fn new(t: T) -> Self {
         RcEventSource(Rc::new(RefCell::new(RcEventSourceShared::new(t))))
     }
 
+    /// Get an immutable reference of io
     pub fn io_ref(&self) -> Ref<T> {
         Ref::map(self.0.borrow(), |r| &r.io)
     }
 
+    /// Get a mutable reference of io
     pub fn io_mut(&self) -> RefMut<T> {
         RefMut::map(self.0.borrow_mut(), |r| &mut r.io)
     }
 
     #[allow(unused)]
+    #[doc(hidden)]
     pub fn common_ref(&self) -> Ref<EventSourceCommon> {
         Ref::map(self.0.borrow(), |r| &r.common)
     }
 
+    #[doc(hidden)]
     pub fn common_mut(&self) -> RefMut<EventSourceCommon> {
         RefMut::map(self.0.borrow_mut(), |r| &mut r.common)
     }
@@ -443,6 +455,7 @@ impl<T> RcEventSourceTrait for RcEventSource<T>
 impl<T> RcEventSource<T>
     where T: EventSourceTrait + 'static
 {
+    #[doc(hidden)]
     pub fn to_trait(&self) -> Box<RcEventSourceTrait + 'static> {
         Box::new(RcEventSource(self.0.clone()))
     }
