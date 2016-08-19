@@ -43,7 +43,7 @@ impl Read for FakePipeReader {
 }
 
 #[cfg(windows)]
-impl ::evented::EventedImpl for FakePipeReader {
+impl mioco::evented::EventedImpl for FakePipeReader {
     type Raw = <mpsc::Receiver<u8> as ::evented::EventedImpl>::Raw;
 
     fn shared(&self) -> &::evented::RcEventSource<
@@ -55,7 +55,7 @@ impl ::evented::EventedImpl for FakePipeReader {
 
 #[cfg(windows)]
 impl Write for FakePipeWriter {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let len = buf.len();
         for i in 0..len {
             let _ = self.0.send(buf[i].clone());
@@ -63,7 +63,7 @@ impl Write for FakePipeWriter {
         Ok(len)
     }
 
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
 }
