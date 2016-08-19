@@ -1335,18 +1335,24 @@ fn mpsc_sync_inside_inside() {
             });
 
             mioco::spawn(move || {
-                for i in 0..10 {
+                let mut i = 0;
+                loop {
+                    if i == 10 {
+                        break;
+                    }
+
                     if i % 2 == 0 {
                         let r = rx1.recv().unwrap();
                         assert_eq!(r, i);
-
+                        i += 1;
                     } else {
                         select!(
                             r:rx1 => {
                                 let r = rx1.try_recv().unwrap();
                                 assert_eq!(r, i);
+                                i += 1;
                             },
-                        );
+                            );
                     }
                 }
                 let mut lock = finished_copy2.lock().unwrap();
@@ -1578,7 +1584,7 @@ fn select_on_channel_is_fast() {
 fn select_no_comma() {
     mioco::start(move || {
 
-        let (reader, writer) = pipe();
+        let (reader, _) = pipe();
 
         mioco::spawn(move || {
             let reader = reader;
