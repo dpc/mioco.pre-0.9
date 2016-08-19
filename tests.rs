@@ -999,7 +999,6 @@ fn tcpstream_block_on_connect() {
 }
 
 #[test]
-#[cfg_attr(windows, ignore)] // Issue #105
 fn tcp_basic_client_server() {
     use std::str::FromStr;
     for &threads in THREADS_N.iter() {
