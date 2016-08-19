@@ -1572,3 +1572,24 @@ fn select_on_channel_is_fast() {
         }).unwrap();
     }
 }
+
+// Issue https://github.com/dpc/mioco/issues/154
+#[test]
+fn select_no_comma() {
+    mioco::start(move || {
+
+        let (reader, writer) = pipe();
+
+        mioco::spawn(move || {
+            let reader = reader;
+            let mut timer = mioco::timer::Timer::new();
+            timer.set_timeout(0);
+
+            select!(
+                r:reader => { panic!("reader fired first!") },
+                r:timer => {}
+                );
+        });
+    })
+    .unwrap();
+}
