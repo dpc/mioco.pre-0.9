@@ -1097,12 +1097,24 @@ macro_rules! select {
         }
         select!(@wrap1 $($tail)*)
     };
+    (@wrap1 r:$rx:expr => $code:expr) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::read());
+        }
+    };
     (@wrap1 w:$rx:expr => $code:expr, $($tail:tt)*) => {
         unsafe {
             use $crate::Evented;
             $rx.select_add($crate::RW::write());
         }
         select!(@wrap1 $($tail)*)
+    };
+    (@wrap1 w:$rx:expr => $code:expr) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::write());
+        }
     };
     (@wrap1 rw:$rx:expr => $code:expr, $($tail:tt)*) => {
         unsafe {
@@ -1111,6 +1123,13 @@ macro_rules! select {
         }
         select!(@wrap1 $($tail)*)
     };
+    (@wrap1 rw:$rx:expr => $code:expr) => {
+        unsafe {
+            use $crate::Evented;
+            $rx.select_add($crate::RW::both());
+        }
+    };
+
     (@wrap2 $ret:ident) => {
         // end code
     };
@@ -1119,15 +1138,27 @@ macro_rules! select {
         if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
     }};
+    (@wrap2 $ret:ident r:$rx:expr => $code:expr) => {{
+        use $crate::Evented;
+        if $ret.id() == $rx.id() { $code }
+    }};
     (@wrap2 $ret:ident w:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
         if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
     }};
+    (@wrap2 $ret:ident w:$rx:expr => $code:expr) => {{
+        use $crate::Evented;
+        if $ret.id() == $rx.id() { $code }
+    }};
     (@wrap2 $ret:ident rw:$rx:expr => $code:expr, $($tail:tt)*) => {{
         use $crate::Evented;
         if $ret.id() == $rx.id() { $code }
         select!(@wrap2 $ret $($tail)*);
+    }};
+    (@wrap2 $ret:ident rw:$rx:expr => $code:expr) => {{
+        use $crate::Evented;
+        if $ret.id() == $rx.id() { $code }
     }};
     ($($tail:tt)*) => {{
         select!(@wrap1 $($tail)*);
