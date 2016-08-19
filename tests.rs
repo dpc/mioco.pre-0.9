@@ -1314,6 +1314,8 @@ fn mpsc_inside_inside() {
     }
 }
 
+// https://github.com/dpc/mioco/issues/152
+#[ignore]
 #[test]
 fn mpsc_sync_inside_inside() {
     for &threads in THREADS_N.iter() {
