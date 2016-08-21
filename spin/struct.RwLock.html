@@ -47,8 +47,8 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-83' class='srclink' href='../src/spin/rw_lock.rs.html#47-51' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct RwLock&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; {
+               </span><a id='src-81' class='srclink' href='../src/spin/rw_lock.rs.html#47-51' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct RwLock&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A reader-writer lock</p>
 
@@ -86,7 +86,8 @@ to allow access to the contained of the lock.</p>
     <span class='op'>*</span><span class='ident'>w</span> <span class='op'>+=</span> <span class='number'>1</span>;
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>*</span><span class='ident'>w</span>, <span class='number'>6</span>);
 } <span class='comment'>// write lock is dropped here</span></pre>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(user_data: T) -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;T&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-100' class='srclink' href='../src/spin/rw_lock.rs.html#78-140' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>(user_data: T) -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span></h4>
 <div class='docblock'><p>Creates a new spinlock wrapping the supplied data.</p>
 
 <p>If you want to use it statically, you can use the <code>const_fn</code> feature.</p>
@@ -100,9 +101,10 @@ to allow access to the contained of the lock.</p>
     <span class='comment'>// do something with lock</span>
     <span class='ident'>drop</span>(<span class='ident'>lock</span>);
 }</pre>
-</div><h4 id='method.into_inner' class='method'><code>fn <a href='#method.into_inner' class='fnname'>into_inner</a>(self) -&gt; T</code></h4>
+</div><h4 id='method.into_inner' class='method'><span id='into_inner.v' class='invisible'><code>fn <a href='#method.into_inner' class='fnname'>into_inner</a>(self) -&gt; T</code></span></h4>
 <div class='docblock'><p>Consumes this <code>RwLock</code>, returning the underlying data.</p>
-</div></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;'a, T&gt;</code></h4>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-107' class='srclink' href='../src/spin/rw_lock.rs.html#142-319' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.read' class='method'><span id='read.v' class='invisible'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;'a,&nbsp;T&gt;</code></span></h4>
 <div class='docblock'><p>Locks this rwlock with shared read access, blocking the current thread
 until it can be acquired.</p>
 
@@ -123,7 +125,7 @@ once it is dropped.</p>
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='op'>*</span><span class='ident'>data</span>);
     <span class='comment'>// The lock is dropped</span>
 }</pre>
-</div><h4 id='method.try_read' class='method'><code>fn <a href='#method.try_read' class='fnname'>try_read</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;T&gt;&gt;</code></h4>
+</div><h4 id='method.try_read' class='method'><span id='try_read.v' class='invisible'><code>fn <a href='#method.try_read' class='fnname'>try_read</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockReadGuard.html' title='spin::RwLockReadGuard'>RwLockReadGuard</a>&lt;T&gt;&gt;</code></span></h4>
 <div class='docblock'><p>Attempt to acquire this lock with shared read access.</p>
 
 <p>This function will never block and will return immediately if <code>read</code>
@@ -145,7 +147,7 @@ or writers will acquire the lock first.</p>
         <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> (), <span class='comment'>// no cigar</span>
     };
 }</pre>
-</div><h4 id='method.write' class='method'><code>fn <a href='#method.write' class='fnname'>write</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'a, T&gt;</code></h4>
+</div><h4 id='method.write' class='method'><span id='write.v' class='invisible'><code>fn <a href='#method.write' class='fnname'>write</a>&lt;'a&gt;(&amp;'a self) -&gt; <a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;'a,&nbsp;T&gt;</code></span></h4>
 <div class='docblock'><p>Lock this rwlock with exclusive write access, blocking the current
 thread until it can be acquired.</p>
 
@@ -163,7 +165,7 @@ when dropped.</p>
     <span class='op'>*</span><span class='ident'>data</span> <span class='op'>+=</span> <span class='number'>1</span>;
     <span class='comment'>// The lock is dropped</span>
 }</pre>
-</div><h4 id='method.try_write' class='method'><code>fn <a href='#method.try_write' class='fnname'>try_write</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;T&gt;&gt;</code></h4>
+</div><h4 id='method.try_write' class='method'><span id='try_write.v' class='invisible'><code>fn <a href='#method.try_write' class='fnname'>try_write</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../spin/struct.RwLockWriteGuard.html' title='spin::RwLockWriteGuard'>RwLockWriteGuard</a>&lt;T&gt;&gt;</code></span></h4>
 <div class='docblock'><p>Attempt to lock this rwlock with exclusive write access.</p>
 
 <p>This function does not ever block, and it will return <code>None</code> if a call
@@ -182,9 +184,15 @@ returned.</p>
         <span class='prelude-val'>None</span> <span class='op'>=&gt;</span> (), <span class='comment'>// no cigar</span>
     };
 }</pre>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
-</div><h3 class='impl'><code>impl&lt;T: ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-95' class='srclink' href='../src/spin/rw_lock.rs.html#73' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-97' class='srclink' href='../src/spin/rw_lock.rs.html#74' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-127' class='srclink' href='../src/spin/rw_lock.rs.html#321-331' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-137' class='srclink' href='../src/spin/rw_lock.rs.html#333-337' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class='method'><span id='default.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../spin/struct.RwLock.html' title='spin::RwLock'>RwLock</a>&lt;T&gt;</code></span></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -207,6 +215,8 @@ returned.</p>
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

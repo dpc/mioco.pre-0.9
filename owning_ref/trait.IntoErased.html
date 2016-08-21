@@ -48,26 +48,26 @@
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a id='src-14' class='srclink' href='../src/owning_ref/lib.rs.html#210-215' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub unsafe trait IntoErased {
+<pre class='rust trait'>pub unsafe trait IntoErased&lt;'a&gt; {
     type <a href='#associatedtype.Erased' class='type'>Erased</a>;
-    fn <a href='#tymethod.into_erased' class='fnname'>into_erased</a>(self) -&gt; Self::<a class='trait' href='../owning_ref/trait.IntoErased.html' title='owning_ref::IntoErased'>Erased</a>;
+    fn <a href='#tymethod.into_erased' class='fnname'>into_erased</a>(self) -&gt; Self::Erased;
 }</pre><div class='docblock'><p>Helper trait for erasing the concrete type of what an owner derferences to,
 for example <code>Box&lt;T&gt; -&gt; Box&lt;Erased&gt;</code>. This would be unneeded with
 higher kinded types support in the language.</p>
 </div>
             <h2 id='associated-types'>Associated Types</h2>
             <div class='methods'>
-        <h3 id='associatedtype.Erased' class='method stab '><code>type <a href='#associatedtype.Erased' class='type'>Erased</a></code></h3><div class='docblock'><p>Owner with the dereference type substituted to <code>Erased</code>.</p>
+        <h3 id='associatedtype.Erased' class='method stab '><span id='Erased.t' class='invisible'><code>type <a href='#associatedtype.Erased' class='type'>Erased</a></code></span></h3><div class='docblock'><p>Owner with the dereference type substituted to <code>Erased</code>.</p>
 </div></div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.into_erased' class='method stab '><code>fn <a href='#tymethod.into_erased' class='fnname'>into_erased</a>(self) -&gt; Self::<a class='trait' href='../owning_ref/trait.IntoErased.html' title='owning_ref::IntoErased'>Erased</a></code></h3><div class='docblock'><p>Perform the type erasure.</p>
+        <h3 id='tymethod.into_erased' class='method stab '><span id='into_erased.v' class='invisible'><code>fn <a href='#tymethod.into_erased' class='fnname'>into_erased</a>(self) -&gt; Self::Erased</code></span></h3><div class='docblock'><p>Perform the type erasure.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl&lt;'a, T: 'a&gt; <a class='trait' href='../owning_ref/trait.IntoErased.html' title='owning_ref::IntoErased'>IntoErased</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;T&gt;</code></li>
-<li><code>impl&lt;'a, T: 'a&gt; <a class='trait' href='../owning_ref/trait.IntoErased.html' title='owning_ref::IntoErased'>IntoErased</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html' title='alloc::rc::Rc'>Rc</a>&lt;T&gt;</code></li>
-<li><code>impl&lt;'a, T: 'a&gt; <a class='trait' href='../owning_ref/trait.IntoErased.html' title='owning_ref::IntoErased'>IntoErased</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/arc/struct.Arc.html' title='alloc::arc::Arc'>Arc</a>&lt;T&gt;</code></li>
+    <li><code>impl&lt;'a,&nbsp;T:&nbsp;'a&gt; IntoErased&lt;'a&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;T&gt;</code></li>
+<li><code>impl&lt;'a,&nbsp;T:&nbsp;'a&gt; IntoErased&lt;'a&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html' title='alloc::rc::Rc'>Rc</a>&lt;T&gt;</code></li>
+<li><code>impl&lt;'a,&nbsp;T:&nbsp;'a&gt; IntoErased&lt;'a&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/arc/struct.Arc.html' title='alloc::arc::Arc'>Arc</a>&lt;T&gt;</code></li>
 </ul><script type="text/javascript" async
                          src="../implementors/owning_ref/trait.IntoErased.js">
                  </script></section>
@@ -93,6 +93,8 @@ higher kinded types support in the language.</p>
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

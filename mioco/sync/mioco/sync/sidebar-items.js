@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["mpsc","MPSC channel modeled after `std::sync::mpsc`."]],"struct":[["Mutex","A Mutex"],["RwLock","A reader-writer lock"]]});

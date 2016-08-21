@@ -134,7 +134,6 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
-<span id="93">93</span>
 </pre><pre class='rust '>
 <span class='comment'>// Copyright 2015-2016 Dawid Ciężarkiewicz &lt;dpc@dpc.pw&gt;</span>
 <span class='comment'>// See LICENSE-MPL2 file for more information.</span>
@@ -154,7 +153,7 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! Mioco coroutines should not use any native blocking-IO operations.  Any</span>
 <span class='doccomment'>//! long-running operations, or blocking IO should be executed in</span>
-<span class='doccomment'>//! `mioco::sync()` blocks.</span>
+<span class='doccomment'>//! `mioco::offload()` blocks.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! # &lt;a name=&quot;features&quot;&gt;&lt;/a&gt; Features:</span>
 <span class='doccomment'>//!</span>
@@ -162,7 +161,7 @@
 <span class='doccomment'>//! * multithreading support; (see `Config::set_thread_num()`)</span>
 <span class='doccomment'>//! * timers (see `timer` module);</span>
 <span class='doccomment'>//! * coroutine exit notification (see `JoinHandle`).</span>
-<span class='doccomment'>//! * synchronous operations support (see `MiocoHandle::sync()`).</span>
+<span class='doccomment'>//! * synchronous operations support (see `mioco::offload()`).</span>
 <span class='doccomment'>//! * synchronization primitives (see `sync` module):</span>
 <span class='doccomment'>//!   * channels (see `sync::mpsc::channel()`);</span>
 <span class='doccomment'>//!   * support for synchronization with native environment (outside of Mioco instance)</span>
@@ -198,7 +197,6 @@
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>nix</span>;
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>log</span>;
-<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>time</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>num_cpus</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>slab</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>owning_ref</span>;
@@ -208,13 +206,13 @@
 
 <span class='doccomment'>/// Some mio types that are part of mioco-API, re-exported</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>mio</span> {
-    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Handler</span>, <span class='ident'>Ipv4Addr</span>};
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>mio_orig</span>::{<span class='ident'>EventLoop</span>, <span class='ident'>Handler</span>, <span class='ident'>Ipv4Addr</span>};
 }
 
 <span class='doccomment'>/// Custom scheduling</span>
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>sched</span> {
-    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>src</span>::{<span class='ident'>Scheduler</span>, <span class='ident'>SchedulerThread</span>};
-    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>src</span>::<span class='ident'>CoroutineControl</span> <span class='kw'>as</span> <span class='ident'>Coroutine</span>;
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>src</span>::{<span class='ident'>Scheduler</span>, <span class='ident'>SchedulerThread</span>};
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>src</span>::<span class='ident'>CoroutineControl</span> <span class='kw'>as</span> <span class='ident'>Coroutine</span>;
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>windows</span>))]</span>
@@ -222,9 +220,9 @@
 
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>timer</span>, <span class='ident'>tcp</span>, <span class='ident'>udp</span>, <span class='ident'>sync</span>};
 
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>Config</span>, <span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>Handler</span>, <span class='ident'>JoinHandle</span>, <span class='ident'>MioAdapter</span>, <span class='ident'>Mioco</span>, <span class='ident'>RW</span>, <span class='ident'>Evented</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>Config</span>, <span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>Handler</span>, <span class='ident'>JoinHandle</span>, <span class='ident'>MioAdapter</span>, <span class='ident'>Mioco</span>, <span class='ident'>RW</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>, <span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>get_userdata</span>, <span class='ident'>set_userdata</span>, <span class='ident'>set_children_userdata</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>in_coroutine</span>, <span class='ident'>select_wait</span>, <span class='ident'>sleep</span>, <span class='ident'>sleep_ms</span>, <span class='ident'>spawn</span>, <span class='ident'>start</span>, <span class='ident'>shutdown</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>in_coroutine</span>, <span class='ident'>select_wait</span>, <span class='ident'>sleep</span>, <span class='ident'>sleep_ms</span>, <span class='ident'>spawn</span>, <span class='ident'>start</span>, <span class='ident'>shutdown</span>, <span class='ident'>offload</span>};
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>src</span>::{<span class='ident'>start_threads</span>, <span class='ident'>thread_num</span>, <span class='ident'>yield_now</span>};
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
@@ -253,6 +251,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

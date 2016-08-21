@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-454' class='srclink' href='../../src/bytes/buf/mod.rs.html#92-165' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-445' class='srclink' href='../../src/bytes/buf/mod.rs.html#92-165' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait MutBuf: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a> {
     fn <a href='#tymethod.remaining' class='fnname'>remaining</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>;
     unsafe fn <a href='#tymethod.advance' class='fnname'>advance</a>(&amp;mut self, cnt: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>);
@@ -60,17 +60,17 @@
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.remaining' class='method stab '><code>fn <a href='#tymethod.remaining' class='fnname'>remaining</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h3><div class='docblock'><p>Returns the number of bytes that can be written to the MutBuf</p>
-</div><h3 id='tymethod.advance' class='method stab '><code>unsafe fn <a href='#tymethod.advance' class='fnname'>advance</a>(&amp;mut self, cnt: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></h3><div class='docblock'><p>Advance the internal cursor of the MutBuf</p>
-</div><h3 id='tymethod.mut_bytes' class='method stab '><code>unsafe fn <a href='#tymethod.mut_bytes' class='fnname'>mut_bytes</a>&lt;'a&gt;(&amp;'a mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h3><div class='docblock'><p>Returns a mutable slice starting at the current MutBuf position and of
+        <h3 id='tymethod.remaining' class='method stab '><span id='remaining.v' class='invisible'><code>fn <a href='#tymethod.remaining' class='fnname'>remaining</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h3><div class='docblock'><p>Returns the number of bytes that can be written to the MutBuf</p>
+</div><h3 id='tymethod.advance' class='method stab '><span id='advance.v' class='invisible'><code>unsafe fn <a href='#tymethod.advance' class='fnname'>advance</a>(&amp;mut self, cnt: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></span></h3><div class='docblock'><p>Advance the internal cursor of the MutBuf</p>
+</div><h3 id='tymethod.mut_bytes' class='method stab '><span id='mut_bytes.v' class='invisible'><code>unsafe fn <a href='#tymethod.mut_bytes' class='fnname'>mut_bytes</a>&lt;'a&gt;(&amp;'a mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h3><div class='docblock'><p>Returns a mutable slice starting at the current MutBuf position and of
 length between 0 and <code>MutBuf::remaining()</code>.</p>
 
 <p>The returned byte slice may represent uninitialized memory.</p>
 </div></div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.has_remaining' class='method stab '><code>fn <a href='#method.has_remaining' class='fnname'>has_remaining</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Returns true iff there is any more space for bytes to be written</p>
-</div><h3 id='method.write_slice' class='method stab '><code>fn <a href='#method.write_slice' class='fnname'>write_slice</a>(&amp;mut self, src: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h3><div class='docblock'><p>Write bytes from the given slice into the <code>MutBuf</code> and advance the
+        <h3 id='method.has_remaining' class='method stab '><span id='has_remaining.v' class='invisible'><code>fn <a href='#method.has_remaining' class='fnname'>has_remaining</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h3><div class='docblock'><p>Returns true iff there is any more space for bytes to be written</p>
+</div><h3 id='method.write_slice' class='method stab '><span id='write_slice.v' class='invisible'><code>fn <a href='#method.write_slice' class='fnname'>write_slice</a>(&amp;mut self, src: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h3><div class='docblock'><p>Write bytes from the given slice into the <code>MutBuf</code> and advance the
 cursor by the number of bytes written.
 Returns the number of bytes written.</p>
 
@@ -87,15 +87,15 @@ Returns the number of bytes written.</p>
 }
 
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>b&quot;hello\0&quot;</span>, <span class='kw-2'>&amp;</span><span class='ident'>dst</span>);</pre>
-</div><h3 id='method.write_byte' class='method stab '><code>fn <a href='#method.write_byte' class='fnname'>write_byte</a>(&amp;mut self, byte: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Write a single byte to the <code>MuBuf</code></p>
+</div><h3 id='method.write_byte' class='method stab '><span id='write_byte.v' class='invisible'><code>fn <a href='#method.write_byte' class='fnname'>write_byte</a>(&amp;mut self, byte: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h3><div class='docblock'><p>Write a single byte to the <code>MuBuf</code></p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a> for <a class='struct' href='../../bytes/struct.MutByteBuf.html' title='bytes::MutByteBuf'>MutByteBuf</a></code></li>
-<li><code>impl <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a> for <a class='struct' href='../../bytes/struct.RingBuf.html' title='bytes::RingBuf'>RingBuf</a></code></li>
-<li><code>impl&lt;'a&gt; <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a> for <a class='struct' href='../../bytes/struct.MutSliceBuf.html' title='bytes::MutSliceBuf'>MutSliceBuf</a>&lt;'a&gt;</code></li>
-<li><code>impl&lt;T: <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a>&gt; <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a> for <a class='struct' href='../../bytes/struct.Take.html' title='bytes::Take'>Take</a>&lt;T&gt;</code></li>
-<li><code>impl <a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></li>
+    <li><code>impl MutBuf for <a class='struct' href='../../bytes/struct.MutByteBuf.html' title='bytes::MutByteBuf'>MutByteBuf</a></code></li>
+<li><code>impl MutBuf for <a class='struct' href='../../bytes/struct.RingBuf.html' title='bytes::RingBuf'>RingBuf</a></code></li>
+<li><code>impl&lt;'a&gt; MutBuf for <a class='struct' href='../../bytes/struct.MutSliceBuf.html' title='bytes::MutSliceBuf'>MutSliceBuf</a>&lt;'a&gt;</code></li>
+<li><code>impl&lt;T:&nbsp;<a class='trait' href='../../bytes/buf/trait.MutBuf.html' title='bytes::buf::MutBuf'>MutBuf</a>&gt; MutBuf for <a class='struct' href='../../bytes/struct.Take.html' title='bytes::Take'>Take</a>&lt;T&gt;</code></li>
+<li><code>impl MutBuf for <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></li>
 </ul><script type="text/javascript" async
                          src="../../implementors/bytes/buf/trait.MutBuf.js">
                  </script></section>
@@ -121,6 +121,8 @@ Returns the number of bytes written.</p>
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

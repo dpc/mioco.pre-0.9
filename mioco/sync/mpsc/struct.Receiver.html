@@ -47,27 +47,26 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-58' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#24' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-53' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Receiver&lt;T&gt;(_);</pre><div class='docblock'><p>Channel receiving end</p>
 
 <p>Create with <code>channel()</code></p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></h3><div class='impl-items'><h4 id='method.recv' class='method'><code>fn <a href='#method.recv' class='fnname'>recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='struct' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/struct.RecvError.html' title='std::sync::mpsc::RecvError'>RecvError</a>&gt;</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;T&gt; <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-113' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#99-143' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.recv' class='method'><span id='recv.v' class='invisible'><code>fn <a href='#method.recv' class='fnname'>recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/struct.RecvError.html' title='std::sync::mpsc::RecvError'>RecvError</a>&gt;</code></span></h4>
 <div class='docblock'><p>Receive <code>T</code> sent using corresponding <code>Sender::send()</code>.</p>
 
 <p>Will block coroutine if no elements are available.</p>
-</div><h4 id='method.try_recv' class='method'><code>fn <a href='#method.try_recv' class='fnname'>try_recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='enum' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/enum.TryRecvError.html' title='std::sync::mpsc::TryRecvError'>TryRecvError</a>&gt;</code></h4>
+</div><h4 id='method.try_recv' class='method'><span id='try_recv.v' class='invisible'><code>fn <a href='#method.try_recv' class='fnname'>try_recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T,&nbsp;<a class='enum' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/enum.TryRecvError.html' title='std::sync::mpsc::TryRecvError'>TryRecvError</a>&gt;</code></span></h4>
 <div class='docblock'><p>Try reading data from the queue.</p>
 
 <p>This will not block.</p>
-</div></div><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></h3><div class='impl-items'><h4 id='method.recv-1' class='method'><code>fn <a href='#method.recv' class='fnname'>recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='struct' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/struct.RecvError.html' title='std::sync::mpsc::RecvError'>RecvError</a>&gt;</code></h4>
-<div class='docblock'><p>Receive <code>T</code> sent using corresponding <code>Sender::send()</code>.</p>
-
-<p>Will block coroutine if no elements are available.</p>
-</div><h4 id='method.try_recv-1' class='method'><code>fn <a href='#method.try_recv' class='fnname'>try_recv</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, <a class='enum' href='https://doc.rust-lang.org/nightly/std/sync/mpsc/enum.TryRecvError.html' title='std::sync::mpsc::TryRecvError'>TryRecvError</a>&gt;</code></h4>
-<div class='docblock'><p>Try reading data from the queue.</p>
-
-<p>This will not block.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></h3><div class='impl-items'></div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;T&gt; <a class='trait' href='../../../mioco/trait.EventedImpl.html' title='mioco::EventedImpl'>EventedImpl</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt; <span class='where'>where T: 'static</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-62' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#32-40' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Raw' class='type'><span id='Raw.t' class='invisible'><code>type <a href='../../../mioco/trait.EventedImpl.html#associatedtype.Raw' class='type'>Raw</a> = ReceiverCore&lt;T&gt;</code></span></h4>
+<div class='docblock'><p>Raw IO type wrapped by this <code>EventImpl</code></p>
+</div><h4 id='method.shared' class='method'><span id='shared.v' class='invisible'><code>fn <a href='../../../mioco/trait.EventedImpl.html#tymethod.shared' class='fnname'>shared</a>(&amp;self) -&gt; &amp;<a class='struct' href='../../../mioco/struct.RcEventSource.html' title='mioco::RcEventSource'>RcEventSource</a>&lt;ReceiverCore&lt;T&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Get the wrapped io</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='../../../mioco/sync/mpsc/struct.Receiver.html' title='mioco::sync::mpsc::Receiver'>Receiver</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-208' class='srclink' href='../../../src/mioco/src/sync/mpsc.rs.html#332' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -90,6 +89,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

@@ -47,31 +47,32 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1608' class='srclink' href='../../src/mioco/src/mod.rs.html#413-419' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1618' class='srclink' href='../../src/mioco/src/mod.rs.html#413-419' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Coroutine {
     // some fields omitted
 }</pre><div class='docblock'><p>Coroutine scheduling handle.</p>
 
 <p>Through this interface schedulers can operate on coroutines.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.kill' class='method'><code>fn <a href='#method.kill' class='fnname'>kill</a>(&amp;self)</code></h4>
-<div class='docblock'><p>Finish coroutine</p>
-</div></div><h3 class='impl'><code>impl <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1625' class='srclink' href='../../src/mioco/src/mod.rs.html#429-540' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.resume' class='method'><span id='resume.v' class='invisible'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;)</code></span></h4>
 <div class='docblock'><p>Resume Coroutine.</p>
-</div><h4 id='method.migrate' class='method'><code>fn <a href='#method.migrate' class='fnname'>migrate</a>(self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, thread_id: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></h4>
+</div><h4 id='method.migrate' class='method'><span id='migrate.v' class='invisible'><code>fn <a href='#method.migrate' class='fnname'>migrate</a>(self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, thread_id: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>)</code></span></h4>
 <div class='docblock'><p>Migrate to a different thread.</p>
 
 <p>Move this Coroutine to be executed on a <code>SchedulerThread</code> for a
 given <code>thread_id</code>.</p>
 
 <p>Will panic if <code>thread_id</code> is not valid.</p>
-</div><h4 id='method.reattach_to' class='method'><code>fn <a href='#method.reattach_to' class='fnname'>reattach_to</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, handler: &amp;mut <a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>)</code></h4>
+</div><h4 id='method.reattach_to' class='method'><span id='reattach_to.v' class='invisible'><code>fn <a href='#method.reattach_to' class='fnname'>reattach_to</a>(&amp;mut self, event_loop: &amp;mut <a class='struct' href='../../mioco/mio/struct.EventLoop.html' title='mioco::mio::EventLoop'>EventLoop</a>&lt;<a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>&gt;, handler: &amp;mut <a class='struct' href='../../mioco/struct.Handler.html' title='mioco::Handler'>Handler</a>)</code></span></h4>
 <div class='docblock'><p>Finish migrating Coroutine by attaching it to a new thread.</p>
-</div><h4 id='method.is_yielding' class='method'><code>fn <a href='#method.is_yielding' class='fnname'>is_yielding</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h4 id='method.is_yielding' class='method'><span id='is_yielding.v' class='invisible'><code>fn <a href='#method.is_yielding' class='fnname'>is_yielding</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
 <div class='docblock'><p>Is this Coroutine ready after <code>yield_now()</code>?</p>
-</div><h4 id='method.get_userdata' class='method'><code>fn <a href='#method.get_userdata' class='fnname'>get_userdata</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt;(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='type' href='../../owning_ref/type.ErasedArcRef.html' title='owning_ref::ErasedArcRef'>ErasedArcRef</a>&lt;T&gt;&gt;</code></h4>
+</div><h4 id='method.get_userdata' class='method'><span id='get_userdata.v' class='invisible'><code>fn <a href='#method.get_userdata' class='fnname'>get_userdata</a>&lt;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt;(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='type' href='../../owning_ref/type.ErasedArcRef.html' title='owning_ref::ErasedArcRef'>ErasedArcRef</a>&lt;T&gt;&gt;</code></span></h4>
 <div class='docblock'><p>Get coroutine user-provided data.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../../mioco/sched/struct.Coroutine.html' title='mioco::sched::Coroutine'>CoroutineControl</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1622' class='srclink' href='../../src/mioco/src/mod.rs.html#421-427' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.drop' class='method'><span id='drop.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></span></h4>
+<div class='docblock'><p>A method called when the value goes out of scope. <a href="https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop">Read more</a></p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -94,6 +95,8 @@ given <code>thread_id</code>.</p>
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

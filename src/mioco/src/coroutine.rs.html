@@ -667,16 +667,16 @@
 <span id="623">623</span>
 <span id="624">624</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>CoroutineControl</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
+<span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>Event</span>, <span class='ident'>EventSourceId</span>, <span class='ident'>RW</span>, <span class='ident'>coroutine</span>, <span class='ident'>token_to_ids</span>, <span class='ident'>sender_retry</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>CoroutineControl</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>tl_current_coroutine_ptr_save</span>, <span class='ident'>tl_current_coroutine_ptr_restore</span>,
                     <span class='ident'>tl_current_coroutine</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thunk</span>::<span class='ident'>Thunk</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::{<span class='ident'>HandlerShared</span>, <span class='ident'>Message</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>RcEventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>EventSourceTrait</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>RcHandlerShared</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thunk</span>::<span class='ident'>Thunk</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>;
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='ident'>Token</span>, <span class='ident'>EventSet</span>, <span class='ident'>EventLoop</span>};
 
 <span class='kw'>use</span> <span class='ident'>context</span>::{<span class='self'>self</span>, <span class='ident'>stack</span>};
@@ -708,7 +708,7 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Id</span>(<span class='ident'>usize</span>);
 
 <span class='kw'>impl</span> <span class='ident'>Id</span> {
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>id</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>id</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>Id</span>(<span class='ident'>id</span>)
     }
 
@@ -721,7 +721,7 @@
     <span class='kw'>fn</span> <span class='ident'>as_usize</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>usize</span> {
         <span class='self'>self</span>.<span class='number'>0</span>
     }
-    <span class='kw'>fn</span> <span class='ident'>from_usize</span>(<span class='ident'>i</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>from_usize</span>(<span class='ident'>i</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>Id</span>(<span class='ident'>i</span>)
     }
 }
@@ -746,24 +746,24 @@
     <span class='doccomment'>/// Is the `State` `Ready`?</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_ready</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-            <span class='ident'>State</span>::<span class='ident'>Ready</span> <span class='op'>=&gt;</span> <span class='boolval'>true</span>,
-            _ <span class='op'>=&gt;</span> <span class='boolval'>false</span>,
+            <span class='ident'>State</span>::<span class='ident'>Ready</span> <span class='op'>=&gt;</span> <span class='bool-val'>true</span>,
+            _ <span class='op'>=&gt;</span> <span class='bool-val'>false</span>,
         }
     }
 
     <span class='doccomment'>/// Is the `State` `Blocked`?</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_blocked</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-            <span class='ident'>State</span>::<span class='ident'>Blocked</span> <span class='op'>=&gt;</span> <span class='boolval'>true</span>,
-            _ <span class='op'>=&gt;</span> <span class='boolval'>false</span>,
+            <span class='ident'>State</span>::<span class='ident'>Blocked</span> <span class='op'>=&gt;</span> <span class='bool-val'>true</span>,
+            _ <span class='op'>=&gt;</span> <span class='bool-val'>false</span>,
         }
     }
 
     <span class='doccomment'>/// Is the `State` `Yielding`?</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>is_yielding</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-            <span class='ident'>State</span>::<span class='ident'>Yielding</span> <span class='op'>=&gt;</span> <span class='boolval'>true</span>,
-            _ <span class='op'>=&gt;</span> <span class='boolval'>false</span>,
+            <span class='ident'>State</span>::<span class='ident'>Yielding</span> <span class='op'>=&gt;</span> <span class='bool-val'>true</span>,
+            _ <span class='op'>=&gt;</span> <span class='bool-val'>false</span>,
         }
     }
 }
@@ -776,11 +776,11 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>Config</span> {
-    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>Config</span> {
             <span class='ident'>stack_size</span>: <span class='number'>2</span> <span class='op'>*</span> <span class='number'>1024</span> <span class='op'>*</span> <span class='number'>1024</span>,
-            <span class='ident'>catch_panics</span>: <span class='boolval'>true</span>,
-            <span class='ident'>stack_protection</span>: <span class='boolval'>true</span>,
+            <span class='ident'>catch_panics</span>: <span class='bool-val'>true</span>,
+            <span class='ident'>stack_protection</span>: <span class='bool-val'>true</span>,
         }
     }
 }
@@ -973,7 +973,7 @@
             <span class='ident'>coroutines</span>.<span class='ident'>insert_with</span>(<span class='op'>|</span><span class='ident'>id</span><span class='op'>|</span> {
                           <span class='kw'>let</span> <span class='ident'>coroutine</span> <span class='op'>=</span> <span class='ident'>Coroutine</span> {
                               <span class='ident'>state</span>: <span class='ident'>State</span>::<span class='ident'>Ready</span>,
-                              <span class='ident'>killed</span>: <span class='boolval'>false</span>,
+                              <span class='ident'>killed</span>: <span class='bool-val'>false</span>,
                               <span class='ident'>id</span>: <span class='ident'>id</span>,
                               <span class='ident'>last_event</span>: <span class='ident'>Event</span> {
                                   <span class='ident'>rw</span>: <span class='ident'>RW</span>::<span class='ident'>read</span>(),
@@ -1089,9 +1089,9 @@
                              <span class='ident'>rw</span>: <span class='ident'>rw</span>.<span class='ident'>unwrap</span>(),
                              <span class='ident'>id</span>: <span class='ident'>id</span>,
                          });
-            <span class='boolval'>true</span>
+            <span class='bool-val'>true</span>
         } <span class='kw'>else</span> {
-            <span class='boolval'>false</span>
+            <span class='bool-val'>false</span>
         }
     }
 
@@ -1152,7 +1152,7 @@
     <span class='doccomment'>/// Finish coroutine</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>kill</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) {
         {
-            <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>killed</span> <span class='op'>=</span> <span class='boolval'>true</span>;
+            <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>().<span class='ident'>killed</span> <span class='op'>=</span> <span class='bool-val'>true</span>;
         }
         <span class='ident'>coroutine</span>::<span class='ident'>jump_in</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>rc</span>);
     }
@@ -1165,7 +1165,7 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>CoroutineSlabHandle</span> {
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>rc</span>: <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>rc</span>: <span class='ident'>RcCoroutine</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>CoroutineSlabHandle</span> { <span class='ident'>rc</span>: <span class='ident'>rc</span> }
     }
 
@@ -1194,7 +1194,7 @@
         <span class='kw'>if</span> <span class='op'>!</span><span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow</span>().<span class='ident'>state</span>().<span class='ident'>is_blocked</span>() {
             <span class='comment'>// subsequent event to coroutine that is either already</span>
             <span class='comment'>// Exiting, or Ready</span>
-            <span class='kw'>return</span> <span class='boolval'>false</span>;
+            <span class='kw'>return</span> <span class='bool-val'>false</span>;
         }
 
         {
@@ -1203,10 +1203,10 @@
         }
         <span class='comment'>// Wake coroutine on HUP, as it was read, to potentially let it fail the read and move on</span>
         <span class='kw'>let</span> <span class='ident'>event</span> <span class='op'>=</span> <span class='kw'>match</span> (<span class='ident'>events</span>.<span class='ident'>is_readable</span>() <span class='op'>|</span> <span class='ident'>events</span>.<span class='ident'>is_hup</span>(), <span class='ident'>events</span>.<span class='ident'>is_writable</span>()) {
-            (<span class='boolval'>true</span>, <span class='boolval'>true</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>both</span>(),
-            (<span class='boolval'>true</span>, <span class='boolval'>false</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>read</span>(),
-            (<span class='boolval'>false</span>, <span class='boolval'>true</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>write</span>(),
-            (<span class='boolval'>false</span>, <span class='boolval'>false</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
+            (<span class='bool-val'>true</span>, <span class='bool-val'>true</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>both</span>(),
+            (<span class='bool-val'>true</span>, <span class='bool-val'>false</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>read</span>(),
+            (<span class='bool-val'>false</span>, <span class='bool-val'>true</span>) <span class='op'>=&gt;</span> <span class='ident'>RW</span>::<span class='ident'>write</span>(),
+            (<span class='bool-val'>false</span>, <span class='bool-val'>false</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(),
         };
 
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>co</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>borrow_mut</span>();
@@ -1215,7 +1215,7 @@
                        <span class='ident'>rw</span>: <span class='ident'>event</span>,
                        <span class='ident'>id</span>: <span class='ident'>io_id</span>,
                    });
-        <span class='boolval'>true</span>
+        <span class='bool-val'>true</span>
     }
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>id</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>coroutine</span>::<span class='ident'>Id</span> {
@@ -1315,6 +1315,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

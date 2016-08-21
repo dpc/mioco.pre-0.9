@@ -49,22 +49,28 @@
                    </a>
                </span><a id='src-7' class='srclink' href='../src/thread_scoped/lib.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>#[must_use = "thread will be immediately joined if `JoinGuard` is not used"]
-pub struct JoinGuard&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; {
+pub struct JoinGuard&lt;'a,&nbsp;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A RAII guard for that joins a scoped thread upon drop</p>
 
 <h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
 <p><code>JoinGuard</code> will panic on join or drop if its owned thread panics</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.thread' class='method'><code>fn <a href='#method.thread' class='fnname'>thread</a>(&amp;self) -&gt; &amp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html' title='std::thread::Thread'>Thread</a></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a,&nbsp;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a,&nbsp;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-15' class='srclink' href='../src/thread_scoped/lib.rs.html#28-45' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.thread' class='method'><span id='thread.v' class='invisible'><code>fn <a href='#method.thread' class='fnname'>thread</a>(&amp;self) -&gt; &amp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/thread/struct.Thread.html' title='std::thread::Thread'>Thread</a></code></span></h4>
 <div class='docblock'><p>Provides the backing <code>Thread</code> object</p>
-</div><h4 id='method.join' class='method'><code>fn <a href='#method.join' class='fnname'>join</a>(self) -&gt; T</code></h4>
+</div><h4 id='method.join' class='method'><span id='join.v' class='invisible'><code>fn <a href='#method.join' class='fnname'>join</a>(self) -&gt; T</code></span></h4>
 <div class='docblock'><p>Joins the guarded thread and returns its result</p>
 
 <h1 id='panics-1' class='section-header'><a href='#panics-1'>Panics</a></h1>
 <p><code>join()</code> will panic if the owned thread panics</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'></div><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static&gt; <a class='trait' href='../thread_scoped/trait.ScopedDetach.html' title='thread_scoped::ScopedDetach'>ScopedDetach</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'static, T&gt;</code></h3><div class='impl-items'><h4 id='method.detach' class='method'><code>fn <a href='../thread_scoped/trait.ScopedDetach.html#tymethod.detach' class='fnname'>detach</a>(self)</code></h4>
-</div><h3 class='impl'><code>impl&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a, T&gt;</code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a,&nbsp;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html' title='core::marker::Sync'>Sync</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a,&nbsp;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-12' class='srclink' href='../src/thread_scoped/lib.rs.html#26' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static&gt; <a class='trait' href='../thread_scoped/trait.ScopedDetach.html' title='thread_scoped::ScopedDetach'>ScopedDetach</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'static,&nbsp;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-29' class='srclink' href='../src/thread_scoped/lib.rs.html#55-59' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.detach' class='method'><span id='detach.v' class='invisible'><code>fn <a href='../thread_scoped/trait.ScopedDetach.html#tymethod.detach' class='fnname'>detach</a>(self)</code></span></h4>
+<div class='docblock'><p>Detaches a child thread from its guard <a href="../thread_scoped/trait.ScopedDetach.html#tymethod.detach">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'a,&nbsp;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../thread_scoped/struct.JoinGuard.html' title='thread_scoped::JoinGuard'>JoinGuard</a>&lt;'a,&nbsp;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-33' class='srclink' href='../src/thread_scoped/lib.rs.html#70-76' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.drop' class='method'><span id='drop.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></span></h4>
+<div class='docblock'><p>A method called when the value goes out of scope. <a href="https://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#tymethod.drop">Read more</a></p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -87,6 +93,8 @@ pub struct JoinGuard&lt;'a, T: <a class='trait' href='https://doc.rust-lang.org/
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

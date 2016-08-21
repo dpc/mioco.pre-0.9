@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/owning_ref-0.1.4/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-1ecc6299db9ec823/owning_ref-0.2.0/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -887,11 +887,11 @@ fn main() {
 <span class='doccomment'>/// Helper trait for erasing the concrete type of what an owner derferences to,</span>
 <span class='doccomment'>/// for example `Box&lt;T&gt; -&gt; Box&lt;Erased&gt;`. This would be unneeded with</span>
 <span class='doccomment'>/// higher kinded types support in the language.</span>
-<span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>trait</span> <span class='ident'>IntoErased</span> {
+<span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>trait</span> <span class='ident'>IntoErased</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
     <span class='doccomment'>/// Owner with the dereference type substituted to `Erased`.</span>
     <span class='kw'>type</span> <span class='ident'>Erased</span>;
     <span class='doccomment'>/// Perform the type erasure.</span>
-    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Self</span>::<span class='ident'>Erased</span>;
+    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span>::<span class='ident'>Erased</span>;
 }
 
 <span class='comment'>/////////////////////////////////////////////////////////////////////////////</span>
@@ -912,7 +912,7 @@ fn main() {
     <span class='doccomment'>///     assert_eq!(*owning_ref, 42);</span>
     <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>o</span>: <span class='ident'>O</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>o</span>: <span class='ident'>O</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span>
         <span class='kw'>where</span> <span class='ident'>O</span>: <span class='ident'>StableAddress</span>,
               <span class='ident'>O</span>: <span class='ident'>Deref</span><span class='op'>&lt;</span><span class='ident'>Target</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>,
     {
@@ -984,8 +984,8 @@ fn main() {
     <span class='doccomment'>///     assert_eq!(*owning_refs[1], 1);</span>
     <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>erase_owner</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>OwningRef</span><span class='op'>&lt;</span><span class='ident'>O</span>::<span class='ident'>Erased</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
-        <span class='kw'>where</span> <span class='ident'>O</span>: <span class='ident'>IntoErased</span>,
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>erase_owner</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>OwningRef</span><span class='op'>&lt;</span><span class='ident'>O</span>::<span class='ident'>Erased</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
+        <span class='kw'>where</span> <span class='ident'>O</span>: <span class='ident'>IntoErased</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>,
     {
         <span class='ident'>OwningRef</span> {
             <span class='ident'>reference</span>: <span class='self'>self</span>.<span class='ident'>reference</span>,
@@ -1036,7 +1036,7 @@ fn main() {
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>O</span>, <span class='ident'>T</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span> <span class='ident'>From</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>OwningRef</span><span class='op'>&lt;</span><span class='ident'>O</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
     <span class='kw'>where</span> <span class='ident'>O</span>: <span class='ident'>StableAddress</span>, <span class='ident'>O</span>: <span class='ident'>Deref</span><span class='op'>&lt;</span><span class='ident'>Target</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>,
 {
-    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>owner</span>: <span class='ident'>O</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>from</span>(<span class='ident'>owner</span>: <span class='ident'>O</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>OwningRef</span>::<span class='ident'>new</span>(<span class='ident'>owner</span>)
     }
 }
@@ -1055,7 +1055,7 @@ fn main() {
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>O</span>, <span class='ident'>T</span>: ?<span class='ident'>Sized</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>OwningRef</span><span class='op'>&lt;</span><span class='ident'>O</span>, <span class='ident'>T</span><span class='op'>&gt;</span>
     <span class='kw'>where</span> <span class='ident'>O</span>: <span class='ident'>CloneStableAddress</span>,
 {
-    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>OwningRef</span> {
             <span class='ident'>owner</span>: <span class='self'>self</span>.<span class='ident'>owner</span>.<span class='ident'>clone</span>(),
             <span class='ident'>reference</span>: <span class='self'>self</span>.<span class='ident'>reference</span>,
@@ -1122,17 +1122,17 @@ fn main() {
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>RwLockWriteGuardRef</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>U</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>
     <span class='op'>=</span> <span class='ident'>OwningRef</span><span class='op'>&lt;</span><span class='ident'>RwLockWriteGuard</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span><span class='op'>&gt;</span>, <span class='ident'>U</span><span class='op'>&gt;</span>;
 
-<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span> <span class='kw'>for</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Erased</span> <span class='op'>=</span> <span class='ident'>Box</span><span class='op'>&lt;</span><span class='ident'>Erased</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>;
-    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
+    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
 }
-<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span> <span class='kw'>for</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Erased</span> <span class='op'>=</span> <span class='ident'>Rc</span><span class='op'>&lt;</span><span class='ident'>Erased</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>;
-    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
+    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
 }
-<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span> <span class='kw'>for</span> <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
+<span class='kw'>unsafe</span> <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>IntoErased</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='kw'>for</span> <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Erased</span> <span class='op'>=</span> <span class='ident'>Arc</span><span class='op'>&lt;</span><span class='ident'>Erased</span> <span class='op'>+</span> <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>;
-    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
+    <span class='kw'>fn</span> <span class='ident'>into_erased</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='self'>Self</span>::<span class='ident'>Erased</span> { <span class='self'>self</span> }
 }
 
 <span class='doccomment'>/// Typedef of a owning reference that uses an erased `Box` as the owner.</span>
@@ -1144,7 +1144,7 @@ fn main() {
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>tests</span> {
-    <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>OwningRef</span>, <span class='ident'>BoxRef</span>, <span class='ident'>Erased</span>, <span class='ident'>ErasedBoxRef</span>};
+    <span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>OwningRef</span>, <span class='ident'>BoxRef</span>, <span class='ident'>Erased</span>, <span class='ident'>ErasedBoxRef</span>};
 
     <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>, <span class='ident'>PartialEq</span>)]</span>
     <span class='kw'>struct</span> <span class='ident'>Example</span>(<span class='ident'>u32</span>, <span class='ident'>String</span>, [<span class='ident'>u8</span>; <span class='number'>3</span>]);
@@ -1256,9 +1256,9 @@ fn main() {
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>raii_locks</span>() {
-        <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>RefRef</span>, <span class='ident'>RefMutRef</span>};
+        <span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>RefRef</span>, <span class='ident'>RefMutRef</span>};
         <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cell</span>::<span class='ident'>RefCell</span>;
-        <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>MutexGuardRef</span>, <span class='ident'>RwLockReadGuardRef</span>, <span class='ident'>RwLockWriteGuardRef</span>};
+        <span class='kw'>use</span> <span class='kw'>super</span>::{<span class='ident'>MutexGuardRef</span>, <span class='ident'>RwLockReadGuardRef</span>, <span class='ident'>RwLockWriteGuardRef</span>};
         <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::{<span class='ident'>Mutex</span>, <span class='ident'>RwLock</span>};
 
         {
@@ -1337,6 +1337,8 @@ fn main() {
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

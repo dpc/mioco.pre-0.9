@@ -47,15 +47,16 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-1664' class='srclink' href='../src/mioco/src/mod.rs.html#543-546' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-1674' class='srclink' href='../src/mioco/src/mod.rs.html#543-546' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Mioco {
     // some fields omitted
 }</pre><div class='docblock'><p>Mioco instance.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1677' class='srclink' href='../src/mioco/src/mod.rs.html#548-685' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></span></h4>
 <div class='docblock'><p>Create new <code>Mioco</code> instance.</p>
-</div><h4 id='method.new_configured' class='method'><code>fn <a href='#method.new_configured' class='fnname'>new_configured</a>(config: <a class='struct' href='../mioco/struct.Config.html' title='mioco::Config'>Config</a>) -&gt; Self</code></h4>
+</div><h4 id='method.new_configured' class='method'><span id='new_configured.v' class='invisible'><code>fn <a href='#method.new_configured' class='fnname'>new_configured</a>(config: <a class='struct' href='../mioco/struct.Config.html' title='mioco::Config'>Config</a>) -&gt; Self</code></span></h4>
 <div class='docblock'><p>Create new <code>Mioco</code> instance with custom configuration.</p>
-</div><h4 id='method.start' class='method'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F, T&gt;(&amp;mut self, f: F) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/thread/type.Result.html' title='std::thread::Result'>Result</a>&lt;T&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; T, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></h4>
+</div><h4 id='method.start' class='method'><span id='start.v' class='invisible'><code>fn <a href='#method.start' class='fnname'>start</a>&lt;F,&nbsp;T&gt;(&amp;mut self, f: F) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/thread/type.Result.html' title='std::thread::Result'>Result</a>&lt;T&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; T, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static, T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> + 'static</span></code></span></h4>
 <div class='docblock'><p>Start mioco instance.</p>
 
 <p>Takes a starting handler function that will be executed in <code>mioco</code> environment.</p>
@@ -65,8 +66,10 @@
 <p>Returns the result of the <code>f</code>.</p>
 
 <p>See <code>MiocoHandle::start()</code>.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; Self</code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../mioco/struct.Mioco.html' title='mioco::Mioco'>Mioco</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1750' class='srclink' href='../src/mioco/src/mod.rs.html#687-691' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class='method'><span id='default.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -89,6 +92,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

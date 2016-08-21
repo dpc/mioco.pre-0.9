@@ -197,12 +197,13 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class='rust '>
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>RW</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
-<span class='kw'>use</span> <span class='ident'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>RW</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>thread</span>::<span class='ident'>Handler</span>;
+<span class='kw'>use</span> <span class='kw'>super</span>::<span class='ident'>evented</span>::{<span class='ident'>EventSourceTrait</span>, <span class='ident'>RcEventSource</span>, <span class='ident'>Evented</span>, <span class='ident'>EventedImpl</span>};
 <span class='kw'>use</span> <span class='ident'>mio_orig</span>::{<span class='self'>self</span>, <span class='ident'>EventLoop</span>, <span class='ident'>Token</span>, <span class='ident'>EventSet</span>};
-<span class='kw'>use</span> <span class='ident'>time</span>::{<span class='ident'>SteadyTime</span>, <span class='ident'>Duration</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::{<span class='ident'>Instant</span>, <span class='ident'>Duration</span>};
 
 <span class='doccomment'>/// A Timer generating event after a given time</span>
 <span class='doccomment'>///</span>
@@ -217,7 +218,7 @@
 
 <span class='kw'>struct</span> <span class='ident'>TimerCore</span> {
     <span class='comment'>// TODO: Rename these two?</span>
-    <span class='ident'>timeout</span>: <span class='ident'>SteadyTime</span>,
+    <span class='ident'>timeout</span>: <span class='ident'>Instant</span>,
     <span class='ident'>mio_timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>mio_orig</span>::<span class='ident'>Timeout</span><span class='op'>&gt;</span>,
 }
 
@@ -225,7 +226,7 @@
     <span class='doccomment'>/// Create a new timer</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='ident'>Timer</span> {
         <span class='kw'>let</span> <span class='ident'>timer_core</span> <span class='op'>=</span> <span class='ident'>TimerCore</span> {
-            <span class='ident'>timeout</span>: <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>(),
+            <span class='ident'>timeout</span>: <span class='ident'>Instant</span>::<span class='ident'>now</span>(),
             <span class='ident'>mio_timeout</span>: <span class='prelude-val'>None</span>,
         };
         <span class='ident'>Timer</span> { <span class='ident'>rc</span>: <span class='ident'>RcEventSource</span>::<span class='ident'>new</span>(<span class='ident'>timer_core</span>) }
@@ -238,7 +239,7 @@
 
 
 <span class='kw'>impl</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>Timer</span> {
-    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>Timer</span>::<span class='ident'>new</span>()
     }
 }
@@ -257,7 +258,7 @@
     <span class='doccomment'>/// Returns current time</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// TODO: Return wakeup time instead</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>SteadyTime</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Instant</span> {
         <span class='kw'>loop</span> {
             <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>t</span>) <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>try_read</span>() {
                 <span class='kw'>return</span> <span class='ident'>t</span>;
@@ -270,11 +271,11 @@
     <span class='doccomment'>/// Try reading current time (if the timer is done)</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// TODO: Return wakeup time instead</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>SteadyTime</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Instant</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>done</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>is_done</span>();
 
         <span class='kw'>if</span> <span class='ident'>done</span> {
-            <span class='prelude-val'>Some</span>(<span class='ident'>SteadyTime</span>::<span class='ident'>now</span>())
+            <span class='prelude-val'>Some</span>(<span class='ident'>Instant</span>::<span class='ident'>now</span>())
         } <span class='kw'>else</span> {
             <span class='prelude-val'>None</span>
         }
@@ -286,18 +287,18 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Note the timer effective resolution is limited by underlying mio</span>
     <span class='doccomment'>/// timer. See `mioco::sleep()` for details.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>delay_ms</span>: <span class='ident'>i64</span>) {
-        <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_mut</span>().<span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>() <span class='op'>+</span> <span class='ident'>Duration</span>::<span class='ident'>milliseconds</span>(<span class='ident'>delay_ms</span>);
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>delay_ms</span>: <span class='ident'>u64</span>) {
+        <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_mut</span>().<span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>Instant</span>::<span class='ident'>now</span>() <span class='op'>+</span> <span class='ident'>Duration</span>::<span class='ident'>from_millis</span>(<span class='ident'>delay_ms</span>);
     }
 
     <span class='doccomment'>/// Set timeout for the timer using absolute time.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout_absolute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>timeout</span>: <span class='ident'>SteadyTime</span>) {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout_absolute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>timeout</span>: <span class='ident'>Instant</span>) {
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_mut</span>().<span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout</span>;
     }
 
 
     <span class='doccomment'>/// Get absolute value of the timer timeout.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_timeout_absolute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>SteadyTime</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_timeout_absolute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Instant</span> {
         <span class='self'>self</span>.<span class='ident'>rc</span>.<span class='ident'>io_ref</span>().<span class='ident'>timeout</span>
     }
 }
@@ -305,8 +306,8 @@
 <span class='kw'>impl</span> <span class='ident'>TimerCore</span> {
     <span class='kw'>fn</span> <span class='ident'>should_resume</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Timer: should_resume? {}&quot;</span>,
-               <span class='self'>self</span>.<span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>());
-        <span class='self'>self</span>.<span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>()
+               <span class='self'>self</span>.<span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>Instant</span>::<span class='ident'>now</span>());
+        <span class='self'>self</span>.<span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>Instant</span>::<span class='ident'>now</span>()
     }
 }
 
@@ -316,15 +317,16 @@
                 <span class='ident'>token</span>: <span class='ident'>Token</span>,
                 <span class='ident'>_interest</span>: <span class='ident'>EventSet</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
         <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>timeout</span>;
-        <span class='kw'>let</span> <span class='ident'>now</span> <span class='op'>=</span> <span class='ident'>SteadyTime</span>::<span class='ident'>now</span>();
+        <span class='kw'>let</span> <span class='ident'>now</span> <span class='op'>=</span> <span class='ident'>Instant</span>::<span class='ident'>now</span>();
         <span class='kw'>let</span> <span class='ident'>delay</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>timeout</span> <span class='op'>&lt;=</span> <span class='ident'>now</span> {
-            <span class='kw'>return</span> <span class='boolval'>true</span>
+            <span class='kw'>return</span> <span class='bool-val'>true</span>
         } <span class='kw'>else</span> {
-            (<span class='ident'>timeout</span> <span class='op'>-</span> <span class='ident'>now</span>).<span class='ident'>num_milliseconds</span>()
+            <span class='kw'>let</span> <span class='ident'>elapsed</span> <span class='op'>=</span> <span class='ident'>timeout</span> <span class='op'>-</span> <span class='ident'>now</span>;
+            <span class='ident'>elapsed</span>.<span class='ident'>as_secs</span>() <span class='op'>*</span> <span class='number'>1000</span> <span class='op'>+</span> (<span class='ident'>elapsed</span>.<span class='ident'>subsec_nanos</span>() <span class='op'>/</span> <span class='number'>1000_000</span>) <span class='kw'>as</span> <span class='ident'>u64</span>
         };
 
         <span class='macro'>trace</span><span class='macro'>!</span>(<span class='string'>&quot;Timer({}): set timeout in {}ms&quot;</span>, <span class='ident'>token</span>.<span class='ident'>as_usize</span>(), <span class='ident'>delay</span>);
-        <span class='kw'>match</span> <span class='ident'>event_loop</span>.<span class='ident'>timeout_ms</span>(<span class='ident'>token</span>, <span class='ident'>delay</span> <span class='kw'>as</span> <span class='ident'>u64</span>) {
+        <span class='kw'>match</span> <span class='ident'>event_loop</span>.<span class='ident'>timeout_ms</span>(<span class='ident'>token</span>, <span class='ident'>delay</span>) {
             <span class='prelude-val'>Ok</span>(<span class='ident'>timeout</span>) <span class='op'>=&gt;</span> {
                 <span class='self'>self</span>.<span class='ident'>mio_timeout</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>timeout</span>);
             }
@@ -332,7 +334,7 @@
                 <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Could not create mio::Timeout: {:?}&quot;</span>, <span class='ident'>reason</span>);
             }
         }
-        <span class='boolval'>false</span>
+        <span class='bool-val'>false</span>
     }
 
     <span class='kw'>fn</span> <span class='ident'>reregister</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>,
@@ -377,6 +379,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

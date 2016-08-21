@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-28' class='srclink' href='../../src/context/context.rs.html#63' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-27' class='srclink' href='../../src/context/context.rs.html#63' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Context(_);</pre><div class='docblock'><p>A <code>Context</code> stores a <code>ContextFn</code>&#39;s state of execution, for it to be resumed later.</p>
 
 <p>If we have 2 or more <code>Context</code> instances, we can thus easily &quot;freeze&quot; the
@@ -57,11 +57,12 @@ can in turn &quot;freeze&quot; and switch to another <code>Context</code>.</p>
 
 <h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
 <p>See <a href="https://github.com/zonyitoo/context-rs/blob/master/examples/basic.rs">examples/basic.rs</a></p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(stack: &amp;<a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>, f: <a class='type' href='../../context/context/type.ContextFn.html' title='context::context::ContextFn'>ContextFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-30' class='srclink' href='../../src/context/context.rs.html#67-111' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>(stack: &amp;<a class='struct' href='../../context/stack/struct.Stack.html' title='context::stack::Stack'>Stack</a>, f: <a class='type' href='../../context/context/type.ContextFn.html' title='context::context::ContextFn'>ContextFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></span></h4>
 <div class='docblock'><p>Creates a new <code>Context</code> prepared to execute <code>f</code> at the beginning of <code>stack</code>.</p>
 
 <p><code>f</code> is not executed until the first call to <code>resume()</code>.</p>
-</div><h4 id='method.resume' class='method'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a></code></h4>
+</div><h4 id='method.resume' class='method'><span id='resume.v' class='invisible'><code>fn <a href='#method.resume' class='fnname'>resume</a>(self, data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a></code></span></h4>
 <div class='docblock'><p>Yields the execution to another <code>Context</code>.</p>
 
 <p>The exact behaviour of this method is implementation defined, but the general mechanism is:
@@ -73,7 +74,7 @@ that the call to <code>resume()</code> only returns when someone resumes the cal
 
 <p>The returned <code>Transfer</code> struct contains the previously active <code>Context</code> and
 the <code>data</code> argument used to resume the current one.</p>
-</div><h4 id='method.resume_ontop' class='method'><code>fn <a href='#method.resume_ontop' class='fnname'>resume_ontop</a>(self, data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, f: <a class='type' href='../../context/context/type.ResumeOntopFn.html' title='context::context::ResumeOntopFn'>ResumeOntopFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a></code></h4>
+</div><h4 id='method.resume_ontop' class='method'><span id='resume_ontop.v' class='invisible'><code>fn <a href='#method.resume_ontop' class='fnname'>resume_ontop</a>(self, data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, f: <a class='type' href='../../context/context/type.ResumeOntopFn.html' title='context::context::ResumeOntopFn'>ResumeOntopFn</a>) -&gt; <a class='struct' href='../../context/context/struct.Transfer.html' title='context::context::Transfer'>Transfer</a></code></span></h4>
 <div class='docblock'><p>Yields the execution to another <code>Context</code> and executes a function &quot;ontop&quot; of it&#39;s stack.</p>
 
 <p>This method identical to <code>resume()</code> with a minor difference:</p>
@@ -89,8 +90,10 @@ to another one before it&#39;s returned, without the targeted <code>Context</cod
 For instance it can be used to unwind the stack of an unfinished <code>Context</code>,
 by calling this method with a function that panics, or to deallocate the own stack,
 by deferring the actual deallocation until we jumped to another, safe <code>Context</code>.</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../context/context/struct.Context.html' title='context::context::Context'>Context</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-41' class='srclink' href='../../src/context/context.rs.html#113-117' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -113,6 +116,8 @@ by deferring the actual deallocation until we jumped to another, safe <code>Cont
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

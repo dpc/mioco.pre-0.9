@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-93' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-0' class='srclink' href='../src/mioco/lib.rs.html#4-92' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='mioco' class='section-header'><a href='#mioco'>Mioco</a></h1>
 <p>Scalable, coroutine-based, asynchronous IO handling library for Rust
@@ -63,13 +63,13 @@ convert existing code to Mioco.</p>
 
 <p>Mioco coroutines should not use any native blocking-IO operations.  Any
 long-running operations, or blocking IO should be executed in
-<code>mioco::sync()</code> blocks.</p>
+<code>mioco::offload()</code> blocks.</p>
 
 <h1 id='a-namefeaturesa-features' class='section-header'><a href='#a-namefeaturesa-features'><a name="features"></a> Features:</a></h1>
 <pre><code class="language-norust">* multithreading support; (see `Config::set_thread_num()`)
 * timers (see `timer` module);
 * coroutine exit notification (see `JoinHandle`).
-* synchronous operations support (see `MiocoHandle::sync()`).
+* synchronous operations support (see `mioco::offload()`).
 * synchronization primitives (see `sync` module):
   * channels (see `sync::mpsc::channel()`);
   * support for synchronization with native environment (outside of Mioco instance)
@@ -193,13 +193,35 @@ long-running operations, or blocking IO should be executed in
                            <td class='docblock short'>
                                 <p>Read/Write/Both/None</p>
                            </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.RcEventSource.html'
+                                  title='mioco::RcEventSource'>RcEventSource</a></td>
+                           <td class='docblock short'>
+                                <p>To share the data between coroutine itself and the coroutine internals
+referring to the blocked event sources, <code>RcEventSource</code> is being used.</p>
+                           </td>
                        </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.EventSourceTrait.html'
+                                  title='mioco::EventSourceTrait'>EventSourceTrait</a></td>
+                           <td class='docblock short'>
+                                <p>Trait for coroutine event source</p>
+                           </td>
+                       </tr>
                        <tr class=' module-item'>
                            <td><a class='trait' href='trait.Evented.html'
                                   title='mioco::Evented'>Evented</a></td>
                            <td class='docblock short'>
                                 <p>Mioco event source.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.EventedImpl.html'
+                                  title='mioco::EventedImpl'>EventedImpl</a></td>
+                           <td class='docblock short'>
+                                <p>Utility trait that simplifies implementing <code>Evented</code></p>
                            </td>
                        </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
@@ -215,6 +237,13 @@ long-running operations, or blocking IO should be executed in
                                   title='mioco::in_coroutine'>in_coroutine</a></td>
                            <td class='docblock short'>
                                 <p>Check if running inside a mioco coroutine.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.offload.html'
+                                  title='mioco::offload'>offload</a></td>
+                           <td class='docblock short'>
+                                <p>Execute a block of blocking operations outside of mioco.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
@@ -263,7 +292,7 @@ long-running operations, or blocking IO should be executed in
                            <td><a class='fn' href='fn.spawn.html'
                                   title='mioco::spawn'>spawn</a></td>
                            <td class='docblock short'>
-                                <p>Spawn a mioco coroutine.</p>
+                                <p>Spawn a mioco coroutine that executes the given function.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
@@ -316,6 +345,8 @@ long-running operations, or blocking IO should be executed in
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

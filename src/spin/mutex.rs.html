@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-88ac128001ac3a9a/spin-0.4.2/src/mutex.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/dpc/.cargo/registry/src/github.com-1ecc6299db9ec823/spin-0.4.3/src/mutex.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>mutex.rs.html -- source</title>
@@ -601,7 +601,7 @@
 {
     <span class='kw'>fn</span> <span class='ident'>obtain_lock</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>)
     {
-        <span class='kw'>while</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='boolval'>false</span>, <span class='boolval'>true</span>, <span class='ident'>Ordering</span>::<span class='ident'>Acquire</span>) <span class='op'>!=</span> <span class='boolval'>false</span>
+        <span class='kw'>while</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='bool-val'>false</span>, <span class='bool-val'>true</span>, <span class='ident'>Ordering</span>::<span class='ident'>Acquire</span>) <span class='op'>!=</span> <span class='bool-val'>false</span>
         {
             <span class='ident'>cpu_relax</span>();
         }
@@ -634,9 +634,9 @@
 
     <span class='doccomment'>/// Tries to lock the mutex. If it is already locked, it will return None. Otherwise it returns</span>
     <span class='doccomment'>/// a guard within Some.</span>
-    <span class='kw'>fn</span> <span class='ident'>try_lock</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_lock</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>MutexGuard</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;&gt;</span>
     {
-        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='boolval'>false</span>, <span class='boolval'>true</span>, <span class='ident'>Ordering</span>::<span class='ident'>Acquire</span>) <span class='op'>==</span> <span class='boolval'>false</span>
+        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>compare_and_swap</span>(<span class='bool-val'>false</span>, <span class='bool-val'>true</span>, <span class='ident'>Ordering</span>::<span class='ident'>Acquire</span>) <span class='op'>==</span> <span class='bool-val'>false</span>
         {
             <span class='prelude-val'>Some</span>(
                 <span class='ident'>MutexGuard</span> {
@@ -686,7 +686,7 @@
     <span class='doccomment'>/// The dropping of the MutexGuard will release the lock it was created from.</span>
     <span class='kw'>fn</span> <span class='ident'>drop</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>)
     {
-        <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>store</span>(<span class='boolval'>false</span>, <span class='ident'>Ordering</span>::<span class='ident'>Release</span>);
+        <span class='self'>self</span>.<span class='ident'>lock</span>.<span class='ident'>store</span>(<span class='bool-val'>false</span>, <span class='ident'>Ordering</span>::<span class='ident'>Release</span>);
     }
 }
 
@@ -699,7 +699,7 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>};
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
 
-    <span class='kw'>use</span> <span class='ident'>super</span>::<span class='op'>*</span>;
+    <span class='kw'>use</span> <span class='kw'>super</span>::<span class='op'>*</span>;
 
     <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Eq</span>, <span class='ident'>PartialEq</span>, <span class='ident'>Debug</span>)]</span>
     <span class='kw'>struct</span> <span class='ident'>NonCopy</span>(<span class='ident'>i32</span>);
@@ -857,6 +857,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 
