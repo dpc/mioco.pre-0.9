@@ -27,7 +27,7 @@ Rust community decided that `futures` should be main Rust async IO story, and we
 stick to it.
 
 Right now I'm working on (looking for help, as always!) on
-[tokio-fiber](tokio-fiber: coroutines as `Future`s)
+[tokio-fiber: coroutines as `Future`s](https://github.com/dpc/tokio-fiber/)
 project, which should have mioco-like API and allow easily porting code using `mioco`.
 
 ## Code snippet
