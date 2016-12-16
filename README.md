@@ -17,6 +17,18 @@
   <strong><a href="//dpc.github.io/mioco/">Documentation</a></strong>
 </p>
 
+## Project status
+
+I (dpc, the main author) cosider this project **Abandoned** ATM. The code is still working,
+and I'll be happy to merge fixes and so on, but I don't plan to actively develop it further
+myself. I would be happy to hand it over if anyone is interested.
+
+Rust community decided that `futures` should be main Rust async IO story, and we should
+stick to it.
+
+Right now I'm working on (looking for help, as always!) on
+[tokio-fiber](tokio-fiber: coroutines as `Future`s)
+project, which should have mioco-like API and allow easily porting code using `mioco`.
 
 ## Code snippet
 
