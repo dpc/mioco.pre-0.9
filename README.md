@@ -1,5 +1,7 @@
 # mioco
 
+[![Join the chat at https://gitter.im/dpc/mioco](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dpc/mioco?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 <p align="center">
   <a href="https://travis-ci.org/dpc/mioco">
       <img src="https://img.shields.io/travis/dpc/mioco/master.svg?style=flat-square" alt="Travis CI Build Status">
