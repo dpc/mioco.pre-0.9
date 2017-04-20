@@ -19,14 +19,13 @@
 
 ## Project status
 
-I (dpc, the main author) cosider this project **Abandoned** ATM. The code is still working,
-and I'll be happy to merge fixes and so on, but I don't plan to actively develop it further
-myself. I would be happy to hand it over if anyone is interested.
+This is repository for mioco before version 0.9. It's hear for historical reasons, while
+I've started reworking mioco in the original location: https://github.com/dpc/mioco .
+Sorry for all the confusion.
 
-Rust community decided that `futures` should be main Rust async IO story, and we should
-stick to it.
 
-Right now I'm working on (looking for help, as always!) on
+Rust community decided that `futures` should be main Rust async IO story, so you
+might want to look at
 [tokio-fiber: coroutines as `Future`s](https://github.com/dpc/tokio-fiber/)
 project, which should have mioco-like API and allow easily porting code using `mioco`.
 
