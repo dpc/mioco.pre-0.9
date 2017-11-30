@@ -15,11 +15,13 @@ pub struct Timer {
     rc: RcEventSource<TimerCore>,
 }
 
-struct TimerCore {
+#[doc(hidden)]
+pub struct __TimerCore {
     // TODO: Rename these two?
     timeout: Instant,
     mio_timeout: Option<mio_orig::Timeout>,
 }
+use self::__TimerCore as TimerCore;
 
 impl Timer {
     /// Create a new timer
