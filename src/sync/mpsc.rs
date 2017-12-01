@@ -23,11 +23,13 @@ struct ChannelShared {
 /// Create with `channel()`
 pub struct Receiver<T>(RcEventSource<ReceiverCore<T>>);
 
-struct ReceiverCore<T> {
+#[doc(hidden)]
+pub struct __ReceiverCore<T> {
     receiver: mpsc::Receiver<T>,
     shared: ArcChannelShared,
     counter: ArcCounter,
 }
+use self::__ReceiverCore as ReceiverCore;
 
 impl<T> EventedImpl for Receiver<T>
     where T: 'static
